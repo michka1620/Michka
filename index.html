@@ -272,6 +272,68 @@
 </head>
 <body>
 
+<!-- ===================== SETUP WIZARD ===================== -->
+<div id="setup-wizard" style="display:none;position:fixed;inset:0;background:#000;z-index:10000;align-items:center;justify-content:center;font-family:'Segoe UI',Arial,sans-serif;">
+  <div style="background:#111;border:1px solid #333;border-radius:14px;padding:36px 32px;width:480px;max-width:95vw;box-shadow:0 20px 60px rgba(0,0,0,0.9);">
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="font-size:32px;margin-bottom:8px;">⚙️</div>
+      <div style="font-weight:900;font-size:17px;color:#fff;letter-spacing:1px;margin-bottom:6px;">CONFIGURACIÓN INICIAL</div>
+      <div style="font-size:12px;color:#666;line-height:1.6;">Solo necesitas hacer esto UNA VEZ.<br>Sigue los 3 pasos a continuación.</div>
+    </div>
+
+    <!-- Step 1 -->
+    <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:10px;padding:16px;margin-bottom:12px;">
+      <div style="font-size:11px;font-weight:800;color:#6b7280;letter-spacing:2px;margin-bottom:10px;">PASO 1 — CREAR BASE DE DATOS GRATIS</div>
+      <div style="font-size:13px;color:#d1d5db;line-height:1.7;">
+        1. Abre una nueva pestaña → <a href="https://supabase.com" target="_blank" style="color:#60a5fa;">supabase.com</a><br>
+        2. Click <strong style="color:#fff;">"Sign Up"</strong> (gratis, con tu email)<br>
+        3. Click <strong style="color:#fff;">"New Project"</strong> → escribe cualquier nombre → <strong style="color:#fff;">"Create"</strong><br>
+        4. Espera ~2 minutos a que cargue
+      </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:10px;padding:16px;margin-bottom:12px;">
+      <div style="font-size:11px;font-weight:800;color:#6b7280;letter-spacing:2px;margin-bottom:10px;">PASO 2 — CREAR LA TABLA (copy & paste)</div>
+      <div style="font-size:13px;color:#d1d5db;line-height:1.7;margin-bottom:10px;">
+        En Supabase → <strong style="color:#fff;">SQL Editor</strong> → <strong style="color:#fff;">New Query</strong> → pega esto y click <strong style="color:#fff;">Run</strong>:
+      </div>
+      <div style="background:#0d0d0d;border:1px solid #333;border-radius:6px;padding:10px;position:relative;">
+        <pre style="font-size:11px;color:#86efac;font-family:monospace;white-space:pre-wrap;margin:0;">CREATE TABLE invoices (
+  number TEXT PRIMARY KEY,
+  data JSONB NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+ALTER TABLE invoices ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "auth" ON invoices FOR ALL
+  TO authenticated USING (true) WITH CHECK (true);</pre>
+        <button onclick="copySQL()" style="position:absolute;top:8px;right:8px;background:#334155;border:none;color:#94a3b8;padding:4px 10px;border-radius:4px;font-size:11px;cursor:pointer;" id="copy-sql-btn">📋 Copiar</button>
+      </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:10px;padding:16px;margin-bottom:16px;">
+      <div style="font-size:11px;font-weight:800;color:#6b7280;letter-spacing:2px;margin-bottom:10px;">PASO 3 — PEGA TUS CREDENCIALES AQUÍ</div>
+      <div style="font-size:12px;color:#9ca3af;margin-bottom:8px;">En Supabase → <strong style="color:#d1d5db;">Project Settings</strong> → <strong style="color:#d1d5db;">API</strong></div>
+      <div id="setup-error" style="display:none;background:#7f1d1d;color:#fca5a5;padding:8px 12px;border-radius:6px;font-size:12px;margin-bottom:10px;"></div>
+      <div style="margin-bottom:10px;">
+        <label style="font-size:11px;color:#6b7280;display:block;margin-bottom:4px;">PROJECT URL (empieza con https://)</label>
+        <input id="setup-url" type="text" placeholder="https://xxxxxxxx.supabase.co"
+          style="width:100%;background:#0d0d0d;border:1px solid #333;border-radius:6px;color:#e2e8f0;padding:10px 12px;font-size:13px;outline:none;">
+      </div>
+      <div>
+        <label style="font-size:11px;color:#6b7280;display:block;margin-bottom:4px;">ANON PUBLIC KEY (la clave larga eyJ...)</label>
+        <input id="setup-key" type="text" placeholder="eyJhbGci..."
+          style="width:100%;background:#0d0d0d;border:1px solid #333;border-radius:6px;color:#e2e8f0;padding:10px 12px;font-size:13px;outline:none;">
+      </div>
+    </div>
+
+    <button onclick="saveSetup()" style="width:100%;background:linear-gradient(135deg,#16a34a,#22c55e);border:none;color:#fff;padding:14px;border-radius:8px;font-size:15px;font-weight:800;cursor:pointer;letter-spacing:0.5px;">
+      ✅ Guardar y Continuar
+    </button>
+  </div>
+</div>
+
 <!-- ===================== LOGIN OVERLAY ===================== -->
 <div id="login-overlay" style="
   position:fixed;inset:0;background:#000;z-index:9999;
@@ -678,10 +740,22 @@
 <script>
 
 // ===== SUPABASE SETUP =====
-// Replace SUPABASE_URL and SUPABASE_ANON_KEY with your project values
-const SUPABASE_URL  = 'YOUR_SUPABASE_URL';
-const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
-const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Credentials are saved by the user via the Setup Wizard (stored in localStorage)
+function _getSupabaseCreds() {
+  return {
+    url: localStorage.getItem('sb_url') || '',
+    key: localStorage.getItem('sb_key') || ''
+  };
+}
+let _sb = null;
+function _initSbClient() {
+  const { url, key } = _getSupabaseCreds();
+  if (url && key) {
+    _sb = supabase.createClient(url, key);
+    return true;
+  }
+  return false;
+}
 
 // In-memory cache — keeps all original sync code working unchanged
 let _invoicesCache = [];
@@ -743,6 +817,62 @@ const saveInvoices = function(all) {
 };
 
 
+
+// ===== SETUP WIZARD =====
+function showSetupWizard() {
+  const el = document.getElementById('setup-wizard');
+  el.style.display = 'flex';
+}
+
+function copySQL() {
+  const sql = `CREATE TABLE invoices (\n  number TEXT PRIMARY KEY,\n  data JSONB NOT NULL,\n  updated_at TIMESTAMPTZ DEFAULT now()\n);\nALTER TABLE invoices ENABLE ROW LEVEL SECURITY;\nCREATE POLICY "auth" ON invoices FOR ALL\n  TO authenticated USING (true) WITH CHECK (true);`;
+  navigator.clipboard.writeText(sql).then(() => {
+    const btn = document.getElementById('copy-sql-btn');
+    btn.textContent = '✅ Copiado!';
+    setTimeout(() => btn.textContent = '📋 Copiar', 2000);
+  });
+}
+
+async function saveSetup() {
+  const url = document.getElementById('setup-url').value.trim().replace(/\/$/, '');
+  const key = document.getElementById('setup-key').value.trim();
+  const errEl = document.getElementById('setup-error');
+  errEl.style.display = 'none';
+
+  if (!url.startsWith('https://') || !url.includes('supabase.co')) {
+    errEl.textContent = 'El Project URL debe empezar con https:// y contener supabase.co';
+    errEl.style.display = 'block'; return;
+  }
+  if (!key.startsWith('eyJ')) {
+    errEl.textContent = 'La Anon Key debe empezar con eyJ...';
+    errEl.style.display = 'block'; return;
+  }
+
+  // Test the connection
+  errEl.style.cssText = 'display:block;background:#1e3a5f;color:#93c5fd;padding:8px 12px;border-radius:6px;font-size:12px;margin-bottom:10px;';
+  errEl.textContent = 'Verificando conexión...';
+
+  try {
+    const testClient = supabase.createClient(url, key);
+    const { error } = await testClient.from('invoices').select('number').limit(1);
+    if (error && error.code !== 'PGRST116' && !error.message.includes('does not exist') && error.code !== '42P01') {
+      // Real connection error
+      if (error.message.includes('Invalid API key') || error.code === 'invalid_api_key') {
+        errEl.style.cssText = 'display:block;background:#7f1d1d;color:#fca5a5;padding:8px 12px;border-radius:6px;font-size:12px;margin-bottom:10px;';
+        errEl.textContent = 'API Key inválida. Verifica que copiaste la clave "anon public".'; return;
+      }
+    }
+    // Connection OK — save credentials
+    localStorage.setItem('sb_url', url);
+    localStorage.setItem('sb_key', key);
+    document.getElementById('setup-wizard').style.display = 'none';
+    _initSbClient();
+    showLoginScreen();
+  } catch(e) {
+    errEl.style.cssText = 'display:block;background:#7f1d1d;color:#fca5a5;padding:8px 12px;border-radius:6px;font-size:12px;margin-bottom:10px;';
+    errEl.textContent = 'Error de conexión: ' + e.message;
+  }
+}
 
 // ===== AUTH =====
 function showLoginScreen() {
@@ -1718,7 +1848,12 @@ async function initializeData() {
 
 // ===== INIT =====
 window.onload = async () => {
-  // Check auth first
+  // Step 1: Check if Supabase credentials are configured
+  if (!_initSbClient()) {
+    showSetupWizard();
+    return;
+  }
+  // Step 2: Check auth
   const { data: { session } } = await _sb.auth.getSession();
   if (!session) {
     showLoginScreen();
