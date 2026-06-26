@@ -274,9 +274,41 @@
   <div style="background:#111; border:1px solid #2a2a2a; border-radius:16px;
     padding:44px 38px; width:360px; max-width:92vw; text-align:center;
     box-shadow:0 24px 80px rgba(0,0,0,0.9);">
-    <div style="font-size:38px; margin-bottom:10px;">🚗</div>
-    <div style="font-weight:900; font-size:17px; color:#fff; letter-spacing:3px; margin-bottom:4px;">SUPREME AUTOPRO</div>
-    <div style="font-size:11px; color:#444; letter-spacing:2px; text-transform:uppercase; margin-bottom:32px;">Invoice Management System</div>
+    <!-- SUPREME AUTOPRO LOGO -->
+    <div style="margin-bottom:20px;">
+      <svg width="180" height="160" viewBox="0 0 180 160" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="metalGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%"   stop-color="#888"/>
+            <stop offset="30%"  stop-color="#d0d4da"/>
+            <stop offset="55%"  stop-color="#a0a4aa"/>
+            <stop offset="80%"  stop-color="#c8ccd2"/>
+            <stop offset="100%" stop-color="#707070"/>
+          </linearGradient>
+          <linearGradient id="swooshGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%"  stop-color="#999"/>
+            <stop offset="50%" stop-color="#e0e0e0"/>
+            <stop offset="100%" stop-color="#777"/>
+          </linearGradient>
+        </defs>
+        <!-- S letter body -->
+        <text x="90" y="72" text-anchor="middle" font-family="Arial Black,Arial,sans-serif"
+          font-weight="900" font-size="72" fill="url(#metalGrad)"
+          style="paint-order:stroke" stroke="#444" stroke-width="1">S</text>
+        <!-- Swoosh lines across the S -->
+        <path d="M52 48 Q90 38 128 44" stroke="url(#swooshGrad)" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+        <path d="M56 55 Q90 44 126 50" stroke="url(#swooshGrad)" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.7"/>
+        <!-- SUPREME text -->
+        <text x="90" y="108" text-anchor="middle" font-family="Arial Black,Arial,sans-serif"
+          font-weight="900" font-size="22" fill="url(#metalGrad)" letter-spacing="3">SUPREME</text>
+        <!-- AUTOPRO LLC text -->
+        <text x="90" y="130" text-anchor="middle" font-family="Arial,sans-serif"
+          font-weight="700" font-size="13" fill="url(#metalGrad)" letter-spacing="4">AUTOPRO LLC</text>
+        <!-- thin separator line -->
+        <line x1="30" y1="118" x2="150" y2="118" stroke="#333" stroke-width="0.5"/>
+      </svg>
+    </div>
+    <div style="font-size:11px; color:#444; letter-spacing:2px; text-transform:uppercase; margin-bottom:28px;">Invoice Management System</div>
     <div id="login-err" style="display:none; background:#7f1d1d; color:#fca5a5;
       padding:10px 14px; border-radius:8px; font-size:13px; margin-bottom:16px;"></div>
     <input id="login-pass" type="password" placeholder="🔒 Password"
