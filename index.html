@@ -565,8 +565,8 @@
           <tr>
             <th style="width:30px;text-align:center"><input type="checkbox" id="select-all-chk" onclick="toggleSelectAll(this)" title="Select All"></th>
             <th>Date</th>
-            <th>Invoice #</th>
             <th>WO #</th>
+            <th>Order #</th>
             <th>Client</th>
             <th>Tech</th>
             <th>Hours</th>
@@ -591,9 +591,9 @@
       <button onclick="closeQE()" style="background:#374151;border:none;color:#9ca3af;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:16px;">✕</button>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-      <div><label style="color:#94a3b8;font-size:11px;font-weight:700;letter-spacing:1px;">INVOICE #</label><input id="qe-number" style="width:100%;background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:8px 10px;border-radius:6px;margin-top:4px;box-sizing:border-box;"></div>
+      <div><label style="color:#94a3b8;font-size:11px;font-weight:700;letter-spacing:1px;">WO #</label><input id="qe-number" style="width:100%;background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:8px 10px;border-radius:6px;margin-top:4px;box-sizing:border-box;"></div>
       <div><label style="color:#94a3b8;font-size:11px;font-weight:700;letter-spacing:1px;">DATE</label><input id="qe-date" type="date" style="width:100%;background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:8px 10px;border-radius:6px;margin-top:4px;box-sizing:border-box;"></div>
-      <div><label style="color:#94a3b8;font-size:11px;font-weight:700;letter-spacing:1px;">WO # (ORDER)</label><input id="qe-wo" style="width:100%;background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:8px 10px;border-radius:6px;margin-top:4px;box-sizing:border-box;"></div>
+      <div><label style="color:#94a3b8;font-size:11px;font-weight:700;letter-spacing:1px;">ORDER #</label><input id="qe-wo" style="width:100%;background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:8px 10px;border-radius:6px;margin-top:4px;box-sizing:border-box;"></div>
       <div><label style="color:#94a3b8;font-size:11px;font-weight:700;letter-spacing:1px;">TOTAL ($)</label><input id="qe-total" type="number" step="0.01" style="width:100%;background:#1e293b;border:1px solid #334155;color:#68d391;padding:8px 10px;border-radius:6px;margin-top:4px;box-sizing:border-box;font-weight:700;"></div>
       <div><label style="color:#94a3b8;font-size:11px;font-weight:700;letter-spacing:1px;">STATUS</label>
         <select id="qe-status" style="width:100%;background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:8px 10px;border-radius:6px;margin-top:4px;box-sizing:border-box;">
