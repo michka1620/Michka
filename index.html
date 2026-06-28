@@ -583,6 +583,48 @@
   </div>
 </div>
 
+<!-- ===================== QUICK EDIT MODAL ===================== -->
+<div id="qe-overlay" onclick="if(event.target===this)closeQE()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9000;overflow-y:auto;padding:20px;">
+  <div style="background:#0f172a;border:1px solid #334155;border-radius:14px;max-width:680px;margin:0 auto;padding:24px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+      <h3 style="margin:0;color:#e2e8f0;font-size:16px;letter-spacing:1px;">✏️ QUICK EDIT INVOICE</h3>
+      <button onclick="closeQE()" style="background:#374151;border:none;color:#9ca3af;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:16px;">✕</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div><label style="color:#94a3b8;font-size:11px;font-weight:700;letter-spacing:1px;">INVOICE #</label><input id="qe-number" style="width:100%;background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:8px 10px;border-radius:6px;margin-top:4px;box-sizing:border-box;"></div>
+      <div><label style="color:#94a3b8;font-size:11px;font-weight:700;letter-spacing:1px;">DATE</label><input id="qe-date" type="date" style="width:100%;background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:8px 10px;border-radius:6px;margin-top:4px;box-sizing:border-box;"></div>
+      <div><label style="color:#94a3b8;font-size:11px;font-weight:700;letter-spacing:1px;">WO # (ORDER)</label><input id="qe-wo" style="width:100%;background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:8px 10px;border-radius:6px;margin-top:4px;box-sizing:border-box;"></div>
+      <div><label style="color:#94a3b8;font-size:11px;font-weight:700;letter-spacing:1px;">TOTAL ($)</label><input id="qe-total" type="number" step="0.01" style="width:100%;background:#1e293b;border:1px solid #334155;color:#68d391;padding:8px 10px;border-radius:6px;margin-top:4px;box-sizing:border-box;font-weight:700;"></div>
+      <div><label style="color:#94a3b8;font-size:11px;font-weight:700;letter-spacing:1px;">STATUS</label>
+        <select id="qe-status" style="width:100%;background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:8px 10px;border-radius:6px;margin-top:4px;box-sizing:border-box;">
+          <option value="PENDING">PENDING</option><option value="PAID">PAID</option><option value="CANCELLED">CANCELLED</option>
+        </select></div>
+      <div><label style="color:#94a3b8;font-size:11px;font-weight:700;letter-spacing:1px;">PAYMENT</label>
+        <select id="qe-payment" style="width:100%;background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:8px 10px;border-radius:6px;margin-top:4px;box-sizing:border-box;">
+          <option value="Wex">Wex</option><option value="Cash">Cash</option><option value="Check">Check</option><option value="Zelle">Zelle</option><option value="EFS">EFS</option><option value="Credit Card">Credit Card</option><option value="Net30">Net30</option>
+        </select></div>
+      <div style="grid-column:1/-1"><label style="color:#94a3b8;font-size:11px;font-weight:700;letter-spacing:1px;">CLIENT / COMPANY</label><input id="qe-company" style="width:100%;background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:8px 10px;border-radius:6px;margin-top:4px;box-sizing:border-box;"></div>
+      <div><label style="color:#94a3b8;font-size:11px;font-weight:700;letter-spacing:1px;">DRIVER</label><input id="qe-driver" style="width:100%;background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:8px 10px;border-radius:6px;margin-top:4px;box-sizing:border-box;"></div>
+      <div><label style="color:#94a3b8;font-size:11px;font-weight:700;letter-spacing:1px;">PHONE</label><input id="qe-phone" style="width:100%;background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:8px 10px;border-radius:6px;margin-top:4px;box-sizing:border-box;"></div>
+      <div><label style="color:#94a3b8;font-size:11px;font-weight:700;letter-spacing:1px;">UNIT</label><input id="qe-unit" style="width:100%;background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:8px 10px;border-radius:6px;margin-top:4px;box-sizing:border-box;"></div>
+      <div><label style="color:#94a3b8;font-size:11px;font-weight:700;letter-spacing:1px;">TECH</label><input id="qe-tech" style="width:100%;background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:8px 10px;border-radius:6px;margin-top:4px;box-sizing:border-box;"></div>
+      <div><label style="color:#94a3b8;font-size:11px;font-weight:700;letter-spacing:1px;">HOURS</label><input id="qe-hours" type="number" step="0.5" style="width:100%;background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:8px 10px;border-radius:6px;margin-top:4px;box-sizing:border-box;"></div>
+      <div><label style="color:#94a3b8;font-size:11px;font-weight:700;letter-spacing:1px;">MILEAGE</label><input id="qe-mileage" type="number" style="width:100%;background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:8px 10px;border-radius:6px;margin-top:4px;box-sizing:border-box;"></div>
+      <div><label style="color:#94a3b8;font-size:11px;font-weight:700;letter-spacing:1px;">YEAR</label><input id="qe-vyear" style="width:100%;background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:8px 10px;border-radius:6px;margin-top:4px;box-sizing:border-box;"></div>
+      <div><label style="color:#94a3b8;font-size:11px;font-weight:700;letter-spacing:1px;">MAKE</label><input id="qe-vmake" style="width:100%;background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:8px 10px;border-radius:6px;margin-top:4px;box-sizing:border-box;"></div>
+      <div><label style="color:#94a3b8;font-size:11px;font-weight:700;letter-spacing:1px;">MODEL</label><input id="qe-vmodel" style="width:100%;background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:8px 10px;border-radius:6px;margin-top:4px;box-sizing:border-box;"></div>
+      <div><label style="color:#94a3b8;font-size:11px;font-weight:700;letter-spacing:1px;">VIN</label><input id="qe-vin" style="width:100%;background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:8px 10px;border-radius:6px;margin-top:4px;box-sizing:border-box;"></div>
+      <div><label style="color:#94a3b8;font-size:11px;font-weight:700;letter-spacing:1px;">LICENSE / STATE</label><input id="qe-license" style="width:100%;background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:8px 10px;border-radius:6px;margin-top:4px;box-sizing:border-box;"></div>
+      <div><label style="color:#94a3b8;font-size:11px;font-weight:700;letter-spacing:1px;">ROADSIDE / ADDRESS</label><input id="qe-roadside" style="width:100%;background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:8px 10px;border-radius:6px;margin-top:4px;box-sizing:border-box;"></div>
+      <div style="grid-column:1/-1"><label style="color:#94a3b8;font-size:11px;font-weight:700;letter-spacing:1px;">NOTES</label><textarea id="qe-notes" rows="3" style="width:100%;background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:8px 10px;border-radius:6px;margin-top:4px;box-sizing:border-box;resize:vertical;"></textarea></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:20px;justify-content:flex-end;">
+      <button onclick="closeQE()" style="background:#374151;border:none;color:#9ca3af;padding:10px 20px;border-radius:8px;cursor:pointer;font-size:14px;">Cancel</button>
+      <button onclick="saveQE()" style="background:linear-gradient(135deg,#2d6a4f,#40916c);border:none;color:#fff;padding:10px 28px;border-radius:8px;cursor:pointer;font-weight:700;font-size:14px;">💾 Save Changes</button>
+    </div>
+  </div>
+</div>
+
 <!-- ===================== MONTHLY PAGE ===================== -->
 <div id="monthly" class="page">
 
@@ -1352,7 +1394,7 @@ function renderHistory() {
       + '<td class="editable-cell" onclick="inlineEdit(this,\'' + escQ(num) + '||' + escQ(wo) + '\',\'payment\')">' + (py||'—') + '</td>'
       + '<td style="white-space:nowrap">'
       + '<button data-idx="' + i + '" onclick="viewInv(window._histList[this.dataset.idx].number)" style="background:#1a365d;border:none;color:#63b3ed;padding:3px 9px;border-radius:4px;cursor:pointer;font-size:11px;">👁</button> '
-      + '<button data-idx="' + i + '" onclick="editInv(window._histList[this.dataset.idx].number)" style="background:#44337a;border:none;color:#d6bcfa;padding:3px 9px;border-radius:4px;cursor:pointer;font-size:11px;margin:0 4px;">✏</button>'
+      + '<button data-idx="' + i + '" onclick="editInv(window._histList[this.dataset.idx].number)" style="background:#44337a;border:none;color:#d6bcfa;padding:3px 9px;border-radius:4px;cursor:pointer;font-size:11px;margin:0 4px;" title="Quick Edit">✏</button>'
       + '<button data-idx="' + i + '" onclick="delByIdx(parseInt(this.dataset.idx))" style="background:#742a2a;border:none;color:#fc8181;padding:3px 9px;border-radius:4px;cursor:pointer;font-size:11px;">🗑</button>'
       + '</td></tr>';
   }
@@ -1379,7 +1421,52 @@ function viewInv(num) {
   preview.scrollIntoView({behavior:'smooth', block:'start'});
 }
 
+var _qeNum = null;
 function editInv(num) {
+  const inv = getInvoices().find(i=>String(i.number)===String(num));
+  if (!inv) return;
+  _qeNum = num;
+  const set = (id, val) => { const el=document.getElementById(id); if(el) el.value=val||''; };
+  set('qe-number', inv.number); set('qe-date', inv.date); set('qe-wo', inv.wo);
+  set('qe-total', inv.total||0); set('qe-status', inv.status||'PENDING'); set('qe-payment', inv.payment||'Wex');
+  set('qe-company', inv.client?.company); set('qe-driver', inv.client?.driver);
+  set('qe-phone', inv.client?.phone); set('qe-unit', inv.client?.unit);
+  set('qe-roadside', inv.client?.roadside||inv.client?.address);
+  set('qe-tech', inv.tech?.name); set('qe-hours', inv.tech?.hours); set('qe-mileage', inv.tech?.mileage);
+  set('qe-vyear', inv.vehicle?.year); set('qe-vmake', inv.vehicle?.make);
+  set('qe-vmodel', inv.vehicle?.model); set('qe-vin', inv.vehicle?.vin);
+  set('qe-license', (inv.vehicle?.license||'') + (inv.vehicle?.state?' / '+inv.vehicle.state:''));
+  set('qe-notes', inv.notes);
+  document.getElementById('qe-overlay').style.display = 'block';
+}
+function closeQE() { document.getElementById('qe-overlay').style.display='none'; _qeNum=null; }
+function saveQE() {
+  if (!_qeNum) return;
+  const all = getInvoices();
+  const inv = all.find(i=>String(i.number)===String(_qeNum));
+  if (!inv) return;
+  const g = id => document.getElementById(id)?.value||'';
+  const licParts = g('qe-license').split('/');
+  inv.number = g('qe-number'); inv.date = g('qe-date'); inv.wo = g('qe-wo');
+  inv.total = parseFloat(g('qe-total'))||0; inv.status = g('qe-status'); inv.payment = g('qe-payment');
+  if (!inv.client) inv.client = {};
+  inv.client.company = g('qe-company'); inv.client.driver = g('qe-driver');
+  inv.client.phone = g('qe-phone'); inv.client.unit = g('qe-unit');
+  inv.client.roadside = g('qe-roadside');
+  if (!inv.tech) inv.tech = {};
+  inv.tech.name = g('qe-tech'); inv.tech.hours = g('qe-hours'); inv.tech.mileage = g('qe-mileage');
+  if (!inv.vehicle) inv.vehicle = {};
+  inv.vehicle.year = g('qe-vyear'); inv.vehicle.make = g('qe-vmake');
+  inv.vehicle.model = g('qe-vmodel'); inv.vehicle.vin = g('qe-vin');
+  inv.vehicle.license = licParts[0]?.trim()||'';
+  inv.vehicle.state = licParts[1]?.trim()||'';
+  inv.notes = g('qe-notes');
+  saveInvoices(all);
+  closeQE();
+  renderHistory();
+  showToast('✅ Invoice updated.');
+}
+function editInvFull(num) {
   const inv = getInvoices().find(i=>i.number===num);
   if (!inv) return;
   const set = (id, val) => { const el=document.getElementById(id); if(el) el.value=val||''; };
