@@ -714,7 +714,7 @@ const saveInvoices = function(all) {
   var histNums = new Set(HISTORICAL_DATA.map(function(i){ return String(i.number)+'|'+String(i.wo||''); }));
   var userNew  = all.filter(function(i){ return !histNums.has(String(i.number)+'|'+String(i.wo||'')); });
   var edits    = {};
-  var fields   = ['date','status','payment','total','totalLabor','notes','client','tech','vehicle','tirePositions','expenses'];
+  var fields   = ['date','status','payment','total','totalLabor','notes','partsGeneral','client','tech','vehicle','tirePositions','expenses'];
   HISTORICAL_DATA.forEach(function(orig){
     var k = String(orig.number)+'|'+String(orig.wo||'');
     var edited = all.find(function(i){ return String(i.number)+'|'+String(i.wo||'') === k; });
@@ -1148,13 +1148,13 @@ function buildInvoiceHTML(d) {
 // ===== HISTORY =====
 
 // ── INLINE EDIT (History table) ──────────────────────────────────────────────
-const INLINE_STYLE = "width:100%;min-width:70px;background:#ffffff;border:1px solid #667eea;color:#fff;padding:3px 5px;border-radius:3px;font-size:12px;box-sizing:border-box;";
+const INLINE_STYLE = "width:100%;min-width:70px;background:#1e293b;border:1px solid #667eea;color:#e2e8f0;padding:3px 5px;border-radius:3px;font-size:12px;box-sizing:border-box;";
 
 function inlineEdit(td, uid, field) {
   if (td.querySelector('input,select')) return;
   const [invNum, invWo] = uid.split('||');
   const invs = getInvoices();
-  const inv = invs.find(i => i.number === invNum && (i.wo||'') === invWo);
+  const inv = invs.find(i => String(i.number) === String(invNum) && String(i.wo||'') === String(invWo));
   if (!inv) return;
 
   let curVal = '';
@@ -1199,7 +1199,7 @@ function inlineEdit(td, uid, field) {
 function saveInlineEdit(el, invNum, invWo, field) {
   const val = el.value;
   const invs = getInvoices();
-  const inv = invs.find(i => i.number === invNum && (i.wo||'') === invWo);
+  const inv = invs.find(i => String(i.number) === String(invNum) && String(i.wo||'') === String(invWo));
   if (!inv) return renderHistory();
 
   if (field === 'date') inv.date = val;
@@ -1692,6 +1692,7 @@ function normalizeTotals(arr) {
 window.onload = () => {
   initializeData();
   updateClientList();
+  showPage('history');
   // Fill the new invoice form with the current service event data
   setTimeout(function() { fillNewInvoice(); }, 200);
 };
