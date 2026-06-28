@@ -565,8 +565,8 @@
           <tr>
             <th style="width:30px;text-align:center"><input type="checkbox" id="select-all-chk" onclick="toggleSelectAll(this)" title="Select All"></th>
             <th>Date</th>
-            <th>WO #</th>
             <th>Order #</th>
+            <th>WO #</th>
             <th>Client</th>
             <th>Tech</th>
             <th>Hours</th>
@@ -1381,17 +1381,18 @@ function renderHistory() {
     var tot = '$' + parseFloat(inv.total||0).toFixed(2);
     var st  = inv.status||'PENDING';
     var py  = String(inv.payment||'');
+    var uid = escQ(num) + '||' + escQ(wo);
     rows += '<tr>'
       + '<td style="text-align:center"><input type="checkbox" class="inv-chk" data-idx="' + i + '" onchange="updateBulkBar()"></td>'
-      + '<td>' + fd + '</td>'
-      + '<td style="font-weight:700;color:#63b3ed">' + num + '</td>'
-      + '<td>' + (wo||'—') + '</td>'
-      + '<td style="font-weight:600">' + (co||'—') + '</td>'
-      + '<td>' + (tn||'—') + '</td>'
-      + '<td style="text-align:center">' + (th||'—') + '</td>'
-      + '<td class="editable-cell" style="font-weight:700;color:#68d391" onclick="inlineEdit(this,\'' + escQ(num) + '||' + escQ(wo) + '\',\'total\')">' + tot + '</td>'
-      + '<td class="editable-cell" onclick="inlineEdit(this,\'' + escQ(num) + '||' + escQ(wo) + '\',\'status\')"><span class="badge ' + badge + '">' + st + '</span></td>'
-      + '<td class="editable-cell" onclick="inlineEdit(this,\'' + escQ(num) + '||' + escQ(wo) + '\',\'payment\')">' + (py||'—') + '</td>'
+      + '<td class="editable-cell" onclick="inlineEdit(this,\'' + uid + '\',\'date\')">' + fd + '</td>'
+      + '<td class="editable-cell" onclick="inlineEdit(this,\'' + uid + '\',\'wo\')">' + (wo||'—') + '</td>'
+      + '<td class="editable-cell" style="font-weight:700;color:#63b3ed" onclick="inlineEdit(this,\'' + uid + '\',\'number\')">' + num + '</td>'
+      + '<td class="editable-cell" style="font-weight:600" onclick="inlineEdit(this,\'' + uid + '\',\'client\')">' + (co||'—') + '</td>'
+      + '<td class="editable-cell" onclick="inlineEdit(this,\'' + uid + '\',\'tech\')">' + (tn||'—') + '</td>'
+      + '<td class="editable-cell" style="text-align:center" onclick="inlineEdit(this,\'' + uid + '\',\'hours\')">' + (th||'—') + '</td>'
+      + '<td class="editable-cell" style="font-weight:700;color:#68d391" onclick="inlineEdit(this,\'' + uid + '\',\'total\')">' + tot + '</td>'
+      + '<td class="editable-cell" onclick="inlineEdit(this,\'' + uid + '\',\'status\')"><span class="badge ' + badge + '">' + st + '</span></td>'
+      + '<td class="editable-cell" onclick="inlineEdit(this,\'' + uid + '\',\'payment\')">' + (py||'—') + '</td>'
       + '<td style="white-space:nowrap">'
       + '<button data-idx="' + i + '" onclick="viewInv(window._histList[this.dataset.idx].number)" style="background:#1a365d;border:none;color:#63b3ed;padding:3px 9px;border-radius:4px;cursor:pointer;font-size:11px;">👁</button> '
       + '<button data-idx="' + i + '" onclick="editInv(window._histList[this.dataset.idx].number)" style="background:#44337a;border:none;color:#d6bcfa;padding:3px 9px;border-radius:4px;cursor:pointer;font-size:11px;margin:0 4px;" title="Quick Edit">✏</button>'
