@@ -1459,7 +1459,7 @@ function renderHistory() {
       + '<td class="editable-cell" onclick="inlineEdit(this,\'' + uid + '\',\'status\')"><span class="badge ' + badge + '">' + st + '</span></td>'
       + '<td class="editable-cell" onclick="inlineEdit(this,\'' + uid + '\',\'payment\')">' + (py||'—') + '</td>'
       + '<td style="text-align:center">'
-      + '<button onclick="toggleSent(\'' + num + '\',\'' + wo + '\')" title="Clic para cambiar estado" style="background:'+(sentState===1?'#7c2d12':sentState===2?'#052e16':'#111')+';border:1px solid '+(sentState===1?'#ea580c':sentState===2?'#16a34a':'#374151')+';color:'+(sentState===1?'#fb923c':sentState===2?'#4ade80':'#6b7280')+';padding:3px 8px;border-radius:10px;cursor:pointer;font-size:11px;font-weight:700;white-space:nowrap;">'+(sentState===1?'📤 Enviada':sentState===2?'✅ Cobrada':'○ Pendiente')+'</button>'
+      + '<button onclick="toggleSent(\'' + num + '\',\'' + wo + '\',this)" title="Clic para cambiar estado" style="background:'+(sentState===1?'#7c2d12':sentState===2?'#052e16':'#111')+';border:1px solid '+(sentState===1?'#ea580c':sentState===2?'#16a34a':'#374151')+';color:'+(sentState===1?'#fb923c':sentState===2?'#4ade80':'#6b7280')+';padding:3px 8px;border-radius:10px;cursor:pointer;font-size:11px;font-weight:700;white-space:nowrap;">'+(sentState===1?'📤 Enviada':sentState===2?'✅ Cobrada':'○ Pendiente')+'</button>'
       + '</td>'
       + '<td style="white-space:nowrap">'
       + '<button data-idx="' + i + '" onclick="viewInv(window._histList[this.dataset.idx].number)" style="background:#1a365d;border:none;color:#63b3ed;padding:3px 9px;border-radius:4px;cursor:pointer;font-size:11px;">👁</button> '
@@ -2285,18 +2285,44 @@ function getSentData() {
 }
 function saveSentData(d) { localStorage.setItem('sup_sent', JSON.stringify(d)); }
 
-function toggleSent(num, wo) {
+function setSentState(num, wo, state) {
   var key = String(num)+'|'+String(wo||'');
   var data = getSentData();
-  var cur = data[key] ? data[key].state || 1 : 0;
-  var next = (cur + 1) % 3;
-  if (next === 0) {
+  if (state == 0) {
     delete data[key];
   } else {
-    data[key] = { state: next, date: new Date().toLocaleDateString('en-US',{year:'numeric',month:'2-digit',day:'2-digit'}) };
+    data[key] = { state: parseInt(state), date: new Date().toLocaleDateString('en-US',{year:'numeric',month:'2-digit',day:'2-digit'}) };
   }
   saveSentData(data);
+  var m = document.getElementById('sent-menu');
+  if (m) m.remove();
   renderHistory();
+}
+function toggleSent(num, wo, btn) {
+  var existing = document.getElementById('sent-menu');
+  if (existing) { existing.remove(); return; }
+  var key = String(num)+'|'+String(wo||'');
+  var cur = (getSentData()[key]||{}).state||0;
+  var rect = btn.getBoundingClientRect();
+  var menu = document.createElement('div');
+  menu.id = 'sent-menu';
+  menu.style.cssText = 'position:fixed;top:'+(rect.bottom+4)+'px;left:'+rect.left+'px;background:#1e293b;border:1px solid #334155;border-radius:8px;z-index:99999;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,0.5);min-width:160px;';
+  var opts = [
+    {state:0, label:'○ No enviada', bg:'#111', color:'#6b7280', border:'#374151'},
+    {state:1, label:'📤 Enviada', bg:'#7c2d12', color:'#fb923c', border:'#ea580c'},
+    {state:2, label:'✅ Cobrada', bg:'#052e16', color:'#4ade80', border:'#16a34a'},
+  ];
+  opts.forEach(function(o) {
+    var d = document.createElement('div');
+    d.style.cssText = 'padding:10px 16px;cursor:pointer;font-size:13px;font-weight:700;color:'+o.color+';background:'+(cur===o.state?o.bg:'transparent')+';border-left:3px solid '+(cur===o.state?o.border:'transparent')+';';
+    d.textContent = o.label;
+    d.onmouseenter = function(){ this.style.background=o.bg; };
+    d.onmouseleave = function(){ this.style.background = cur===o.state?o.bg:'transparent'; };
+    d.onclick = function(e){ e.stopPropagation(); setSentState(num,wo,o.state); };
+    menu.appendChild(d);
+  });
+  document.body.appendChild(menu);
+  setTimeout(function(){ document.addEventListener('click', function h(){ menu.remove(); document.removeEventListener('click',h); }); },0);
 }
 
 function renderSent() {
