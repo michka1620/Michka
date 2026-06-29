@@ -755,10 +755,18 @@ const getInvoices = function() {
     base = base.filter(function(inv){
       return deleted.indexOf(String(inv.number)+'|'+String(inv.wo||'')) < 0;
     });
-    // Apply edits
+    // Apply edits — skip empty values so HISTORICAL_DATA data is never overwritten by blank edits
     base = base.map(function(inv){
       var k = String(inv.number)+'|'+String(inv.wo||'');
-      return edits[k] ? Object.assign({},inv,edits[k]) : inv;
+      if (!edits[k]) return inv;
+      var merged = Object.assign({},inv);
+      Object.keys(edits[k]).forEach(function(f){
+        var ev = edits[k][f];
+        var isEmpty = ev===null || ev===undefined || ev==='' || (typeof ev==='object' && ev!==null && Object.keys(ev).every(function(kk){ var v=ev[kk]; return v===null||v===undefined||v===''; }));
+        if (!isEmpty) merged[f] = ev;
+        else if (merged[f]===null || merged[f]===undefined || merged[f]==='') merged[f] = ev;
+      });
+      return merged;
     });
     // Add user-created invoices
     return base.concat(normalizeTotals(userNew));
