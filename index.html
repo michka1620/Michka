@@ -806,7 +806,7 @@ function showPage(id) {
   if (id === 'history') renderHistory();
   if (id === 'monthly') renderMonthly();
   if (id === 'sent') renderSent();
-  if (id === 'new-invoice') { setTimeout(function(){ if(typeof fillNewInvoice==='function') fillNewInvoice(); }, 150); }
+  if (id === 'new-invoice') { if (!window._editingInvoice) { setTimeout(function(){ if(typeof fillNewInvoice==='function') fillNewInvoice(); }, 150); } window._editingInvoice = false; }
 }
 
 // ===== INVOICE NUMBER =====
@@ -1562,6 +1562,7 @@ function editInvFull(num, wo) {
   document.getElementById('expenses-body').innerHTML = '';
   (inv.expenses||[]).forEach(e => addExpenseRow(e.desc, e.qty, e.price, e.total));
   recalcTotals();
+  window._editingInvoice = true;
   showPage('new-invoice');
 }
 
