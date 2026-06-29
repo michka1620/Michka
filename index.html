@@ -1782,6 +1782,13 @@ function normalizeTotals(arr) {
 
 // ===== INIT =====
 window.onload = () => {
+  // Clear local edits if ?reset=1 in URL
+  if (location.search.indexOf('reset=1') >= 0) {
+    localStorage.removeItem('sup_edits');
+    localStorage.removeItem('sup_deleted');
+    localStorage.removeItem('sup_new');
+    history.replaceState(null,'',location.pathname);
+  }
   // Migrate old sup_sent data to sup_edits sentState
   try {
     var oldSent = JSON.parse(localStorage.getItem('sup_sent') || '{}');
