@@ -291,6 +291,7 @@
   <div class="tabs">
     <button class="tab active" onclick="showPage('history')">📋 History</button>
     <button class="tab" onclick="showPage('monthly')">📊 Monthly</button>
+    <button class="tab" onclick="showPage('sent')">📤 Enviadas</button>
     <button class="tab" onclick="exportData()" style="background:#1a3a2a;color:#4ade80;border:1px solid #166534;">⬇ Export</button>
     <button class="tab" onclick="document.getElementById('import-file').click()" style="background:#1a1a3a;color:#a5b4fc;border:1px solid #3730a3;">⬆ Import</button>
 
@@ -688,6 +689,49 @@
   </div>
 
 </div>
+
+<!-- ===================== SENT PAGE ===================== -->
+<div id="sent" class="page">
+  <div class="card">
+    <h2>📤 Control de Facturas Enviadas</h2>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:center;">
+      <input type="text" id="sent-search" placeholder="🔍 Buscar cliente, WO#, Order#..." oninput="renderSent()" style="flex:1;min-width:200px;background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:8px 12px;border-radius:6px;">
+      <select id="sent-filter" onchange="renderSent()" style="background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:8px 12px;border-radius:6px;">
+        <option value="">Todas</option>
+        <option value="sent">Enviadas</option>
+        <option value="notsent">No Enviadas</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:20px;margin-bottom:16px;flex-wrap:wrap;">
+      <div style="background:#0d1117;border:1px solid #166534;border-radius:8px;padding:12px 20px;text-align:center;min-width:120px;">
+        <div style="font-size:10px;color:#4ade80;letter-spacing:2px;margin-bottom:4px;">ENVIADAS</div>
+        <div id="sent-count" style="font-size:24px;font-weight:900;color:#4ade80;">0</div>
+      </div>
+      <div style="background:#0d1117;border:1px solid #b45309;border-radius:8px;padding:12px 20px;text-align:center;min-width:120px;">
+        <div style="font-size:10px;color:#f59e0b;letter-spacing:2px;margin-bottom:4px;">PENDIENTES</div>
+        <div id="notsent-count" style="font-size:24px;font-weight:900;color:#f59e0b;">0</div>
+      </div>
+    </div>
+    <div style="overflow-x:auto;">
+      <table style="width:100%;border-collapse:collapse;font-size:13px;">
+        <thead>
+          <tr style="background:#0d1117;color:#94a3b8;font-size:11px;letter-spacing:1px;text-transform:uppercase;">
+            <th style="padding:10px 12px;text-align:left;border-bottom:1px solid #1e293b;">ENVIADA</th>
+            <th style="padding:10px 12px;text-align:left;border-bottom:1px solid #1e293b;">WO #</th>
+            <th style="padding:10px 12px;text-align:left;border-bottom:1px solid #1e293b;">ORDER #</th>
+            <th style="padding:10px 12px;text-align:left;border-bottom:1px solid #1e293b;">FECHA</th>
+            <th style="padding:10px 12px;text-align:left;border-bottom:1px solid #1e293b;">CLIENTE</th>
+            <th style="padding:10px 12px;text-align:right;border-bottom:1px solid #1e293b;">TOTAL</th>
+            <th style="padding:10px 12px;text-align:left;border-bottom:1px solid #1e293b;">STATUS</th>
+            <th style="padding:10px 12px;text-align:left;border-bottom:1px solid #1e293b;">FECHA ENVÍO</th>
+          </tr>
+        </thead>
+        <tbody id="sent-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
@@ -755,6 +799,7 @@ function showPage(id) {
   });
   if (id === 'history') renderHistory();
   if (id === 'monthly') renderMonthly();
+  if (id === 'sent') renderSent();
   if (id === 'new-invoice') { setTimeout(function(){ if(typeof fillNewInvoice==='function') fillNewInvoice(); }, 150); }
 }
 
@@ -2214,6 +2259,78 @@ function deleteFromSheets(number, wo) {
     method: 'POST',
     body: JSON.stringify({ action: 'delete', number: number, wo: wo })
   }).catch(function(e) { console.log('Delete sheets error:', e); });
+}
+
+// ===== SENT TRACKING =====
+function getSentData() {
+  try { return JSON.parse(localStorage.getItem('sup_sent') || '{}'); } catch(e) { return {}; }
+}
+function saveSentData(d) { localStorage.setItem('sup_sent', JSON.stringify(d)); }
+
+function toggleSent(num, wo) {
+  var key = String(num)+'|'+String(wo||'');
+  var data = getSentData();
+  if (data[key]) {
+    delete data[key];
+  } else {
+    data[key] = new Date().toLocaleDateString('en-US',{year:'numeric',month:'2-digit',day:'2-digit'});
+  }
+  saveSentData(data);
+  renderSent();
+}
+
+function renderSent() {
+  var invs = getInvoices();
+  var sentData = getSentData();
+  var search = (document.getElementById('sent-search')?.value||'').toLowerCase();
+  var filter = document.getElementById('sent-filter')?.value||'';
+
+  var filtered = invs.filter(function(inv) {
+    var key = String(inv.number)+'|'+String(inv.wo||'');
+    var isSent = !!sentData[key];
+    if (filter==='sent' && !isSent) return false;
+    if (filter==='notsent' && isSent) return false;
+    if (search) {
+      var hay = (inv.client?.company||'')+(inv.number||'')+(inv.wo||'');
+      if (!hay.toLowerCase().includes(search)) return false;
+    }
+    return true;
+  });
+
+  // Sort: not sent first, then by date desc
+  filtered.sort(function(a,b){
+    var ka = String(a.number)+'|'+String(a.wo||'');
+    var kb = String(b.number)+'|'+String(b.wo||'');
+    var sa = !!sentData[ka], sb = !!sentData[kb];
+    if (sa !== sb) return sa ? 1 : -1;
+    return (b.date||'').localeCompare(a.date||'');
+  });
+
+  var sentCount = invs.filter(function(i){ return !!sentData[String(i.number)+'|'+String(i.wo||'')]; }).length;
+  document.getElementById('sent-count').textContent = sentCount;
+  document.getElementById('notsent-count').textContent = invs.length - sentCount;
+
+  var rows = filtered.map(function(inv) {
+    var key = String(inv.number)+'|'+String(inv.wo||'');
+    var isSent = !!sentData[key];
+    var sentDate = sentData[key]||'';
+    var statusColor = inv.status==='PAID' ? '#4ade80' : inv.status==='CANCELLED' ? '#f87171' : '#f59e0b';
+    return '<tr style="border-bottom:1px solid #1e293b;'+(isSent?'opacity:0.65;':'')+'">'
+      + '<td style="padding:10px 12px;">'
+      +   '<button onclick="toggleSent(\''+inv.number+'\',\''+String(inv.wo||'')+'\''+')" style="background:'+(isSent?'#166534':'#1e293b')+';border:1px solid '+(isSent?'#4ade80':'#334155')+';color:'+(isSent?'#4ade80':'#94a3b8')+';padding:5px 12px;border-radius:20px;cursor:pointer;font-size:12px;font-weight:700;white-space:nowrap;">'
+      +   (isSent ? '✅ Enviada' : '○ No enviada')
+      +   '</button></td>'
+      + '<td style="padding:10px 12px;color:#e2e8f0;font-weight:700;">'+String(inv.number||'—')+'</td>'
+      + '<td style="padding:10px 12px;color:#94a3b8;">'+String(inv.wo||'—')+'</td>'
+      + '<td style="padding:10px 12px;color:#94a3b8;">'+String(inv.date||'—')+'</td>'
+      + '<td style="padding:10px 12px;color:#e2e8f0;">'+String(inv.client?.company||'—')+'</td>'
+      + '<td style="padding:10px 12px;text-align:right;color:#68d391;font-weight:700;">$'+parseFloat(inv.total||0).toFixed(2)+'</td>'
+      + '<td style="padding:10px 12px;"><span style="background:'+statusColor+'22;color:'+statusColor+';padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">'+String(inv.status||'—')+'</span></td>'
+      + '<td style="padding:10px 12px;color:#64748b;font-size:12px;">'+sentDate+'</td>'
+      + '</tr>';
+  }).join('');
+
+  document.getElementById('sent-tbody').innerHTML = rows || '<tr><td colspan="8" style="text-align:center;color:#64748b;padding:20px;">No hay facturas</td></tr>';
 }
 
 </script>
