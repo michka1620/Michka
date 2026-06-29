@@ -786,7 +786,7 @@ const saveInvoices = function(all) {
   localStorage.setItem('sup_edits',   JSON.stringify(edits));
   localStorage.setItem('sup_deleted', JSON.stringify(deleted));
   localStorage.setItem('sup_new',     JSON.stringify(userNew));
-  // Data saved to localStorage
+  pushEditsToKV(edits, deleted, userNew);
 };
 
 // ===== NAV =====
@@ -1775,12 +1775,14 @@ window.onload = () => {
       localStorage.removeItem('sup_sent');
     }
   } catch(e) {}
-  initializeData();
-  updateClientList();
-  showPage('history');
-  setTimeout(function() { fillNewInvoice(); }, 200);
-  // Sync sent states from KV on load
-  pullSentFromKV(function() { renderHistory(); });
+  // Pull all edits from KV first, then initialize
+  pullEditsFromKV(function() {
+    initializeData();
+    updateClientList();
+    showPage('history');
+    setTimeout(function() { fillNewInvoice(); }, 200);
+    pullSentFromKV(function() { renderHistory(); });
+  });
 };
 
 // ===== PRE-FILL NEW INVOICE FROM APP DATA =====
@@ -2307,6 +2309,24 @@ function getSentData() {
 }
 
 var KV_API = 'https://supremekv1.michka1620.workers.dev/sent';
+var KV_EDITS_API = 'https://supremekv1.michka1620.workers.dev/edits';
+
+function pushEditsToKV(edits, deleted, newInvs) {
+  try {
+    var payload = { edits: edits, deleted: deleted, newInvs: newInvs };
+    fetch(KV_EDITS_API, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) }).catch(function(){});
+  } catch(e) {}
+}
+
+function pullEditsFromKV(cb) {
+  fetch(KV_EDITS_API).then(function(r){ return r.json(); }).then(function(data) {
+    if (!data || typeof data !== 'object') { if(cb) cb(); return; }
+    if (data.edits)    localStorage.setItem('sup_edits',   JSON.stringify(data.edits));
+    if (data.deleted)  localStorage.setItem('sup_deleted', JSON.stringify(data.deleted));
+    if (data.newInvs)  localStorage.setItem('sup_new',     JSON.stringify(data.newInvs));
+    if (cb) cb();
+  }).catch(function(){ if(cb) cb(); });
+}
 
 function pushSentToKV() {
   try {
