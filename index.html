@@ -755,16 +755,32 @@ const getInvoices = function() {
     base = base.filter(function(inv){
       return deleted.indexOf(String(inv.number)+'|'+String(inv.wo||'')) < 0;
     });
-    // Apply edits — skip empty values so HISTORICAL_DATA data is never overwritten by blank edits
+    // Apply edits — deep merge: never overwrite non-empty HISTORICAL_DATA values with empty edit values
+    var objFields = ['client','tech','vehicle'];
     base = base.map(function(inv){
       var k = String(inv.number)+'|'+String(inv.wo||'');
       if (!edits[k]) return inv;
       var merged = Object.assign({},inv);
       Object.keys(edits[k]).forEach(function(f){
         var ev = edits[k][f];
-        var isEmpty = ev===null || ev===undefined || ev==='' || (typeof ev==='object' && ev!==null && Object.keys(ev).every(function(kk){ var v=ev[kk]; return v===null||v===undefined||v===''; }));
-        if (!isEmpty) merged[f] = ev;
-        else if (merged[f]===null || merged[f]===undefined || merged[f]==='') merged[f] = ev;
+        if (objFields.indexOf(f) >= 0 && typeof ev === 'object' && ev !== null) {
+          // Deep merge: only overwrite sub-fields that are empty in HISTORICAL_DATA
+          var base_obj = Object.assign({}, inv[f] || {});
+          Object.keys(ev).forEach(function(sf){
+            var sv = ev[sf];
+            var bv = base_obj[sf];
+            if (sv !== null && sv !== undefined && sv !== '') {
+              base_obj[sf] = sv;
+            } else if (bv === null || bv === undefined || bv === '') {
+              base_obj[sf] = sv;
+            }
+          });
+          merged[f] = base_obj;
+        } else {
+          var isEmpty = ev===null || ev===undefined || ev==='';
+          if (!isEmpty) merged[f] = ev;
+          else if (merged[f]===null || merged[f]===undefined || merged[f]==='') merged[f] = ev;
+        }
       });
       return merged;
     });
