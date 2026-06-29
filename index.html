@@ -1778,8 +1778,9 @@ window.onload = () => {
   initializeData();
   updateClientList();
   showPage('history');
-  // Fill the new invoice form with the current service event data
   setTimeout(function() { fillNewInvoice(); }, 200);
+  // Sync sent states from KV on load
+  pullSentFromKV(function() { renderHistory(); });
 };
 
 // ===== PRE-FILL NEW INVOICE FROM APP DATA =====
@@ -2305,12 +2306,46 @@ function getSentData() {
   return result;
 }
 
+var KV_API = 'https://supremekv1.michka1620.workers.dev/sent';
+
+function pushSentToKV() {
+  try {
+    var all = getInvoices();
+    var obj = {};
+    all.forEach(function(inv) {
+      if (inv.sentState) {
+        var k = String(inv.number)+'|'+String(inv.wo||'');
+        obj[k] = inv.sentState;
+      }
+    });
+    fetch(KV_API, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(obj) }).catch(function(){});
+  } catch(e) {}
+}
+
+function pullSentFromKV(cb) {
+  fetch(KV_API).then(function(r){ return r.json(); }).then(function(obj) {
+    if (!obj || typeof obj !== 'object') return;
+    var all = getInvoices();
+    var changed = false;
+    all.forEach(function(inv) {
+      var k = String(inv.number)+'|'+String(inv.wo||'');
+      if (obj[k] !== undefined && obj[k] !== inv.sentState) {
+        inv.sentState = obj[k];
+        changed = true;
+      }
+    });
+    if (changed) saveInvoices(all);
+    if (cb) cb();
+  }).catch(function(){});
+}
+
 function setSentState(num, wo, state) {
   var all = getInvoices();
   var inv = all.find(function(i){ return String(i.number)===String(num) && String(i.wo||'')===String(wo||''); });
   if (!inv) return;
   inv.sentState = parseInt(state) || 0;
   saveInvoices(all);
+  pushSentToKV();
   var m = document.getElementById('sent-menu');
   if (m) m.remove();
   renderHistory();
