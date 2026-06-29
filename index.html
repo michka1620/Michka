@@ -553,7 +553,11 @@
       <select id="filter-month" onchange="renderHistory()">
         <option value="">All Months</option>
       </select>
-
+      <select id="filter-sent" onchange="renderHistory()" style="border:1px solid #ea580c;color:#ea580c;background:#1a1a1a;">
+        <option value="">📤 Todas</option>
+        <option value="sent">✅ Enviadas</option>
+        <option value="notsent">○ No Enviadas</option>
+      </select>
     </div>
     <div id="month-summary-bar" style="display:none;margin-bottom:14px;"></div>
     <div id="bulk-action-bar" style="display:none;background:linear-gradient(135deg,#1e293b,#0f172a);border:1px solid #334155;border-radius:8px;padding:12px 16px;margin-bottom:12px;display:none;align-items:center;gap:12px;flex-wrap:wrap;">
@@ -1344,6 +1348,8 @@ function renderHistory() {
   const search = (document.getElementById('search-input').value||'').toLowerCase();
   const stF = document.getElementById('filter-status').value;
   const mF = document.getElementById('filter-month').value;
+  const sentF = document.getElementById('filter-sent')?.value||'';
+  const sentData = getSentData();
 
   const months = [...new Set(invs.map(i=>i.date?i.date.substring(0,7):'')).values()].filter(Boolean).sort();
   const mSel = document.getElementById('filter-month');
@@ -1354,7 +1360,9 @@ function renderHistory() {
     const ok1 = !search || (i.number||'').includes(search) || (i.client?.company||'').toLowerCase().includes(search) || (i.wo||'').includes(search) || (i.client?.driver||'').toLowerCase().includes(search);
     const ok2 = !stF || i.status===stF;
     const ok3 = !mF || (i.date||'').startsWith(mF);
-    return ok1&&ok2&&ok3;
+    const isSentInv = !!sentData[String(i.number)+'|'+String(i.wo||'')];
+    const ok4 = !sentF || (sentF==='sent' && isSentInv) || (sentF==='notsent' && !isSentInv);
+    return ok1&&ok2&&ok3&&ok4;
   }).sort((a,b)=>((b.date||'')>(a.date||''))?1:-1);
 
   const paid = invs.filter(i=>i.status==='PAID').reduce((s,i)=>s+(parseFloat(i.total)||0),0);
