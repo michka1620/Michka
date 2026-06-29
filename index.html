@@ -2346,9 +2346,9 @@ function pushEditsToKV(edits, deleted, newInvs) {
 function pullEditsFromKV(cb) {
   fetch(KV_EDITS_API).then(function(r){ return r.json(); }).then(function(data) {
     if (!data || typeof data !== 'object') { if(cb) cb(); return; }
-    if (data.edits)    localStorage.setItem('sup_edits',   JSON.stringify(data.edits));
-    if (data.deleted)  localStorage.setItem('sup_deleted', JSON.stringify(data.deleted));
-    if (data.newInvs)  localStorage.setItem('sup_new',     JSON.stringify(data.newInvs));
+    localStorage.setItem('sup_edits',   JSON.stringify(data.edits   || {}));
+    localStorage.setItem('sup_deleted', JSON.stringify(data.deleted || []));
+    localStorage.setItem('sup_new',     JSON.stringify(data.newInvs || []));
     if (cb) cb();
   }).catch(function(){ if(cb) cb(); });
 }
