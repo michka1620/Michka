@@ -1460,7 +1460,7 @@ function renderHistory() {
       + '</td>'
       + '<td style="white-space:nowrap">'
       + '<button data-idx="' + i + '" onclick="viewInv(window._histList[this.dataset.idx].number)" style="background:#1a365d;border:none;color:#63b3ed;padding:3px 9px;border-radius:4px;cursor:pointer;font-size:11px;">👁</button> '
-      + '<button data-idx="' + i + '" onclick="editInv(window._histList[this.dataset.idx].number)" style="background:#44337a;border:none;color:#d6bcfa;padding:3px 9px;border-radius:4px;cursor:pointer;font-size:11px;margin:0 4px;" title="Quick Edit">✏</button>'
+      + '<button data-idx="' + i + '" onclick="editInvFull(window._histList[this.dataset.idx].number,window._histList[this.dataset.idx].wo)" style="background:#44337a;border:none;color:#d6bcfa;padding:3px 9px;border-radius:4px;cursor:pointer;font-size:11px;margin:0 4px;" title="Edit">✏</button>'
       + '<button data-idx="' + i + '" onclick="delByIdx(parseInt(this.dataset.idx))" style="background:#742a2a;border:none;color:#fc8181;padding:3px 9px;border-radius:4px;cursor:pointer;font-size:11px;">🗑</button>'
       + '</td></tr>';
   }
