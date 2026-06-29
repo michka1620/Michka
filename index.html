@@ -522,7 +522,7 @@
   <div style="max-width:860px;margin:20px auto 10px;background:#1e1e2e;border-radius:10px;padding:14px 20px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;" class="no-print">
     <button onclick="downloadInvoicePDF()" style="background:linear-gradient(135deg,#b91c1c,#ef4444);border:none;color:#fff;padding:10px 22px;border-radius:6px;cursor:pointer;font-weight:700;font-size:14px;">⬇ Download PDF</button>
     <button onclick="window.print()" style="background:linear-gradient(135deg,#1e3a8a,#3b82f6);border:none;color:#fff;padding:10px 18px;border-radius:6px;cursor:pointer;font-weight:700;font-size:14px;">🖨 Print</button>
-    <button onclick="if(window._currentPreviewInv)editInvFull(window._currentPreviewInv.number)" style="background:linear-gradient(135deg,#92400e,#d97706);border:none;color:#fff;padding:10px 18px;border-radius:6px;cursor:pointer;font-weight:700;font-size:14px;">✏ Edit</button>
+    <button onclick="if(window._currentPreviewInv)editInvFull(window._currentPreviewInv.number,window._currentPreviewInv.wo)" style="background:linear-gradient(135deg,#92400e,#d97706);border:none;color:#fff;padding:10px 18px;border-radius:6px;cursor:pointer;font-weight:700;font-size:14px;">✏ Edit</button>
     <button onclick="closePreview()" style="background:#374151;border:none;color:#e5e7eb;padding:10px 18px;border-radius:6px;cursor:pointer;font-size:14px;">← Back to History</button>
     <span style="color:#6b7280;font-size:12px;margin-left:8px;">Tip: Chrome → Print → Save as PDF</span>
   </div>
@@ -530,7 +530,7 @@
   <div style="max-width:860px;margin:10px auto 30px;background:#1e1e2e;border-radius:10px;padding:14px 20px;display:flex;gap:10px;flex-wrap:wrap;" class="no-print">
     <button onclick="downloadInvoicePDF()" style="background:linear-gradient(135deg,#b91c1c,#ef4444);border:none;color:#fff;padding:10px 22px;border-radius:6px;cursor:pointer;font-weight:700;font-size:14px;">⬇ Download PDF</button>
     <button onclick="window.print()" style="background:linear-gradient(135deg,#1e3a8a,#3b82f6);border:none;color:#fff;padding:10px 18px;border-radius:6px;cursor:pointer;font-weight:700;font-size:14px;">🖨 Print</button>
-    <button onclick="if(window._currentPreviewInv)editInvFull(window._currentPreviewInv.number)" style="background:linear-gradient(135deg,#92400e,#d97706);border:none;color:#fff;padding:10px 18px;border-radius:6px;cursor:pointer;font-weight:700;font-size:14px;">✏ Edit</button>
+    <button onclick="if(window._currentPreviewInv)editInvFull(window._currentPreviewInv.number,window._currentPreviewInv.wo)" style="background:linear-gradient(135deg,#92400e,#d97706);border:none;color:#fff;padding:10px 18px;border-radius:6px;cursor:pointer;font-weight:700;font-size:14px;">✏ Edit</button>
     <button onclick="closePreview()" style="background:#374151;border:none;color:#e5e7eb;padding:10px 18px;border-radius:6px;cursor:pointer;font-size:14px;">← Back to History</button>
   </div>
 </div>
@@ -983,6 +983,7 @@ function saveAndPreview() {
   saveInvoices(invs);
   updateClientList();
 
+  window._currentPreviewInv = d;
   document.getElementById('inv-doc-content').innerHTML = buildInvoiceHTML(d);
   document.querySelectorAll('.page').forEach(p => { p.classList.remove('active'); p.style.display='none'; });
   var preview = document.getElementById('invoice-preview');
@@ -1473,8 +1474,8 @@ function saveQE() {
   renderHistory();
   showToast('✅ Invoice updated.');
 }
-function editInvFull(num) {
-  const inv = getInvoices().find(i=>String(i.number)===String(num));
+function editInvFull(num, wo) {
+  const inv = getInvoices().find(i=>String(i.number)===String(num) && (!wo || String(i.wo||'')===String(wo||''))) || getInvoices().find(i=>String(i.number)===String(num));
   if (!inv) return;
   const set = (id, val) => { const el=document.getElementById(id); if(el) el.value=val||''; };
   set('inv-number', inv.number); set('inv-date', inv.date); set('inv-wo', inv.wo);
