@@ -1757,6 +1757,24 @@ function normalizeTotals(arr) {
 
 // ===== INIT =====
 window.onload = () => {
+  // Migrate old sup_sent data to sup_edits sentState
+  try {
+    var oldSent = JSON.parse(localStorage.getItem('sup_sent') || '{}');
+    if (Object.keys(oldSent).length > 0) {
+      var all = getInvoices();
+      var changed = false;
+      Object.keys(oldSent).forEach(function(key) {
+        var entry = oldSent[key];
+        var state = entry && entry.state ? entry.state : 1;
+        var parts = key.split('|');
+        var num = parts[0], wo = parts[1]||'';
+        var inv = all.find(function(i){ return String(i.number)===num && String(i.wo||'')===wo; });
+        if (inv && !inv.sentState) { inv.sentState = state; changed = true; }
+      });
+      if (changed) saveInvoices(all);
+      localStorage.removeItem('sup_sent');
+    }
+  } catch(e) {}
   initializeData();
   updateClientList();
   showPage('history');
