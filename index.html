@@ -768,7 +768,7 @@ const saveInvoices = function(all) {
   var histNums = new Set(HISTORICAL_DATA.map(function(i){ return String(i.number)+'|'+String(i.wo||''); }));
   var userNew  = all.filter(function(i){ return !histNums.has(String(i.number)+'|'+String(i.wo||'')); });
   var edits    = {};
-  var fields   = ['date','status','payment','total','totalLabor','notes','partsGeneral','client','tech','vehicle','tirePositions','expenses'];
+  var fields   = ['date','status','payment','total','totalLabor','notes','partsGeneral','client','tech','vehicle','tirePositions','expenses','sentState'];
   HISTORICAL_DATA.forEach(function(orig){
     var k = String(orig.number)+'|'+String(orig.wo||'');
     var edited = all.find(function(i){ return String(i.number)+'|'+String(i.wo||'') === k; });
@@ -1361,8 +1361,7 @@ function renderHistory() {
     const ok1 = !search || (i.number||'').includes(search) || (i.client?.company||'').toLowerCase().includes(search) || (i.wo||'').includes(search) || (i.client?.driver||'').toLowerCase().includes(search);
     const ok2 = !stF || i.status===stF;
     const ok3 = !mF || (i.date||'').startsWith(mF);
-    var _se = sentData[String(i.number)+'|'+String(i.wo||'')];
-    var _ss = _se ? (_se.state||1) : 0;
+    var _ss = i.sentState || 0;
     const ok4 = !sentF || (sentF==='sent' && _ss===1) || (sentF==='notsent' && _ss===0) || (sentF==='cobrada' && _ss===2);
     return ok1&&ok2&&ok3&&ok4;
   }).sort((a,b)=>((b.date||'')>(a.date||''))?1:-1);
@@ -1443,9 +1442,7 @@ function renderHistory() {
     var st  = inv.status||'PENDING';
     var py  = String(inv.payment||'');
     var uid = escQ(num) + '||' + escQ(wo);
-    var sentKey = num + '|' + wo;
-    var sentEntry = getSentData()[sentKey];
-    var sentState = sentEntry ? (sentEntry.state || 1) : 0;
+    var sentState = inv.sentState || 0;
     var rowStyle = sentState===1 ? 'background:rgba(234,88,12,0.13);border-left:3px solid #ea580c;' : sentState===2 ? 'background:rgba(22,163,74,0.13);border-left:3px solid #16a34a;' : '';
     rows += '<tr style="' + rowStyle + '">'
       + '<td style="text-align:center"><input type="checkbox" class="inv-chk" data-idx="' + i + '" onchange="updateBulkBar()"></td>'
@@ -2281,19 +2278,21 @@ function deleteFromSheets(number, wo) {
 
 // ===== SENT TRACKING =====
 function getSentData() {
-  try { return JSON.parse(localStorage.getItem('sup_sent') || '{}'); } catch(e) { return {}; }
+  // Read sentState directly from invoice objects
+  var result = {};
+  getInvoices().forEach(function(inv) {
+    var k = String(inv.number)+'|'+String(inv.wo||'');
+    if (inv.sentState) result[k] = { state: inv.sentState };
+  });
+  return result;
 }
-function saveSentData(d) { localStorage.setItem('sup_sent', JSON.stringify(d)); }
 
 function setSentState(num, wo, state) {
-  var key = String(num)+'|'+String(wo||'');
-  var data = getSentData();
-  if (state == 0) {
-    delete data[key];
-  } else {
-    data[key] = { state: parseInt(state), date: new Date().toLocaleDateString('en-US',{year:'numeric',month:'2-digit',day:'2-digit'}) };
-  }
-  saveSentData(data);
+  var all = getInvoices();
+  var inv = all.find(function(i){ return String(i.number)===String(num) && String(i.wo||'')===String(wo||''); });
+  if (!inv) return;
+  inv.sentState = parseInt(state) || 0;
+  saveInvoices(all);
   var m = document.getElementById('sent-menu');
   if (m) m.remove();
   renderHistory();
@@ -2301,8 +2300,9 @@ function setSentState(num, wo, state) {
 function toggleSent(num, wo, btn) {
   var existing = document.getElementById('sent-menu');
   if (existing) { existing.remove(); return; }
-  var key = String(num)+'|'+String(wo||'');
-  var cur = (getSentData()[key]||{}).state||0;
+  var all = getInvoices();
+  var inv = all.find(function(i){ return String(i.number)===String(num) && String(i.wo||'')===String(wo||''); });
+  var cur = inv ? (inv.sentState||0) : 0;
   var rect = btn.getBoundingClientRect();
   var menu = document.createElement('div');
   menu.id = 'sent-menu';
