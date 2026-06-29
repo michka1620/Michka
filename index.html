@@ -1474,7 +1474,7 @@ function saveQE() {
   showToast('✅ Invoice updated.');
 }
 function editInvFull(num) {
-  const inv = getInvoices().find(i=>i.number===num);
+  const inv = getInvoices().find(i=>String(i.number)===String(num));
   if (!inv) return;
   const set = (id, val) => { const el=document.getElementById(id); if(el) el.value=val||''; };
   set('inv-number', inv.number); set('inv-date', inv.date); set('inv-wo', inv.wo);
