@@ -877,8 +877,8 @@ const getInvoices = function() {
     var edits   = JSON.parse(localStorage.getItem('sup_edits')   || '{}');
     var deleted = JSON.parse(localStorage.getItem('sup_deleted') || '[]');
     var userNew = JSON.parse(localStorage.getItem('sup_new')     || '[]');
-    // Remove deleted
-    base = base.filter(function(inv){
+    // Remove deleted — only applies to user-created (sup_new) invoices, NEVER to HISTORICAL_DATA
+    userNew = userNew.filter(function(inv){
       return deleted.indexOf(String(inv.number)+'|'+String(inv.wo||'')) < 0;
     });
     // Apply edits — deep merge: never overwrite non-empty HISTORICAL_DATA values with empty edit values
