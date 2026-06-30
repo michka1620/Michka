@@ -910,7 +910,16 @@ const getInvoices = function() {
       });
       return merged;
     });
-    // Add user-created invoices
+    // Add user-created invoices — exclude any that duplicate a HISTORICAL_DATA entry
+    var histKeys = new Set(HISTORICAL_DATA.map(function(i){ return String(i.number)+'|'+String(i.wo||''); }));
+    var histNums = new Set(HISTORICAL_DATA.map(function(i){ return String(i.number); }));
+    userNew = userNew.filter(function(inv){
+      var k = String(inv.number)+'|'+String(inv.wo||'');
+      if (histKeys.has(k)) return false;
+      // Also filter if number alone matches (catches swapped wo/number cases)
+      if (histNums.has(String(inv.number)) && histNums.has(String(inv.wo||''))) return false;
+      return true;
+    });
     return base.concat(normalizeTotals(userNew));
   } catch(e) { return base; }
 };
