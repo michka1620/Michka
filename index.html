@@ -871,7 +871,7 @@
 const getInvoices = function() {
   // HISTORICAL_DATA is always embedded in this file - never lost
   // User edits/additions are stored in localStorage
-  var base = normalizeTotals(HISTORICAL_DATA.map(function(i){ return Object.assign({},i); }));
+  var base = normalizeTotals(HISTORICAL_DATA.map(function(i){ return JSON.parse(JSON.stringify(i)); }));
   // Apply user edits to historical invoices
   try {
     var edits   = JSON.parse(localStorage.getItem('sup_edits')   || '{}');
