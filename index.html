@@ -1001,8 +1001,33 @@ const POSITIONS = [
   // Spare / misc
   'Spare','Other'
 ];
-const WORK_OPTIONS = ['Replace with New','Replace with Recap','Repair/Patch','Flat Repair','Rotate','Balance','Inflate','Mount/Dismount','Other'];
-const WHO_HAS = ['Leave at Yard','Customer Kept','Taken by Tech','Disposed','Other'];
+const WORK_OPTIONS = ['Replace with New','Replace with Recap','Repair/Patch','Flat Repair','Rotate','Balance','Inflate','Mount/Dismount','Remove Only','Install Only','Other'];
+const WHO_HAS = ['Leave at Yard','Customer Kept','Taken by Tech','Disposed','Dealer holds the tire','Other'];
+const CAUSE_OPTIONS = ['Road Hazard','Damage','Worn','Blowout','Puncture','Sidewall Damage','Cut','Bead Damage','Run Flat','Defect','Other'];
+const DAMAGE_OPTIONS = ['Worn','Cut','Blowout','Puncture','Sidewall','Bead Leak','Run Flat','Defect','Other'];
+const BRAND_OPTIONS = ['Bridgestone','Goodyear','Michelin','Continental','Firestone','Yokohama','Hankook','Toyo','Double Coin','Bandag','Recamic','GT Radial','BF Goodrich','Dunlop','Cooper','Falken','General','Sumitomo','Giti'];
+
+function getTireListCustom(key) {
+  return JSON.parse(localStorage.getItem('tire_custom_' + key) || '[]');
+}
+function saveTireListCustom(key, val) {
+  if (!val || !val.trim()) return;
+  var arr = getTireListCustom(key);
+  if (!arr.includes(val.trim())) { arr.push(val.trim()); localStorage.setItem('tire_custom_' + key, JSON.stringify(arr)); }
+}
+function buildDatalist(dlId, customKey, base) {
+  var custom = getTireListCustom(customKey);
+  var all = base.concat(custom.filter(function(v){ return !base.includes(v); }));
+  return '<datalist id="'+dlId+'">' + all.map(function(v){ return '<option value="'+v+'">'; }).join('') + '</datalist>';
+}
+function onTireFieldBlur(input, customKey) {
+  saveTireListCustom(customKey, input.value);
+  var base = customKey==='pos'?POSITIONS:customKey==='work'?WORK_OPTIONS:customKey==='who'?WHO_HAS:customKey==='brand'?BRAND_OPTIONS:customKey==='cause'?CAUSE_OPTIONS:DAMAGE_OPTIONS;
+  var custom = getTireListCustom(customKey);
+  var all = base.concat(custom.filter(function(v){ return !base.includes(v); }));
+  var opts = all.map(function(v){ return '<option value="'+v+'">'; }).join('');
+  document.querySelectorAll('datalist[id$="-'+customKey+'"]').forEach(function(dl){ dl.innerHTML = opts; });
+}
 
 function addTirePosition(data = {}) {
   tireCount++;
@@ -1012,29 +1037,34 @@ function addTirePosition(data = {}) {
   div.className = 'tire-card';
   div.id = id;
 
-  const posVal = data.position || POSITIONS[Math.min(tireCount-1, POSITIONS.length-1)];
+  const posVal = data.position || '';
 
   div.innerHTML = `
+    ${buildDatalist(id+'-pos','pos',POSITIONS)}
+    ${buildDatalist(id+'-work','work',WORK_OPTIONS)}
+    ${buildDatalist(id+'-who','who',WHO_HAS)}
+    ${buildDatalist(id+'-brand','brand',BRAND_OPTIONS)}
+    ${buildDatalist(id+'-cause','cause',CAUSE_OPTIONS)}
+    ${buildDatalist(id+'-dmg','dmg',DAMAGE_OPTIONS)}
     <button class="remove-tire-btn" onclick="document.getElementById('${id}').remove()" title="Remove">✕</button>
     <div class="tire-card-header">
-      <span class="tire-pos-badge" id="${id}-badge">${posVal}</span>
+      <span class="tire-pos-badge" id="${id}-badge">${posVal||'—'}</span>
       <span>Tire Position Details</span>
     </div>
     <div class="tire-card-grid">
       <div class="tire-field">
         <label>Position *</label>
-        <select onchange="document.getElementById('${id}-badge').textContent=this.value">
-          ${POSITIONS.map(p => `<option value="${p}" ${p===posVal?'selected':''}>${p}</option>`).join('')}
-          <option value="OTHER" ${!POSITIONS.includes(posVal)?'selected':''}>Other</option>
-        </select>
+        <input type="text" value="${posVal}" placeholder="LFI, RRO, T1LI..." list="${id}-pos"
+          oninput="document.getElementById('${id}-badge').textContent=this.value||'—'"
+          onblur="onTireFieldBlur(this,'pos')">
       </div>
       <div class="tire-field">
         <label>Size *</label>
-        <input type="text" value="${data.size||''}" placeholder="e.g. 11r22.5">
+        <input type="text" value="${data.size||''}" placeholder="e.g. 11R24.5">
       </div>
       <div class="tire-field">
         <label>Brand of On Tire *</label>
-        <input type="text" value="${data.brand||''}" placeholder="e.g. Bridgestone">
+        <input type="text" value="${data.brand||''}" placeholder="e.g. Bridgestone" list="${id}-brand" onblur="onTireFieldBlur(this,'brand')">
       </div>
       <div class="tire-field">
         <label>Model of On Tire *</label>
@@ -1042,23 +1072,19 @@ function addTirePosition(data = {}) {
       </div>
       <div class="tire-field">
         <label>Cause of Failure *</label>
-        <input type="text" value="${data.causeOfFailure||''}" placeholder="e.g. Damage, Road Hazard">
+        <input type="text" value="${data.causeOfFailure||''}" placeholder="e.g. Road Hazard" list="${id}-cause" onblur="onTireFieldBlur(this,'cause')">
       </div>
       <div class="tire-field">
         <label>Damage *</label>
-        <input type="text" value="${data.damage||''}" placeholder="e.g. Worn, Cut, Blowout">
+        <input type="text" value="${data.damage||data.workAccomplished&&''||''}" placeholder="e.g. Worn, Cut" list="${id}-dmg" onblur="onTireFieldBlur(this,'dmg')">
       </div>
       <div class="tire-field">
         <label>Work Accomplished *</label>
-        <select>
-          ${WORK_OPTIONS.map(w => `<option value="${w}" ${w===(data.workAccomplished||'Replace with New')?'selected':''}>${w}</option>`).join('')}
-        </select>
+        <input type="text" value="${data.workAccomplished||''}" placeholder="Replace with New..." list="${id}-work" onblur="onTireFieldBlur(this,'work')">
       </div>
       <div class="tire-field">
         <label>Who Has Part? *</label>
-        <select>
-          ${WHO_HAS.map(w => `<option value="${w}" ${w===(data.whoHasPart||'Leave at Yard')?'selected':''}>${w}</option>`).join('')}
-        </select>
+        <input type="text" value="${data.whoHasPart||''}" placeholder="Leave at Yard..." list="${id}-who" onblur="onTireFieldBlur(this,'who')">
       </div>
       <div class="tire-field">
         <label>Remaining Tread Depth</label>
