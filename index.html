@@ -1114,22 +1114,22 @@ function addTirePosition(data = {}) {
 function getTirePositions() {
   const cards = document.querySelectorAll('.tire-card');
   return Array.from(cards).map(card => {
-    const selects = card.querySelectorAll('select');
+    // All fields are now <input> (no selects). Order matches addTirePosition template.
     const inputs = card.querySelectorAll('input');
     return {
-      position: selects[0]?.value || '',
-      size: inputs[0]?.value || '',
-      brand: inputs[1]?.value || '',
-      model: inputs[2]?.value || '',
-      causeOfFailure: inputs[3]?.value || '',
-      damage: inputs[4]?.value || '',
-      workAccomplished: selects[1]?.value || '',
-      whoHasPart: selects[2]?.value || '',
-      treadDepth: inputs[5]?.value || '',
-      ply: inputs[6]?.value || '',
-      valve: inputs[7]?.value || '',
-      dotOn: inputs[8]?.value || '',
-      dotOff: inputs[9]?.value || '',
+      position:        inputs[0]?.value || '',
+      size:            inputs[1]?.value || '',
+      brand:           inputs[2]?.value || '',
+      model:           inputs[3]?.value || '',
+      causeOfFailure:  inputs[4]?.value || '',
+      damage:          inputs[5]?.value || '',
+      workAccomplished:inputs[6]?.value || '',
+      whoHasPart:      inputs[7]?.value || '',
+      treadDepth:      inputs[8]?.value || '',
+      ply:             inputs[9]?.value || '',
+      valve:           inputs[10]?.value || '',
+      dotOn:           inputs[11]?.value || '',
+      dotOff:          inputs[12]?.value || '',
     };
   });
 }
