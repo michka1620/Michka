@@ -1956,42 +1956,112 @@ async function processAllPhotos() {
   if (techName === 'Auto') techName = '';
   if (techName === '__custom__') techName = document.getElementById('tech-custom-input').value.trim();
 
-  var perInv = parseInt(document.getElementById('photos-per-invoice').value) || 3;
-
   document.getElementById('photo-progress').style.display = 'block';
   document.getElementById('process-photos-btn').disabled = true;
   _extractedData = [];
 
-  var totalGroups = Math.ceil(_photoFiles.length / perInv);
-
-  for (var g = 0; g < totalGroups; g++) {
-    var start = g * perInv;
-    var group = _photoFiles.slice(start, start + perInv);
-    var names = group.map(function(f){ return f.name; }).join(', ');
-
-    var pct = Math.round((g / totalGroups) * 100);
+  // PASO 1: Analizar cada foto individualmente
+  document.getElementById('photo-progress-text').textContent = 'Paso 1/2 — Analizando cada foto...';
+  var rawResults = [];
+  for (var i = 0; i < _photoFiles.length; i++) {
+    var pct = Math.round((i / _photoFiles.length) * 45);
     document.getElementById('photo-progress-bar').style.width = pct + '%';
-    document.getElementById('photo-progress-text').textContent = 'Procesando factura ' + (g+1) + ' de ' + totalGroups + ' — ' + names;
-
+    document.getElementById('photo-progress-text').textContent = 'Paso 1/2 — Foto ' + (i+1) + ' de ' + _photoFiles.length + ': ' + _photoFiles[i].name;
     try {
-      var images = [];
-      for (var j = 0; j < group.length; j++) {
-        images.push({ b64: await fileToBase64(group[j]), type: group[j].type || 'image/jpeg', name: group[j].name });
-      }
-      var result = await callClaudeVisionGroup(apiKey, images, techName);
-      result._photoName = names;
-      result._photos = group.map(function(f){ return f.name; });
-      _extractedData.push(result);
+      var b64 = await fileToBase64(_photoFiles[i]);
+      var result = await callClaudeVisionSingle(apiKey, b64, _photoFiles[i].type || 'image/jpeg', _photoFiles[i].name, techName);
+      result._photoName = _photoFiles[i].name;
+      rawResults.push(result);
     } catch(e) {
-      _extractedData.push({ _photoName: names, _photos: group.map(function(f){ return f.name; }), _error: e.message });
+      rawResults.push({ _photoName: _photoFiles[i].name, _error: e.message });
     }
   }
 
+  // PASO 2: Claude agrupa inteligentemente todos los resultados
+  document.getElementById('photo-progress-bar').style.width = '50%';
+  document.getElementById('photo-progress-text').textContent = 'Paso 2/2 — Claude agrupando y correlacionando facturas...';
+
+  var goodResults = rawResults.filter(function(r){ return !r._error; });
+  var grouped = [];
+  try {
+    grouped = await callClaudeGrouping(apiKey, goodResults, techName);
+  } catch(e) {
+    // Fallback: use raw results merged by WO#
+    _extractedData = rawResults;
+    _mergedData = null;
+    showToast('⚠️ Agrupación automática falló, usando WO# para agrupar');
+  }
+
   document.getElementById('photo-progress-bar').style.width = '100%';
-  document.getElementById('photo-progress-text').textContent = '✅ Completado — ' + totalGroups + ' factura(s) procesadas de ' + _photoFiles.length + ' fotos';
+  document.getElementById('photo-progress-text').textContent = '✅ Completado — ' + grouped.length + ' factura(s) identificadas de ' + _photoFiles.length + ' fotos';
   document.getElementById('process-photos-btn').disabled = false;
-  _mergedData = _extractedData.filter(function(d){ return !d._error; });
+
+  if (grouped.length > 0) {
+    _mergedData = grouped;
+    _extractedData = rawResults;
+  }
   renderExtractedInvoices();
+}
+
+async function callClaudeGrouping(apiKey, rawResults, techName) {
+  // Send all extracted data to Claude and ask it to group into invoices
+  var dataStr = rawResults.map(function(r, i){
+    return 'FOTO ' + (i+1) + ' (' + r._photoName + '):\n' + JSON.stringify({
+      wo: r.wo, date: r.date,
+      client: r.client, tech: r.tech, vehicle: r.vehicle,
+      notes: r.notes ? r.notes.substring(0,300) : '',
+      tirePositions: r.tirePositions
+    }, null, 1);
+  }).join('\n\n---\n\n');
+
+  var prompt = `Tengo ${rawResults.length} fotos de work orders de reparación de llantas/vehículos.
+Cada foto fue analizada individualmente y está abajo. Algunas fotos pertenecen al MISMO work order (misma fecha, mismo cliente, mismo vehículo, mismo WO#).
+${techName ? 'El técnico de TODAS estas fotos es: ' + techName : ''}
+
+TU TAREA: Agrupa las fotos que pertenecen al mismo work order y combina sus datos en una sola factura completa.
+- Si una foto tiene WO# y otras fotos tienen los mismos datos (fecha, cliente, vehículo) sin WO#, agrúpalas juntas
+- Las fotos de llantas sin WO# generalmente pertenecen al work order de la foto anterior que sí tiene WO#
+- Las notas de reparación sin WO# también pertenecen al work order más cercano
+- Combina TODOS los datos: llantas de todas las fotos del grupo, notas de todas las fotos, etc.
+
+Responde SOLO con un JSON array válido:
+[
+  {
+    "_photos": ["nombre_foto1.PNG", "nombre_foto2.PNG"],
+    "wo": "4920XXXXXX",
+    "date": "YYYY-MM-DD",
+    "client": { "company": "", "name": "", "phone": "", "address": "" },
+    "tech": { "name": "${techName || 'nombre técnico'}", "rollTime": "", "arrival": "", "hours": "", "mileage": "" },
+    "vehicle": { "year": "", "make": "", "model": "", "plate": "", "vin": "", "unit": "", "tractor": "", "trailer": "", "driver": "" },
+    "notes": "todas las notas de reparación combinadas",
+    "tirePositions": [{ "position": "", "brand": "", "size": "", "model": "", "causeOfFailure": "", "workAccomplished": "", "whoHasPart": "", "treadDepth": "", "dotOn": "", "dotOff": "" }],
+    "total": 0,
+    "status": "PENDING"
+  }
+]
+
+DATOS DE LAS FOTOS:
+${dataStr}
+
+Responde SOLO con el JSON array. Sin texto adicional.`;
+
+  var response = await fetch('https://supremekv1.michka1620.workers.dev/vision', {
+    method: 'POST',
+    headers: { 'x-api-key': apiKey, 'content-type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-opus-4-8',
+      max_tokens: 4000,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+
+  if (!response.ok) throw new Error('API ' + response.status);
+  var data = await response.json();
+  var text = data.content[0].text.trim();
+  var jsonMatch = text.match(/\[[\s\S]*\]/);
+  if (!jsonMatch) throw new Error('No JSON array en respuesta');
+  var result = JSON.parse(jsonMatch[0]);
+  return result;
 }
 
 async function callClaudeVisionGroup(apiKey, images, techOverride) {
@@ -2033,6 +2103,36 @@ Campos vacíos: usa "". No incluyas texto fuera del JSON.`;
   var jsonMatch = text.match(/\{[\s\S]*\}/);
   if (!jsonMatch) throw new Error('No JSON: ' + text.substring(0, 100));
   return JSON.parse(jsonMatch[0]);
+}
+
+async function callClaudeVisionSingle(apiKey, b64, mediaType, fileName, techOverride) {
+  var prompt = 'Analiza esta foto de un work order de reparación de vehículos/llantas.\n'
+    + (techOverride ? 'El técnico es "' + techOverride + '".\n' : '')
+    + 'Extrae TODOS los datos visibles. Responde SOLO con JSON:\n'
+    + '{"wo":"WO# si visible","date":"YYYY-MM-DD","client":{"company":"","name":"","phone":"","address":""},'
+    + '"tech":{"name":"' + (techOverride||'') + '","rollTime":"","arrival":"","hours":"","mileage":""},'
+    + '"vehicle":{"year":"","make":"","model":"","plate":"","vin":"","unit":"","tractor":"","trailer":"","driver":""},'
+    + '"notes":"todo el texto de notas/trabajo realizado","tirePositions":[{"position":"","brand":"","size":"","model":"","causeOfFailure":"","workAccomplished":"","whoHasPart":"","treadDepth":"","dotOn":"","dotOff":""}],'
+    + '"total":0,"status":"PENDING"}\nCampos vacíos: usa "". Solo JSON.';
+
+  var response = await fetch('https://supremekv1.michka1620.workers.dev/vision', {
+    method: 'POST',
+    headers: { 'x-api-key': apiKey, 'content-type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 1000,
+      messages: [{ role: 'user', content: [
+        { type: 'image', source: { type: 'base64', media_type: mediaType, data: b64 } },
+        { type: 'text', text: prompt }
+      ]}]
+    })
+  });
+  if (!response.ok) { var err = await response.text(); throw new Error('API ' + response.status + ': ' + err.substring(0,150)); }
+  var data = await response.json();
+  var text = data.content[0].text.trim();
+  var m = text.match(/\{[\s\S]*\}/);
+  if (!m) throw new Error('No JSON');
+  return JSON.parse(m[0]);
 }
 
 async function callClaudeVision(apiKey, b64, mediaType) {
@@ -2184,7 +2284,7 @@ function renderExtractedInvoices() {
     container.appendChild(errDiv);
   }
 
-  var merged = mergeExtractedByWO();
+  var merged = (_mergedData && _mergedData.length > 0) ? _mergedData : mergeExtractedByWO();
   _mergedData = merged;
 
   if (merged.length === 0) {
