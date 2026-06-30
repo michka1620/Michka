@@ -133,6 +133,9 @@
     font-weight: 600; width: 100%; text-align: center; transition: all 0.2s; margin-top: 10px;
   }
   .add-tire-btn:hover { background: #1a1a1a; border-color: var(--metal-flat); color: var(--accent); }
+  .tech-btn { background:#0d1117;border:1px solid #334155;color:#94a3b8;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:all 0.2s; }
+  .tech-btn:hover { border-color:#7c3aed;color:#c084fc; }
+  .tech-btn-active { background:#2e1065;border-color:#7c3aed;color:#c084fc; }
 
   /* EXPENSES */
   .expenses-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
@@ -752,6 +755,26 @@
         <button onclick="saveApiKey()" style="background:#4c1d95;border:1px solid #7c3aed;color:#c4b5fd;padding:8px 16px;border-radius:6px;cursor:pointer;font-weight:700;font-size:13px;">Guardar</button>
       </div>
       <div id="api-key-status" style="font-size:11px;margin-top:4px;color:#64748b;"></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+      <div>
+        <label style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;">Técnico</label>
+        <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;" id="tech-selector">
+          <button onclick="selectTech(this,'Auto')" class="tech-btn tech-btn-active" data-tech="Auto">🔍 Auto-detectar</button>
+          <button onclick="selectTech(this,'John')" class="tech-btn" data-tech="John">👤 John</button>
+          <button onclick="selectTech(this,'Luis')" class="tech-btn" data-tech="Luis">👤 Luis</button>
+          <button onclick="selectTech(this,'__custom__')" class="tech-btn" data-tech="__custom__" id="tech-custom-btn">➕ Otro</button>
+        </div>
+        <input type="text" id="tech-custom-input" placeholder="Nombre del técnico" style="display:none;margin-top:6px;width:100%;background:#0d1117;border:1px solid #334155;color:#e2e8f0;padding:7px 10px;border-radius:6px;font-size:13px;">
+      </div>
+      <div>
+        <label style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;">Fotos por Factura</label>
+        <div style="display:flex;gap:6px;margin-top:6px;align-items:center;">
+          <input type="number" id="photos-per-invoice" min="1" max="20" value="3" style="width:70px;background:#0d1117;border:1px solid #334155;color:#e2e8f0;padding:7px 10px;border-radius:6px;font-size:14px;font-weight:700;">
+          <span style="color:#64748b;font-size:12px;">fotos = 1 factura<br><span style="font-size:10px;">(Claude las analiza juntas)</span></span>
+        </div>
+      </div>
     </div>
 
     <div style="border:2px dashed #334155;border-radius:10px;padding:30px;text-align:center;cursor:pointer;transition:all 0.2s;background:#0d1117;"
@@ -1844,6 +1867,16 @@ function normalizeTotals(arr) {
 // ===== PHOTO IMPORT =====
 var _photoFiles = [];
 var _extractedData = [];
+var _selectedTech = 'Auto';
+
+function selectTech(btn, tech) {
+  document.querySelectorAll('.tech-btn').forEach(function(b){ b.classList.remove('tech-btn-active'); });
+  btn.classList.add('tech-btn-active');
+  _selectedTech = tech;
+  var custom = document.getElementById('tech-custom-input');
+  if (tech === '__custom__') { custom.style.display='block'; custom.focus(); }
+  else custom.style.display='none';
+}
 
 function saveApiKey() {
   var key = document.getElementById('photo-api-key').value.trim();
@@ -1919,30 +1952,87 @@ async function processAllPhotos() {
   if (!apiKey) { showToast('Primero guarda tu API Key'); return; }
   if (_photoFiles.length === 0) { showToast('No hay fotos seleccionadas'); return; }
 
+  var techName = _selectedTech;
+  if (techName === 'Auto') techName = '';
+  if (techName === '__custom__') techName = document.getElementById('tech-custom-input').value.trim();
+
+  var perInv = parseInt(document.getElementById('photos-per-invoice').value) || 3;
+
   document.getElementById('photo-progress').style.display = 'block';
   document.getElementById('process-photos-btn').disabled = true;
   _extractedData = [];
 
-  for (var i = 0; i < _photoFiles.length; i++) {
-    var pct = Math.round((i / _photoFiles.length) * 100);
+  var totalGroups = Math.ceil(_photoFiles.length / perInv);
+
+  for (var g = 0; g < totalGroups; g++) {
+    var start = g * perInv;
+    var group = _photoFiles.slice(start, start + perInv);
+    var names = group.map(function(f){ return f.name; }).join(', ');
+
+    var pct = Math.round((g / totalGroups) * 100);
     document.getElementById('photo-progress-bar').style.width = pct + '%';
-    document.getElementById('photo-progress-text').textContent = 'Procesando foto ' + (i+1) + ' de ' + _photoFiles.length + ' — ' + _photoFiles[i].name;
+    document.getElementById('photo-progress-text').textContent = 'Procesando factura ' + (g+1) + ' de ' + totalGroups + ' — ' + names;
 
     try {
-      var b64 = await fileToBase64(_photoFiles[i]);
-      var mediaType = _photoFiles[i].type || 'image/jpeg';
-      var result = await callClaudeVision(apiKey, b64, mediaType);
-      result._photoName = _photoFiles[i].name;
+      var images = [];
+      for (var j = 0; j < group.length; j++) {
+        images.push({ b64: await fileToBase64(group[j]), type: group[j].type || 'image/jpeg', name: group[j].name });
+      }
+      var result = await callClaudeVisionGroup(apiKey, images, techName);
+      result._photoName = names;
+      result._photos = group.map(function(f){ return f.name; });
       _extractedData.push(result);
     } catch(e) {
-      _extractedData.push({ _photoName: _photoFiles[i].name, _error: e.message });
+      _extractedData.push({ _photoName: names, _photos: group.map(function(f){ return f.name; }), _error: e.message });
     }
   }
 
   document.getElementById('photo-progress-bar').style.width = '100%';
-  document.getElementById('photo-progress-text').textContent = '✅ Completado — ' + _photoFiles.length + ' fotos procesadas';
+  document.getElementById('photo-progress-text').textContent = '✅ Completado — ' + totalGroups + ' factura(s) procesadas de ' + _photoFiles.length + ' fotos';
   document.getElementById('process-photos-btn').disabled = false;
+  _mergedData = _extractedData.filter(function(d){ return !d._error; });
   renderExtractedInvoices();
+}
+
+async function callClaudeVisionGroup(apiKey, images, techOverride) {
+  var prompt = `Estas ${images.length} foto(s) pertenecen al MISMO work order. Analízalas TODAS juntas y extrae los datos combinados.
+${techOverride ? 'TÉCNICO: El técnico es "' + techOverride + '" — usa este nombre si no se ve claramente en las fotos.' : ''}
+Responde SOLO con un JSON válido:
+{
+  "wo": "WO# del work order (4920XXXXXX o similar)",
+  "date": "fecha YYYY-MM-DD",
+  "client": { "company": "empresa", "name": "contacto", "phone": "teléfono", "address": "dirección" },
+  "tech": { "name": "técnico${techOverride ? ' (usar: ' + techOverride + ')' : ''}", "rollTime": "hora de salida/roll time", "arrival": "hora llegada", "hours": "horas trabajadas", "mileage": "millaje recorrido" },
+  "vehicle": { "year": "año", "make": "marca", "model": "modelo", "plate": "placa/license", "vin": "VIN", "unit": "unidad", "mileage": "odómetro", "tractor": "tractor#", "trailer": "trailer#", "driver": "chofer" },
+  "notes": "TODAS las notas de reparación y trabajo realizado, combinadas de todas las fotos",
+  "tirePositions": [{ "position": "pos", "brand": "marca", "size": "tamaño", "model": "modelo", "causeOfFailure": "causa", "workAccomplished": "trabajo", "whoHasPart": "quien tiene parte", "treadDepth": "profundidad", "dotOn": "DOT instalado", "dotOff": "DOT quitado" }],
+  "total": 0.00,
+  "status": "PENDING"
+}
+Campos vacíos: usa "". No incluyas texto fuera del JSON.`;
+
+  var content = [];
+  images.forEach(function(img, i) {
+    content.push({ type: 'image', source: { type: 'base64', media_type: img.type, data: img.b64 } });
+    content.push({ type: 'text', text: 'Foto ' + (i+1) + ': ' + img.name });
+  });
+  content.push({ type: 'text', text: prompt });
+
+  var response = await fetch('https://supremekv1.michka1620.workers.dev/vision', {
+    method: 'POST',
+    headers: { 'x-api-key': apiKey, 'content-type': 'application/json' },
+    body: JSON.stringify({ model: 'claude-opus-4-8', max_tokens: 2000, messages: [{ role: 'user', content: content }] })
+  });
+
+  if (!response.ok) {
+    var err = await response.text();
+    throw new Error('API ' + response.status + ': ' + err.substring(0, 200));
+  }
+  var data = await response.json();
+  var text = data.content[0].text.trim();
+  var jsonMatch = text.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) throw new Error('No JSON: ' + text.substring(0, 100));
+  return JSON.parse(jsonMatch[0]);
 }
 
 async function callClaudeVision(apiKey, b64, mediaType) {
@@ -2111,14 +2201,17 @@ function renderExtractedInvoices() {
     var c = inv.client || {};
     var v = inv.vehicle || {};
     var t = inv.tech || {};
+    var techDisplay = t.name || '—';
     var div = document.createElement('div');
     div.style.cssText = 'border:1px solid #1e293b;border-radius:8px;padding:14px;margin-bottom:12px;background:#0d1117;';
     div.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">'
-      + '<div style="font-weight:700;color:#c084fc;font-size:13px;">📋 WO# '+(inv.wo||'Sin WO')+' <span style="color:#64748b;font-size:11px;font-weight:400;">('+inv._photos.length+' foto'+(inv._photos.length>1?'s':'')+')</span></div>'
+      + '<div style="font-weight:700;color:#c084fc;font-size:13px;">📋 WO# '+(inv.wo||'Sin WO')
+      + ' <span style="background:#1e1a2e;border:1px solid #7c3aed;color:#c084fc;font-size:10px;padding:2px 8px;border-radius:4px;margin-left:6px;">👤 '+techDisplay+'</span>'
+      + ' <span style="color:#64748b;font-size:11px;font-weight:400;margin-left:6px;">('+( inv._photos ? inv._photos.length : 1)+' foto'+(( inv._photos ? inv._photos.length : 1)>1?'s':'')+')</span></div>'
       + '<label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:#94a3b8;">'
       + '<input type="checkbox" checked id="ext-check-'+idx+'"> Incluir</label>'
       + '</div>'
-      + '<div style="font-size:10px;color:#475569;margin-bottom:8px;">'+inv._photos.join(' · ')+'</div>'
+      + '<div style="font-size:10px;color:#475569;margin-bottom:8px;">'+(inv._photos||[inv._photoName]).join(' · ')+'</div>'
       + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;">'
       + makeExtField('WO #', 'wo', idx, inv.wo)
       + makeExtField('Fecha', 'date', idx, inv.date)
