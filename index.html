@@ -3596,9 +3596,16 @@ function pullEditsFromKV(cb) {
     var mergedEdits = Object.assign({}, kvEdits, localEdits);
 
     // Merge new invoices: KV base, local additions win (by number|wo key)
+    // Filter out any entry whose number/wo matches HISTORICAL_DATA (prevents stale KV from adding fake invoices)
+    var histNums = new Set(HISTORICAL_DATA.map(function(i){ return String(i.number); }));
+    var histWOs  = new Set(HISTORICAL_DATA.map(function(i){ return String(i.wo||''); }).filter(Boolean));
+    function isHistorical(i) {
+      var n = String(i.number||''), w = String(i.wo||'');
+      return histNums.has(n) || histNums.has(w) || (w && histWOs.has(w));
+    }
     var mergedNewMap = {};
-    kvNew.forEach(function(i){ mergedNewMap[String(i.number)+'|'+String(i.wo||'')] = i; });
-    localNew.forEach(function(i){ mergedNewMap[String(i.number)+'|'+String(i.wo||'')] = i; }); // local overwrites
+    kvNew.forEach(function(i){ if (!isHistorical(i)) mergedNewMap[String(i.number)+'|'+String(i.wo||'')] = i; });
+    localNew.forEach(function(i){ if (!isHistorical(i)) mergedNewMap[String(i.number)+'|'+String(i.wo||'')] = i; });
     var mergedNew = Object.values(mergedNewMap);
 
     // Merge deleted: union, but filter out historical entries
