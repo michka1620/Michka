@@ -1,6 +1,7 @@
 name = "bold-mouse-3bc3"
 compatibility_date = "2024-01-01"
 account_id = "62fb45b77a7da33a4614d06fab267b4b"
+main = "_worker.js"
 
 [assets]
 directory = "."
