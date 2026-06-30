@@ -2678,6 +2678,58 @@ function saveAllExtracted() {
   setTimeout(function(){ showPage('history'); renderHistory(); }, 800);
 }
 
+// ===== TIRE PATCHES — manually entered tire data per WO# =====
+var TIRE_PATCHES = {
+  '4920132726': [
+    {position:'LFI',brand:'Double Coin',model:'Rr99',size:'11R24.5',causeOfFailure:'Damage',workAccomplished:'Replace with New',whoHasPart:'Dealer holds the tire',treadDepth:'11/32',ply:'16',valve:'1',dotOn:'',dotOff:''},
+    {position:'LFO',brand:'Double Coin',model:'Rr99',size:'11R24.5',causeOfFailure:'Damage',workAccomplished:'Replace with New',whoHasPart:'Dealer holds the tire',treadDepth:'11/32',ply:'16',valve:'1',dotOn:'',dotOff:''},
+    {position:'RFI',brand:'Double Coin',model:'Rr99',size:'11R24.5',causeOfFailure:'Damage',workAccomplished:'Replace with New',whoHasPart:'Dealer holds the tire',treadDepth:'14/32',ply:'16',valve:'1',dotOn:'',dotOff:''},
+    {position:'RFO',brand:'Double Coin',model:'Rr99',size:'11R24.5',causeOfFailure:'Damage',workAccomplished:'Replace with New',whoHasPart:'Dealer holds the tire',treadDepth:'13/32',ply:'16',valve:'1',dotOn:'',dotOff:''}
+  ]
+};
+
+function applyTirePatches() {
+  var userNew = JSON.parse(localStorage.getItem('sup_new') || '[]');
+  var edits   = JSON.parse(localStorage.getItem('sup_edits') || '{}');
+  var deleted = JSON.parse(localStorage.getItem('sup_deleted') || '[]');
+  var changed = false;
+
+  Object.keys(TIRE_PATCHES).forEach(function(wo) {
+    var tires = TIRE_PATCHES[wo];
+    // Find in sup_new
+    var inv = null;
+    var idx = -1;
+    for (var i = 0; i < userNew.length; i++) {
+      if (String(userNew[i].wo||'').replace(/\D/g,'') === wo || String(userNew[i].number||'').replace(/\D/g,'') === wo) {
+        inv = userNew[i]; idx = i; break;
+      }
+    }
+    // Find in edits
+    if (!inv) {
+      for (var k in edits) {
+        if (String(edits[k].wo||'').replace(/\D/g,'') === wo || String(edits[k].number||'').replace(/\D/g,'') === wo) {
+          inv = edits[k]; break;
+        }
+      }
+    }
+    if (!inv) return; // invoice not found locally, skip
+    if (!inv.tirePositions) inv.tirePositions = [];
+    // Only patch if no tires yet
+    if (inv.tirePositions.length > 0) return;
+    inv.tirePositions = tires;
+    if (idx >= 0) userNew[idx] = inv;
+    else edits[inv.number] = inv;
+    changed = true;
+    console.log('Tire patch applied for WO#', wo, '—', tires.length, 'tires');
+  });
+
+  if (changed) {
+    localStorage.setItem('sup_new', JSON.stringify(userNew));
+    localStorage.setItem('sup_edits', JSON.stringify(edits));
+    pushEditsToKV(edits, deleted, userNew);
+  }
+}
+
 // ===== INIT =====
 window.onload = () => {
   // Clear local edits and KV if ?reset=1 in URL
@@ -2709,6 +2761,7 @@ window.onload = () => {
   // Pull all edits from KV first, then initialize
   pullEditsFromKV(function() {
     initializeData();
+    applyTirePatches();
     updateClientList();
     showPage('history');
     setTimeout(function() { fillNewInvoice(); }, 200);
