@@ -2127,10 +2127,7 @@ function cleanExtracted(inv) {
     inv.vehicle.model = stripLeadingNums(inv.vehicle.model);
   }
   // Clean WO field — keep only digits
-  if (inv.wo) {
-    var woMatch = inv.wo.toString().match(/\d{6,}/);
-    inv.wo = woMatch ? woMatch[0] : inv.wo.replace(/[^\d]/g,'');
-  }
+  if (inv.wo) inv.wo = normalizeWO(inv.wo);
   return inv;
 }
 
@@ -2260,7 +2257,7 @@ function mergeExtractedByWO() {
 
   _extractedData.forEach(function(inv) {
     if (inv._error) return;
-    var wo = (inv.wo || '').toString().trim();
+    var wo = normalizeWO(inv.wo);
 
     function pick(a, b) { return (a && a !== '' && a !== '0' && a !== 0) ? a : b; }
     function mergeObj(base, extra) {
@@ -2406,9 +2403,15 @@ function updateExtField(idx, field, value) {
 
 var _mergedData = [];
 
+function normalizeWO(wo) {
+  if (!wo) return '';
+  var m = wo.toString().match(/\d{5,}/);
+  return m ? m[0] : '';
+}
+
 function saveAllExtracted() {
   var all = getInvoices();
-  var existingWOs = new Set(all.map(function(i){ return (i.wo||'').toString().trim(); }).filter(Boolean));
+  var existingWOs = new Set(all.map(function(i){ return normalizeWO(i.wo); }).filter(Boolean));
   var saved = 0, skipped = 0;
 
   var dataToSave = _mergedData.length > 0 ? _mergedData : _extractedData;
@@ -2418,10 +2421,13 @@ function saveAllExtracted() {
     var chk = document.getElementById('ext-check-'+idx);
     if (chk && !chk.checked) return;
 
-    var wo = (inv.wo || '').toString().trim();
+    var wo = normalizeWO(inv.wo);
+
+    // Skip if no WO# — can't create invoice without it
+    if (!wo) { skipped++; return; }
 
     // Skip duplicates — WO already exists in system
-    if (wo && existingWOs.has(wo)) {
+    if (existingWOs.has(wo)) {
       skipped++;
       return;
     }
@@ -2579,7 +2585,7 @@ function deduplicateInvoices() {
   var removed = 0;
 
   all.forEach(function(inv) {
-    var wo = (inv.wo || '').toString().trim();
+    var wo = normalizeWO(inv.wo);
     if (!wo) { kept.push(inv); return; } // no WO# — keep always
 
     if (!seen[wo]) {
