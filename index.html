@@ -2062,7 +2062,7 @@ Responde SOLO con el JSON array. Sin texto adicional.`;
   var jsonMatch = text.match(/\[[\s\S]*\]/);
   if (!jsonMatch) throw new Error('No JSON array en respuesta');
   var result = JSON.parse(jsonMatch[0]);
-  return result;
+  return result.map(function(inv){ return cleanExtracted(inv); });
 }
 
 async function callClaudeVisionGroup(apiKey, images, techOverride) {
@@ -2103,7 +2103,35 @@ Campos vacíos: usa "". No incluyas texto fuera del JSON.`;
   var text = data.content[0].text.trim();
   var jsonMatch = text.match(/\{[\s\S]*\}/);
   if (!jsonMatch) throw new Error('No JSON: ' + text.substring(0, 100));
-  return JSON.parse(jsonMatch[0]);
+  return cleanExtracted(JSON.parse(jsonMatch[0]));
+}
+
+function cleanExtracted(inv) {
+  // Remove WO numbers from text fields where they don't belong
+  function stripWO(s) {
+    if (!s || typeof s !== 'string') return s;
+    return s.replace(/^(wo\s*#?\s*\d{6,}[\s\-:,]*)/i, '').replace(/(\s*wo\s*#?\s*\d{6,})/ig, '').trim();
+  }
+  function stripLeadingNums(s) {
+    if (!s || typeof s !== 'string') return s;
+    // Remove leading standalone numbers like "#42609 " or "4920132188 "
+    return s.replace(/^[#\s]*\d{4,}\s+/, '').trim();
+  }
+  if (inv.client) {
+    inv.client.company = stripLeadingNums(stripWO(inv.client.company));
+    inv.client.name    = stripLeadingNums(stripWO(inv.client.name));
+    inv.client.address = stripWO(inv.client.address);
+  }
+  if (inv.vehicle) {
+    inv.vehicle.make  = stripLeadingNums(inv.vehicle.make);
+    inv.vehicle.model = stripLeadingNums(inv.vehicle.model);
+  }
+  // Clean WO field — keep only digits
+  if (inv.wo) {
+    var woMatch = inv.wo.toString().match(/\d{6,}/);
+    inv.wo = woMatch ? woMatch[0] : inv.wo.replace(/[^\d]/g,'');
+  }
+  return inv;
 }
 
 async function callClaudeVisionSingle(apiKey, b64, mediaType, fileName, techOverride) {
