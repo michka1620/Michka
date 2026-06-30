@@ -812,6 +812,46 @@
     </div>
   </div>
 
+  <!-- ADD TIRES TO EXISTING INVOICE -->
+  <div class="card" style="border:1px solid #1e3a4a;background:#0a1a22;">
+    <h2 style="color:#38bdf8;">🔧 Agregar Llantas a Factura Existente</h2>
+    <div style="color:#94a3b8;font-size:13px;margin-bottom:14px;">Sube fotos de pantallas de llantas y agrégalas a una factura que ya existe por WO#.</div>
+    <div style="display:flex;gap:10px;align-items:flex-end;margin-bottom:12px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:180px;">
+        <label style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;">WO# de la Factura</label>
+        <input type="text" id="add-tire-wo" placeholder="ej. 4920132726" style="width:100%;margin-top:4px;background:#0d1117;border:1px solid #334155;color:#e2e8f0;padding:8px 12px;border-radius:6px;font-size:14px;font-weight:700;" oninput="lookupAddTireInvoice()">
+      </div>
+      <div id="add-tire-invoice-label" style="color:#64748b;font-size:12px;padding-bottom:10px;min-width:140px;"></div>
+    </div>
+    <div style="border:2px dashed #1e3a4a;border-radius:10px;padding:20px;text-align:center;cursor:pointer;background:#0a1522;"
+         onclick="document.getElementById('add-tire-file-input').click()"
+         ondragover="event.preventDefault();this.style.borderColor='#38bdf8'"
+         ondragleave="this.style.borderColor='#1e3a4a'"
+         ondrop="handleAddTireDrop(event)">
+      <div style="font-size:32px;margin-bottom:6px;">🛞</div>
+      <div style="color:#94a3b8;font-size:13px;font-weight:600;">Click o arrastra fotos de llantas</div>
+      <input type="file" id="add-tire-file-input" accept="image/*" multiple style="display:none" onchange="handleAddTireSelect(this.files)">
+    </div>
+    <div id="add-tire-preview" style="margin-top:10px;display:flex;flex-wrap:wrap;gap:8px;"></div>
+    <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;">
+      <button id="add-tire-btn" onclick="processAddTirePhotos()" style="display:none;background:#0c4a6e;border:1px solid #38bdf8;color:#7dd3fc;padding:10px 24px;border-radius:6px;cursor:pointer;font-weight:700;font-size:13px;">🤖 Escanear con Claude AI</button>
+      <button onclick="clearAddTireQueue()" id="clear-add-tire-btn" style="display:none;background:#1a1a1a;border:1px solid #333;color:#888;padding:10px 14px;border-radius:6px;cursor:pointer;font-size:13px;">🗑 Limpiar</button>
+    </div>
+    <div id="add-tire-progress" style="display:none;margin-top:10px;">
+      <div style="background:#0d1117;border:1px solid #1e293b;border-radius:8px;padding:10px;">
+        <div style="font-size:12px;color:#94a3b8;margin-bottom:6px;" id="add-tire-progress-text">Escaneando...</div>
+        <div style="background:#1e293b;border-radius:4px;height:5px;overflow:hidden;">
+          <div id="add-tire-progress-bar" style="height:100%;background:linear-gradient(90deg,#38bdf8,#7dd3fc);width:0%;transition:width 0.3s;"></div>
+        </div>
+      </div>
+    </div>
+    <div id="add-tire-results" style="display:none;margin-top:14px;">
+      <div style="font-weight:700;color:#38bdf8;margin-bottom:8px;" id="add-tire-results-title"></div>
+      <div id="add-tire-list"></div>
+      <button onclick="saveAddedTires()" style="margin-top:12px;background:#0c4a6e;border:1px solid #38bdf8;color:#7dd3fc;padding:11px 28px;border-radius:6px;cursor:pointer;font-weight:700;font-size:14px;width:100%;">💾 Agregar estas llantas a WO# <span id="add-tire-wo-display"></span></button>
+    </div>
+  </div>
+
   <div id="photo-results" style="display:none;">
     <div class="card">
       <h2>✅ Datos Extraídos</h2>
@@ -2410,6 +2450,171 @@ function normalizeWO(wo) {
   if (!wo) return '';
   var m = wo.toString().match(/\d{5,}/);
   return m ? m[0] : '';
+}
+
+// ===== ADD TIRES TO EXISTING INVOICE =====
+var _addTireFiles = [];
+var _addTireData  = [];
+
+function lookupAddTireInvoice() {
+  var wo = document.getElementById('add-tire-wo').value.trim().replace(/\D/g,'');
+  var lbl = document.getElementById('add-tire-invoice-label');
+  if (!wo) { lbl.textContent = ''; return; }
+  var inv = getInvoices().find(function(i){ return normalizeWO(i.wo) === wo; });
+  if (inv) {
+    lbl.style.color = '#4ade80';
+    lbl.textContent = '✅ ' + (inv.client&&inv.client.company ? inv.client.company : 'Factura encontrada') + ' — ORDER# ' + inv.number;
+  } else {
+    lbl.style.color = '#f87171';
+    lbl.textContent = '❌ WO# no encontrado';
+  }
+}
+
+function handleAddTireDrop(e) {
+  e.preventDefault();
+  e.currentTarget.style.borderColor = '#1e3a4a';
+  handleAddTireSelect(e.dataTransfer.files);
+}
+
+function handleAddTireSelect(files) {
+  for (var i = 0; i < files.length; i++) _addTireFiles.push(files[i]);
+  renderAddTirePreview();
+}
+
+function renderAddTirePreview() {
+  var area = document.getElementById('add-tire-preview');
+  area.innerHTML = '';
+  _addTireFiles.forEach(function(f, i) {
+    var url = URL.createObjectURL(f);
+    area.innerHTML += '<div style="position:relative;"><img src="'+url+'" style="width:70px;height:70px;object-fit:cover;border-radius:6px;border:1px solid #1e3a4a;">'
+      +'<button onclick="removeAddTireFile('+i+')" style="position:absolute;top:-4px;right:-4px;background:#7f1d1d;color:#fff;border:none;border-radius:50%;width:18px;height:18px;cursor:pointer;font-size:11px;line-height:1;">×</button></div>';
+  });
+  var show = _addTireFiles.length > 0;
+  document.getElementById('add-tire-btn').style.display = show ? 'inline-block' : 'none';
+  document.getElementById('clear-add-tire-btn').style.display = show ? 'inline-block' : 'none';
+}
+
+function removeAddTireFile(idx) {
+  _addTireFiles.splice(idx, 1);
+  renderAddTirePreview();
+}
+
+function clearAddTireQueue() {
+  _addTireFiles = [];
+  _addTireData  = [];
+  renderAddTirePreview();
+  document.getElementById('add-tire-results').style.display = 'none';
+}
+
+async function processAddTirePhotos() {
+  var wo = document.getElementById('add-tire-wo').value.trim().replace(/\D/g,'');
+  if (!wo) { showToast('⚠️ Ingresa el WO# primero'); return; }
+  var inv = getInvoices().find(function(i){ return normalizeWO(i.wo) === wo; });
+  if (!inv) { showToast('❌ WO# ' + wo + ' no encontrado'); return; }
+  var apiKey = localStorage.getItem('supreme_api_key') || document.getElementById('photo-api-key').value.trim();
+  if (!apiKey) { showToast('⚠️ Ingresa tu API Key'); return; }
+  if (!_addTireFiles.length) { showToast('⚠️ Sube al menos una foto'); return; }
+
+  document.getElementById('add-tire-progress').style.display = 'block';
+  document.getElementById('add-tire-results').style.display  = 'none';
+  document.getElementById('add-tire-btn').disabled = true;
+  _addTireData = [];
+
+  for (var i = 0; i < _addTireFiles.length; i++) {
+    var pct = Math.round((i / _addTireFiles.length) * 100);
+    document.getElementById('add-tire-progress-bar').style.width = pct + '%';
+    document.getElementById('add-tire-progress-text').textContent = 'Foto ' + (i+1) + ' de ' + _addTireFiles.length + ': ' + _addTireFiles[i].name;
+    try {
+      var b64 = await fileToBase64(_addTireFiles[i]);
+      var res = await callClaudeTireSingle(apiKey, b64, _addTireFiles[i].type || 'image/jpeg');
+      if (res && res.position) _addTireData.push(res);
+    } catch(e) { console.error('Tire scan error:', e); }
+  }
+
+  document.getElementById('add-tire-progress-bar').style.width = '100%';
+  document.getElementById('add-tire-progress').style.display = 'none';
+  document.getElementById('add-tire-btn').disabled = false;
+  renderAddTireResults(wo);
+}
+
+async function callClaudeTireSingle(apiKey, b64, mediaType) {
+  var prompt = 'Extract tire data from this roadside repair app screenshot.\n'
+    + 'Respond ONLY with valid JSON:\n'
+    + '{"position":"tire position code e.g. LFI/LFO/RFI/RFO/LRI/LRO/RRI/RRO/LF/RF/LR/RR","brand":"tire brand","size":"tire size","model":"tire model","causeOfFailure":"cause of failure","workAccomplished":"work accomplished","whoHasPart":"who has part","treadDepth":"tread depth","ply":"ply rating","valve":"valve","dotOn":"DOT On number","dotOff":"DOT Off number"}\n'
+    + 'Empty fields: use "". Only JSON, no other text.';
+  var response = await fetch('https://supremekv1.michka1620.workers.dev/vision', {
+    method: 'POST',
+    headers: { 'x-api-key': apiKey, 'content-type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-opus-4-8', max_tokens: 600,
+      messages: [{ role: 'user', content: [
+        { type: 'image', source: { type: 'base64', media_type: mediaType, data: b64 } },
+        { type: 'text', text: prompt }
+      ]}]
+    })
+  });
+  if (!response.ok) throw new Error('API ' + response.status);
+  var data = await response.json();
+  var text = data.content[0].text.trim();
+  var m = text.match(/\{[\s\S]*\}/);
+  if (!m) throw new Error('No JSON');
+  return JSON.parse(m[0]);
+}
+
+function renderAddTireResults(wo) {
+  if (!_addTireData.length) { showToast('⚠️ No se encontraron datos de llantas'); return; }
+  var list = document.getElementById('add-tire-list');
+  list.innerHTML = '';
+  _addTireData.forEach(function(t, i) {
+    list.innerHTML += '<div style="background:#0d1117;border:1px solid #1e3a4a;border-radius:8px;padding:10px;margin-bottom:8px;display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:6px;">'
+      + '<div><span style="font-size:10px;color:#64748b;">POSICIÓN</span><br><strong style="color:#38bdf8;">'+t.position+'</strong></div>'
+      + '<div><span style="font-size:10px;color:#64748b;">TAMAÑO</span><br><span style="color:#e2e8f0;">'+t.size+'</span></div>'
+      + '<div><span style="font-size:10px;color:#64748b;">MARCA</span><br><span style="color:#e2e8f0;">'+t.brand+'</span></div>'
+      + '<div><span style="font-size:10px;color:#64748b;">MODELO</span><br><span style="color:#e2e8f0;">'+t.model+'</span></div>'
+      + '<div><span style="font-size:10px;color:#64748b;">TRABAJO</span><br><span style="color:#e2e8f0;">'+t.workAccomplished+'</span></div>'
+      + '<div><span style="font-size:10px;color:#64748b;">TREAD</span><br><span style="color:#e2e8f0;">'+t.treadDepth+'</span></div>'
+      + '</div>';
+  });
+  document.getElementById('add-tire-results-title').textContent = _addTireData.length + ' llanta(s) detectada(s) — listas para agregar a WO# ' + wo;
+  document.getElementById('add-tire-wo-display').textContent = wo;
+  document.getElementById('add-tire-results').style.display = 'block';
+}
+
+function saveAddedTires() {
+  var wo = document.getElementById('add-tire-wo').value.trim().replace(/\D/g,'');
+  if (!wo || !_addTireData.length) return;
+
+  var all = getInvoices();
+  var inv = all.find(function(i){ return normalizeWO(i.wo) === wo; });
+  if (!inv) { showToast('❌ Factura no encontrada'); return; }
+
+  if (!inv.tirePositions) inv.tirePositions = [];
+  _addTireData.forEach(function(t) { inv.tirePositions.push(t); });
+
+  // Persist
+  var userNew = JSON.parse(localStorage.getItem('sup_new') || '[]');
+  var edits   = JSON.parse(localStorage.getItem('sup_edits') || '{}');
+  var deleted = JSON.parse(localStorage.getItem('sup_deleted') || '[]');
+
+  var found = false;
+  for (var i = 0; i < userNew.length; i++) {
+    if (normalizeWO(userNew[i].wo) === wo) { userNew[i] = inv; found = true; break; }
+  }
+  if (!found) {
+    // It's in HISTORICAL_DATA — move to edits
+    edits[inv.number] = inv;
+  }
+
+  localStorage.setItem('sup_new', JSON.stringify(userNew));
+  localStorage.setItem('sup_edits', JSON.stringify(edits));
+  pushEditsToKV(edits, deleted, userNew);
+
+  showToast('✅ ' + _addTireData.length + ' llanta(s) agregadas a WO# ' + wo);
+  _addTireData = [];
+  _addTireFiles = [];
+  renderAddTirePreview();
+  document.getElementById('add-tire-results').style.display = 'none';
+  renderHistory();
 }
 
 function saveAllExtracted() {
