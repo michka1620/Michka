@@ -2597,15 +2597,23 @@ function cleanAllSaved() {
     return m ? m[0] : '';
   }
 
-  // Work on ALL invoices
-  var all = getInvoices();
-  var orderNums = all.map(function(i){ return parseInt(i.number)||0; }).filter(function(n){ return n>202600000&&n<210000000; });
-  var nextNum = orderNums.length ? Math.max.apply(null,orderNums)+1 : 202609500;
+  // Read sup_new directly (user-created invoices from photo import)
+  var userNew = JSON.parse(localStorage.getItem('sup_new') || '[]');
+  var edits   = JSON.parse(localStorage.getItem('sup_edits') || '{}');
+  var deleted = JSON.parse(localStorage.getItem('sup_deleted') || '[]');
+
+  // Find highest correct Order# across ALL invoices
+  var allInvs = getInvoices();
+  var orderNums = allInvs.map(function(i){ return parseInt(i.number)||0; }).filter(function(n){ return n>202600000&&n<210000000; });
+  var nextNum = orderNums.length ? Math.max.apply(null,orderNums)+1 : 202609437;
 
   var seen = {};
+  // Pre-seed seen with HISTORICAL_DATA WOs so we don't duplicate them
+  HISTORICAL_DATA.forEach(function(i){ if(i.wo) seen[String(i.wo).trim()] = true; });
+
   var fixed = 0, dupsRemoved = 0;
 
-  var cleaned = all.filter(function(inv) {
+  var cleaned = userNew.filter(function(inv) {
     var wo = fixWONum(inv.wo);
 
     // Remove duplicate WOs
@@ -2619,7 +2627,7 @@ function cleanAllSaved() {
       fixed++;
     }
 
-    // Fix WO field — keep only digits
+    // Fix WO field
     if (inv.wo) inv.wo = wo || inv.wo;
 
     // Clean client fields
@@ -2635,9 +2643,9 @@ function cleanAllSaved() {
     return true;
   });
 
-  // Save cleaned list
-  saveInvoices(cleaned);
-  showToast('✅ ' + fixed + ' Order# corregidos, ' + dupsRemoved + ' duplicados eliminados');
+  localStorage.setItem('sup_new', JSON.stringify(cleaned));
+  pushEditsToKV(edits, deleted, cleaned);
+  showToast('✅ ' + fixed + ' Order# corregidos (202609XXX), ' + dupsRemoved + ' duplicados eliminados');
   renderHistory();
 }
 
