@@ -296,6 +296,7 @@
     <button class="tab" onclick="showPage('monthly')">📊 Monthly</button>
     <button class="tab" onclick="showPage('sent')">📤 Enviadas</button>
     <button class="tab" onclick="showPage('photos')" style="background:#1a1a2a;color:#c084fc;border:1px solid #7c3aed;">📸 Fotos</button>
+    <button class="tab" onclick="cleanAllSaved()" style="background:#1a0a1a;color:#f0abfc;border:1px solid #86198f;">🧹 Fix All</button>
     <button class="tab" onclick="deduplicateInvoices()" style="background:#1a1a0a;color:#fbbf24;border:1px solid #92400e;">🔁 Dedup</button>
     <button class="tab" onclick="exportData()" style="background:#1a3a2a;color:#4ade80;border:1px solid #166534;">⬇ Export</button>
     <button class="tab" onclick="document.getElementById('import-file').click()" style="background:#1a1a3a;color:#a5b4fc;border:1px solid #3730a3;">⬆ Import</button>
@@ -2575,6 +2576,61 @@ function fillNewInvoice() {
 
 
 // ===== EXPORT / IMPORT =====
+function cleanAllSaved() {
+  var userNew = JSON.parse(localStorage.getItem('sup_new') || '[]');
+  if (userNew.length === 0) { showToast('No hay facturas nuevas para limpiar'); return; }
+
+  function stripWO(s) {
+    if (!s || typeof s !== 'string') return s;
+    return s.replace(/^(wo\s*#?\s*\d{5,}[\s\-:,]*)/i, '').replace(/(\s*wo\s*#?\s*\d{5,})/ig, '').trim();
+  }
+  function stripLeadingNums(s) {
+    if (!s || typeof s !== 'string') return s;
+    return s.replace(/^[#\s]*\d{4,}\s+/, '').trim();
+  }
+  function fixWO(wo) {
+    if (!wo) return '';
+    var m = wo.toString().match(/\d{5,}/);
+    return m ? m[0] : '';
+  }
+
+  var seen = {};
+  var cleaned = [];
+  var fixed = 0, dupsRemoved = 0;
+
+  userNew.forEach(function(inv) {
+    // Normalize WO#
+    var wo = fixWO(inv.wo);
+    if (wo && seen[wo]) { dupsRemoved++; return; }
+    if (wo) seen[wo] = true;
+
+    // Clean client fields
+    if (inv.client) {
+      var before = inv.client.company;
+      inv.client.company = stripLeadingNums(stripWO(inv.client.company || ''));
+      inv.client.name    = stripLeadingNums(stripWO(inv.client.name || ''));
+      inv.client.address = stripWO(inv.client.address || '');
+      if (inv.client.company !== before) fixed++;
+    }
+    // Clean vehicle fields
+    if (inv.vehicle) {
+      inv.vehicle.make  = stripLeadingNums(inv.vehicle.make || '');
+      inv.vehicle.model = stripLeadingNums(inv.vehicle.model || '');
+    }
+    inv.wo = wo || inv.wo;
+    cleaned.push(inv);
+  });
+
+  localStorage.setItem('sup_new', JSON.stringify(cleaned));
+  pushEditsToKV(
+    JSON.parse(localStorage.getItem('sup_edits') || '{}'),
+    JSON.parse(localStorage.getItem('sup_deleted') || '[]'),
+    cleaned
+  );
+  showToast('✅ Limpieza completa — ' + fixed + ' corregidas, ' + dupsRemoved + ' duplicadas eliminadas');
+  renderHistory();
+}
+
 function deduplicateInvoices() {
   var all = getInvoices();
   var seen = {};
