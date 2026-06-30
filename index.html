@@ -1683,8 +1683,10 @@ function renderHistory() {
     var uid = escQ(num) + '||' + escQ(wo);
     var sentState = inv.sentState || 0;
     var PDF_JUNE30 = new Set(['4920132684','4920132559','4920132552','4920132535','4920132505','4920132496','4920132406','4920132203','4920132190','4920132189','4920132183','4920132175','4920132100','4920132097','4920132096','4920131997']);
+    var PENDING_SEND = new Set(['4920132096','4920132097','4920132100','4920132175','4920132183','4920132189','4920132190','4920132203','4920132384','4920132406']);
     var isPDF = PDF_JUNE30.has(num);
-    var rowStyle = isPDF ? 'background:rgba(139,92,246,0.35);border-left:4px solid #a78bfa;' : sentState===1 ? 'background:rgba(234,88,12,0.13);border-left:3px solid #ea580c;' : sentState===2 ? 'background:rgba(22,163,74,0.13);border-left:3px solid #16a34a;' : '';
+    var isPendingSend = PENDING_SEND.has(num);
+    var rowStyle = isPendingSend ? 'background:rgba(234,179,8,0.25);border-left:4px solid #facc15;' : isPDF ? 'background:rgba(139,92,246,0.35);border-left:4px solid #a78bfa;' : sentState===1 ? 'background:rgba(234,88,12,0.13);border-left:3px solid #ea580c;' : sentState===2 ? 'background:rgba(22,163,74,0.13);border-left:3px solid #16a34a;' : '';
     rows += '<tr style="' + rowStyle + '">'
       + '<td style="text-align:center"><input type="checkbox" class="inv-chk" data-idx="' + i + '" onchange="updateBulkBar()"></td>'
       + '<td class="editable-cell" onclick="inlineEdit(this,\'' + uid + '\',\'date\')">' + fd + '</td>'
