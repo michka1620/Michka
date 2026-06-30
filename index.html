@@ -2831,9 +2831,13 @@ function applyTirePatches() {
     }
     if (!inv) return; // invoice not found locally, skip
     if (!inv.tirePositions) inv.tirePositions = [];
-    // Only patch if no tires yet
-    if (inv.tirePositions.length > 0) return;
-    inv.tirePositions = tires;
+    // Add any tire positions not already present (by position code)
+    var existingPos = new Set(inv.tirePositions.map(function(t){ return t.position; }));
+    var added = false;
+    tires.forEach(function(t){
+      if (!existingPos.has(t.position)) { inv.tirePositions.push(t); added = true; }
+    });
+    if (!added) return;
     if (idx >= 0) userNew[idx] = inv;
     else edits[inv.number] = inv;
     changed = true;
