@@ -2583,69 +2583,61 @@ function fillNewInvoice() {
 
 // ===== EXPORT / IMPORT =====
 function cleanAllSaved() {
-  var userNew = JSON.parse(localStorage.getItem('sup_new') || '[]');
-  if (userNew.length === 0) { showToast('No hay facturas nuevas para limpiar'); return; }
-
   function stripWO(s) {
     if (!s || typeof s !== 'string') return s;
-    return s.replace(/^(wo\s*#?\s*\d{5,}[\s\-:,]*)/i, '').replace(/(\s*wo\s*#?\s*\d{5,})/ig, '').trim();
+    return s.replace(/^(wo\s*#?\s*\d{5,}[\s\-:,]*)/i,'').replace(/(\s*wo\s*#?\s*\d{5,})/ig,'').trim();
   }
   function stripLeadingNums(s) {
     if (!s || typeof s !== 'string') return s;
-    return s.replace(/^[#\s]*\d{4,}\s+/, '').trim();
+    return s.replace(/^[#\s]*\d{4,}\s+/,'').trim();
   }
-  function fixWO(wo) {
+  function fixWONum(wo) {
     if (!wo) return '';
     var m = wo.toString().match(/\d{5,}/);
     return m ? m[0] : '';
   }
 
-  // Find correct starting Order# from all invoices
-  var allInvs = getInvoices();
-  var orderNums = allInvs.map(function(i){ return parseInt(i.number)||0; }).filter(function(n){ return n>202600000&&n<210000000; });
+  // Work on ALL invoices
+  var all = getInvoices();
+  var orderNums = all.map(function(i){ return parseInt(i.number)||0; }).filter(function(n){ return n>202600000&&n<210000000; });
   var nextNum = orderNums.length ? Math.max.apply(null,orderNums)+1 : 202609500;
 
   var seen = {};
-  var cleaned = [];
   var fixed = 0, dupsRemoved = 0;
 
-  userNew.forEach(function(inv) {
-    // Normalize WO#
-    var wo = fixWO(inv.wo);
-    if (wo && seen[wo]) { dupsRemoved++; return; }
+  var cleaned = all.filter(function(inv) {
+    var wo = fixWONum(inv.wo);
+
+    // Remove duplicate WOs
+    if (wo && seen[wo]) { dupsRemoved++; return false; }
     if (wo) seen[wo] = true;
 
-    // Fix number field if it's a WO-format number (4920XXXXXX) instead of Order# (202609XXX)
-    var num = parseInt(inv.number) || 0;
+    // Fix number field if wrong format (not 202609XXX)
+    var num = parseInt(inv.number)||0;
     if (num < 202600000 || num > 210000000) {
       inv.number = String(nextNum++);
       fixed++;
     }
 
+    // Fix WO field — keep only digits
+    if (inv.wo) inv.wo = wo || inv.wo;
+
     // Clean client fields
     if (inv.client) {
-      var before = inv.client.company;
-      inv.client.company = stripLeadingNums(stripWO(inv.client.company || ''));
-      inv.client.name    = stripLeadingNums(stripWO(inv.client.name || ''));
-      inv.client.address = stripWO(inv.client.address || '');
-      if (inv.client.company !== before) fixed++;
+      inv.client.company = stripLeadingNums(stripWO(inv.client.company||''));
+      inv.client.name    = stripLeadingNums(stripWO(inv.client.name||''));
+      inv.client.address = stripWO(inv.client.address||'');
     }
-    // Clean vehicle fields
     if (inv.vehicle) {
-      inv.vehicle.make  = stripLeadingNums(inv.vehicle.make || '');
-      inv.vehicle.model = stripLeadingNums(inv.vehicle.model || '');
+      inv.vehicle.make  = stripLeadingNums(inv.vehicle.make||'');
+      inv.vehicle.model = stripLeadingNums(inv.vehicle.model||'');
     }
-    inv.wo = wo || inv.wo;
-    cleaned.push(inv);
+    return true;
   });
 
-  localStorage.setItem('sup_new', JSON.stringify(cleaned));
-  pushEditsToKV(
-    JSON.parse(localStorage.getItem('sup_edits') || '{}'),
-    JSON.parse(localStorage.getItem('sup_deleted') || '[]'),
-    cleaned
-  );
-  showToast('✅ Limpieza completa — ' + fixed + ' corregidas, ' + dupsRemoved + ' duplicadas eliminadas');
+  // Save cleaned list
+  saveInvoices(cleaned);
+  showToast('✅ ' + fixed + ' Order# corregidos, ' + dupsRemoved + ' duplicados eliminados');
   renderHistory();
 }
 
