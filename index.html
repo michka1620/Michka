@@ -972,18 +972,33 @@ function generateInvoiceNumber() {
 // ===== TIRE POSITIONS =====
 let tireCount = 0;
 const POSITIONS = [
-  // Steer axle
-  'LF','RF','LFI','LFO','RFI','RFO',
-  // Drive axle 1 (rear)
-  'LRI','LRO','RRI','RRO','LR','RR',
-  // Drive axle 2 (mid)
-  'LMI','LMO','RMI','RMO','LM','RM',
+  // Steer axle (singles)
+  'LF','RF',
+  // Forward drive axle (duals)
+  'LFI','LFO','RFI','RFO',
+  // Rear drive axle (duals)
+  'LRI','LRO','RRI','RRO',
+  // Mid axle (duals) — tri-drive
+  'LMI','LMO','RMI','RMO',
+  // Singles on drive/mid/rear
+  'LR','RR','LM','RM',
+  // Pusher axle
+  'LPI','LPO','RPI','RPO','LP','RP',
   // Tag / lift axle
   'LTI','LTO','RTI','RTO','LT','RT',
-  // Singles
+  // Steer singles (alt naming)
   'LS','RS',
-  // Trailer
-  'TLF','TRF','TLR','TRR','TLRI','TLRO','TRRI','TRRO',
+  // Trailer axle 1
+  'T1LI','T1LO','T1RI','T1RO',
+  // Trailer axle 2
+  'T2LI','T2LO','T2RI','T2RO',
+  // Trailer axle 3
+  'T3LI','T3LO','T3RI','T3RO',
+  // Trailer singles
+  'T1L','T1R','T2L','T2R','T3L','T3R',
+  // Trailer steer (dolly)
+  'TLF','TRF',
+  // Spare / misc
   'Spare','Other'
 ];
 const WORK_OPTIONS = ['Replace with New','Replace with Recap','Repair/Patch','Flat Repair','Rotate','Balance','Inflate','Mount/Dismount','Other'];
