@@ -536,6 +536,7 @@
   </div>
 </div>
 
+<button class="tab" onclick="showPage('photos')" style="background:#1a1a2a;color:#c084fc;border:1px solid #7c3aed;">📸 Fotos</button>
 <!-- ===================== HISTORY PAGE ===================== -->
 <div id="history" class="page">
   <div class="stats-grid" id="stats-grid"></div>
@@ -2010,7 +2011,125 @@ function openPrintView(invoices, rawHTML) {
     + '<span style="color:#90cdf4;font-size:12px;">Chrome: check ✓ Gráficos de fondo / Background graphics</span>'
     + '</div>'
     + pages
-    + '</body></html>';
+    + '<div id="photos" class="page">
+  <div class="card">
+    <h2>📸 Importar Fotos — Claude AI</h2>
+    <div style="margin-bottom:16px;color:#94a3b8;font-size:13px;">Sube fotos de los work orders y Claude extrae los datos automáticamente.</div>
+
+    <div id="photo-api-box" style="margin-bottom:16px;">
+      <label style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;">Anthropic API Key</label>
+      <div style="display:flex;gap:8px;margin-top:4px;">
+        <input type="password" id="photo-api-key" placeholder="sk-ant-api03-..." style="flex:1;background:#0d1117;border:1px solid #334155;color:#e2e8f0;padding:8px 12px;border-radius:6px;font-size:13px;">
+        <button onclick="saveApiKey()" style="background:#4c1d95;border:1px solid #7c3aed;color:#c4b5fd;padding:8px 16px;border-radius:6px;cursor:pointer;font-weight:700;font-size:13px;">Guardar</button>
+      </div>
+      <div id="api-key-status" style="font-size:11px;margin-top:4px;color:#64748b;"></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+      <div>
+        <label style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;">Técnico</label>
+        <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;" id="tech-selector">
+          <button onclick="selectTech(this,'Auto')" class="tech-btn tech-btn-active" data-tech="Auto">🔍 Auto-detectar</button>
+          <button onclick="selectTech(this,'John')" class="tech-btn" data-tech="John">👤 John</button>
+          <button onclick="selectTech(this,'Luis')" class="tech-btn" data-tech="Luis">👤 Luis</button>
+          <button onclick="selectTech(this,'__custom__')" class="tech-btn" data-tech="__custom__" id="tech-custom-btn">➕ Otro</button>
+        </div>
+        <input type="text" id="tech-custom-input" placeholder="Nombre del técnico" style="display:none;margin-top:6px;width:100%;background:#0d1117;border:1px solid #334155;color:#e2e8f0;padding:7px 10px;border-radius:6px;font-size:13px;">
+      </div>
+      <div>
+        <label style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;">Fotos por Factura</label>
+        <div style="display:flex;gap:6px;margin-top:6px;align-items:center;">
+          <input type="number" id="photos-per-invoice" min="1" max="20" value="3" style="width:70px;background:#0d1117;border:1px solid #334155;color:#e2e8f0;padding:7px 10px;border-radius:6px;font-size:14px;font-weight:700;">
+          <span style="color:#64748b;font-size:12px;">fotos = 1 factura<br><span style="font-size:10px;">(Claude las analiza juntas)</span></span>
+        </div>
+      </div>
+    </div>
+
+    <div style="border:2px dashed #334155;border-radius:10px;padding:30px;text-align:center;cursor:pointer;transition:all 0.2s;background:#0d1117;"
+         id="photo-drop-zone"
+         onclick="document.getElementById('photo-file-input').click()"
+         ondragover="event.preventDefault();this.style.borderColor='#7c3aed'"
+         ondragleave="this.style.borderColor='#334155'"
+         ondrop="handlePhotoDrop(event)">
+      <div style="font-size:40px;margin-bottom:8px;">📷</div>
+      <div style="color:#94a3b8;font-size:14px;font-weight:600;">Click aquí o arrastra las fotos</div>
+      <div style="color:#64748b;font-size:12px;margin-top:4px;">JPG, PNG — múltiples fotos a la vez</div>
+      <input type="file" id="photo-file-input" accept="image/*" multiple style="display:none" onchange="handlePhotoSelect(this.files)">
+    </div>
+
+    <div id="photo-preview-area" style="margin-top:16px;display:flex;flex-wrap:wrap;gap:10px;"></div>
+
+    <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
+      <button id="process-photos-btn" onclick="processAllPhotos()" style="background:#4c1d95;border:1px solid #7c3aed;color:#c4b5fd;padding:10px 24px;border-radius:6px;cursor:pointer;font-weight:700;font-size:14px;display:none;">
+        🤖 Procesar con Claude AI
+      </button>
+      <button onclick="clearPhotoQueue()" style="background:#1a1a1a;border:1px solid #333;color:#888;padding:10px 16px;border-radius:6px;cursor:pointer;font-size:13px;display:none;" id="clear-photos-btn">
+        🗑 Limpiar
+      </button>
+    </div>
+
+    <div id="photo-progress" style="margin-top:16px;display:none;">
+      <div style="background:#0d1117;border:1px solid #1e293b;border-radius:8px;padding:12px;">
+        <div style="font-size:12px;color:#94a3b8;margin-bottom:8px;" id="photo-progress-text">Procesando...</div>
+        <div style="background:#1e293b;border-radius:4px;height:6px;overflow:hidden;">
+          <div id="photo-progress-bar" style="height:100%;background:linear-gradient(90deg,#7c3aed,#c084fc);width:0%;transition:width 0.3s;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADD TIRES TO EXISTING INVOICE -->
+  <div class="card" style="border:1px solid #1e3a4a;background:#0a1a22;">
+    <h2 style="color:#38bdf8;">🔧 Agregar Llantas a Factura Existente</h2>
+    <div style="color:#94a3b8;font-size:13px;margin-bottom:14px;">Sube fotos de pantallas de llantas y agrégalas a una factura que ya existe por WO#.</div>
+    <div style="display:flex;gap:10px;align-items:flex-end;margin-bottom:12px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:180px;">
+        <label style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;">WO# de la Factura</label>
+        <input type="text" id="add-tire-wo" placeholder="ej. 4920132726" style="width:100%;margin-top:4px;background:#0d1117;border:1px solid #334155;color:#e2e8f0;padding:8px 12px;border-radius:6px;font-size:14px;font-weight:700;" oninput="lookupAddTireInvoice()">
+      </div>
+      <div id="add-tire-invoice-label" style="color:#64748b;font-size:12px;padding-bottom:10px;min-width:140px;"></div>
+    </div>
+    <div style="border:2px dashed #1e3a4a;border-radius:10px;padding:20px;text-align:center;cursor:pointer;background:#0a1522;"
+         onclick="document.getElementById('add-tire-file-input').click()"
+         ondragover="event.preventDefault();this.style.borderColor='#38bdf8'"
+         ondragleave="this.style.borderColor='#1e3a4a'"
+         ondrop="handleAddTireDrop(event)">
+      <div style="font-size:32px;margin-bottom:6px;">🛞</div>
+      <div style="color:#94a3b8;font-size:13px;font-weight:600;">Click o arrastra fotos de llantas</div>
+      <input type="file" id="add-tire-file-input" accept="image/*" multiple style="display:none" onchange="handleAddTireSelect(this.files)">
+    </div>
+    <div id="add-tire-preview" style="margin-top:10px;display:flex;flex-wrap:wrap;gap:8px;"></div>
+    <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;">
+      <button id="add-tire-btn" onclick="processAddTirePhotos()" style="display:none;background:#0c4a6e;border:1px solid #38bdf8;color:#7dd3fc;padding:10px 24px;border-radius:6px;cursor:pointer;font-weight:700;font-size:13px;">🤖 Escanear con Claude AI</button>
+      <button onclick="clearAddTireQueue()" id="clear-add-tire-btn" style="display:none;background:#1a1a1a;border:1px solid #333;color:#888;padding:10px 14px;border-radius:6px;cursor:pointer;font-size:13px;">🗑 Limpiar</button>
+    </div>
+    <div id="add-tire-progress" style="display:none;margin-top:10px;">
+      <div style="background:#0d1117;border:1px solid #1e293b;border-radius:8px;padding:10px;">
+        <div style="font-size:12px;color:#94a3b8;margin-bottom:6px;" id="add-tire-progress-text">Escaneando...</div>
+        <div style="background:#1e293b;border-radius:4px;height:5px;overflow:hidden;">
+          <div id="add-tire-progress-bar" style="height:100%;background:linear-gradient(90deg,#38bdf8,#7dd3fc);width:0%;transition:width 0.3s;"></div>
+        </div>
+      </div>
+    </div>
+    <div id="add-tire-results" style="display:none;margin-top:14px;">
+      <div style="font-weight:700;color:#38bdf8;margin-bottom:8px;" id="add-tire-results-title"></div>
+      <div id="add-tire-list"></div>
+      <button onclick="saveAddedTires()" style="margin-top:12px;background:#0c4a6e;border:1px solid #38bdf8;color:#7dd3fc;padding:11px 28px;border-radius:6px;cursor:pointer;font-weight:700;font-size:14px;width:100%;">💾 Agregar estas llantas a WO# <span id="add-tire-wo-display"></span></button>
+    </div>
+  </div>
+
+  <div id="photo-results" style="display:none;">
+    <div class="card">
+      <h2>✅ Datos Extraídos</h2>
+      <div style="color:#94a3b8;font-size:12px;margin-bottom:12px;">Revisa y edita los datos antes de guardar. Cada foto puede generar una factura.</div>
+      <div id="extracted-invoices"></div>
+      <button onclick="saveAllExtracted()" style="margin-top:16px;background:#14532d;border:1px solid #166534;color:#4ade80;padding:12px 28px;border-radius:6px;cursor:pointer;font-weight:700;font-size:14px;width:100%;">
+        💾 Guardar Todas las Facturas
+      </button>
+    </div>
+  </div>
+</div>
+</body></html>';
 
   // Open new tab
   var tab = window.open('', '_blank');
@@ -2522,6 +2641,1821 @@ function renderSent() {
     }
   });
 })();
+
+function loadApiKey() {
+  var saved = localStorage.getItem('anthropic_api_key');
+  if (saved) {
+    document.getElementById('photo-api-key').value = saved;
+    document.getElementById('api-key-status').textContent = '✅ Key cargada';
+    document.getElementById('api-key-status').style.color = '#4ade80';
+  }
+}
+
+function handlePhotoDrop(e) {
+  e.preventDefault();
+  document.getElementById('photo-drop-zone').style.borderColor = '#334155';
+  handlePhotoSelect(e.dataTransfer.files);
+}
+
+function handlePhotoSelect(files) {
+  for (var i = 0; i < files.length; i++) {
+    _photoFiles.push(files[i]);
+  }
+  renderPhotoPreview();
+}
+
+function renderPhotoPreview() {
+  var area = document.getElementById('photo-preview-area');
+  area.innerHTML = '';
+  _photoFiles.forEach(function(f, idx) {
+    var url = URL.createObjectURL(f);
+    var div = document.createElement('div');
+    div.style.cssText = 'position:relative;width:100px;height:100px;';
+    div.innerHTML = '<img src="'+url+'" style="width:100px;height:100px;object-fit:cover;border-radius:6px;border:1px solid #334155;">'
+      + '<div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.7);color:#fff;font-size:9px;padding:2px 4px;border-radius:0 0 6px 6px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">'+f.name+'</div>'
+      + '<button onclick="removePhoto('+idx+')" style="position:absolute;top:2px;right:2px;background:#7f1d1d;border:none;color:#fff;width:18px;height:18px;border-radius:50%;cursor:pointer;font-size:11px;padding:0;line-height:1;">×</button>';
+    area.appendChild(div);
+  });
+  var show = _photoFiles.length > 0;
+  document.getElementById('process-photos-btn').style.display = show ? 'inline-block' : 'none';
+  document.getElementById('clear-photos-btn').style.display = show ? 'inline-block' : 'none';
+}
+
+function removePhoto(idx) {
+  _photoFiles.splice(idx, 1);
+  renderPhotoPreview();
+}
+
+function clearPhotoQueue() {
+  _photoFiles = [];
+  _extractedData = [];
+  renderPhotoPreview();
+  document.getElementById('photo-results').style.display = 'none';
+}
+
+function fileToBase64(file) {
+  return new Promise(function(resolve, reject) {
+    var reader = new FileReader();
+    reader.onload = function(e) { resolve(e.target.result.split(',')[1]); };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function processAllPhotos() {
+  var apiKey = localStorage.getItem('anthropic_api_key');
+  if (!apiKey) { showToast('Primero guarda tu API Key'); return; }
+  if (_photoFiles.length === 0) { showToast('No hay fotos seleccionadas'); return; }
+
+  var techName = _selectedTech;
+  if (techName === 'Auto') techName = '';
+  if (techName === '__custom__') techName = document.getElementById('tech-custom-input').value.trim();
+
+  document.getElementById('photo-progress').style.display = 'block';
+  document.getElementById('process-photos-btn').disabled = true;
+  _extractedData = [];
+
+  // PASO 1: Analizar cada foto individualmente
+  document.getElementById('photo-progress-text').textContent = 'Paso 1/2 — Analizando cada foto...';
+  var rawResults = [];
+  for (var i = 0; i < _photoFiles.length; i++) {
+    var pct = Math.round((i / _photoFiles.length) * 45);
+    document.getElementById('photo-progress-bar').style.width = pct + '%';
+    document.getElementById('photo-progress-text').textContent = 'Paso 1/2 — Foto ' + (i+1) + ' de ' + _photoFiles.length + ': ' + _photoFiles[i].name;
+    try {
+      var b64 = await fileToBase64(_photoFiles[i]);
+      var result = await callClaudeVisionSingle(apiKey, b64, _photoFiles[i].type || 'image/jpeg', _photoFiles[i].name, techName);
+      result._photoName = _photoFiles[i].name;
+      rawResults.push(result);
+    } catch(e) {
+      rawResults.push({ _photoName: _photoFiles[i].name, _error: e.message });
+    }
+  }
+
+  // PASO 2: Claude agrupa inteligentemente todos los resultados
+  document.getElementById('photo-progress-bar').style.width = '50%';
+  document.getElementById('photo-progress-text').textContent = 'Paso 2/2 — Claude agrupando y correlacionando facturas...';
+
+  var goodResults = rawResults.filter(function(r){ return !r._error; });
+  var grouped = [];
+  try {
+    grouped = await callClaudeGrouping(apiKey, goodResults, techName);
+  } catch(e) {
+    // Fallback: use raw results merged by WO#
+    _extractedData = rawResults;
+    _mergedData = null;
+    showToast('⚠️ Agrupación automática falló, usando WO# para agrupar');
+  }
+
+  document.getElementById('photo-progress-bar').style.width = '100%';
+  document.getElementById('photo-progress-text').textContent = '✅ Completado — ' + grouped.length + ' factura(s) identificadas de ' + _photoFiles.length + ' fotos';
+  document.getElementById('process-photos-btn').disabled = false;
+
+  if (grouped.length > 0) {
+    _mergedData = grouped;
+    _extractedData = rawResults;
+  }
+  renderExtractedInvoices();
+}
+
+async function callClaudeGrouping(apiKey, rawResults, techName) {
+  // Send all extracted data to Claude and ask it to group into invoices
+  var dataStr = rawResults.map(function(r, i){
+    return 'FOTO ' + (i+1) + ' (' + r._photoName + '):\n' + JSON.stringify({
+      wo: r.wo, date: r.date,
+      client: r.client, tech: r.tech, vehicle: r.vehicle,
+      notes: r.notes ? r.notes.substring(0,300) : '',
+      tirePositions: r.tirePositions
+    }, null, 1);
+  }).join('\n\n---\n\n');
+
+  var prompt = `Tengo ${rawResults.length} fotos de work orders de reparación de llantas/vehículos.
+Cada foto fue analizada individualmente y está abajo. Algunas fotos pertenecen al MISMO work order (misma fecha, mismo cliente, mismo vehículo, mismo WO#).
+${techName ? 'El técnico de TODAS estas fotos es: ' + techName : ''}
+
+TU TAREA: Agrupa las fotos que pertenecen al mismo work order y combina sus datos en una sola factura completa.
+- Si una foto tiene WO# y otras fotos tienen los mismos datos (fecha, cliente, vehículo) sin WO#, agrúpalas juntas
+- Las fotos de llantas sin WO# generalmente pertenecen al work order de la foto anterior que sí tiene WO#
+- Las notas de reparación sin WO# también pertenecen al work order más cercano
+- Combina TODOS los datos: llantas de todas las fotos del grupo, notas de todas las fotos, etc.
+
+Responde SOLO con un JSON array válido:
+[
+  {
+    "_photos": ["nombre_foto1.PNG", "nombre_foto2.PNG"],
+    "wo": "4920XXXXXX",
+    "date": "YYYY-MM-DD",
+    "client": { "company": "", "name": "", "phone": "", "address": "" },
+    "tech": { "name": "${techName || 'nombre técnico'}", "rollTime": "", "arrival": "", "hours": "", "mileage": "" },
+    "vehicle": { "year": "", "make": "", "model": "", "plate": "", "vin": "", "unit": "", "tractor": "", "trailer": "", "driver": "" },
+    "notes": "todas las notas de reparación combinadas",
+    "tirePositions": [{ "position": "", "brand": "", "size": "", "model": "", "causeOfFailure": "", "workAccomplished": "", "whoHasPart": "", "treadDepth": "", "dotOn": "", "dotOff": "" }],
+    "total": 0,
+    "status": "PENDING"
+  }
+]
+
+DATOS DE LAS FOTOS:
+${dataStr}
+
+Responde SOLO con el JSON array. Sin texto adicional.`;
+
+  var response = await fetch('https://supremekv1.michka1620.workers.dev/vision', {
+    method: 'POST',
+    headers: { 'x-api-key': apiKey, 'content-type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-opus-4-8',
+      max_tokens: 4000,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+
+  if (!response.ok) throw new Error('API ' + response.status);
+  var data = await response.json();
+  var text = data.content[0].text.trim();
+  var jsonMatch = text.match(/\[[\s\S]*\]/);
+  if (!jsonMatch) throw new Error('No JSON array en respuesta');
+  var result = JSON.parse(jsonMatch[0]);
+  return result.map(function(inv){ return cleanExtracted(inv); });
+}
+
+async function callClaudeVisionGroup(apiKey, images, techOverride) {
+  var prompt = `Estas ${images.length} foto(s) pertenecen al MISMO work order. Analízalas TODAS juntas y extrae los datos combinados.
+${techOverride ? 'TÉCNICO: El técnico es "' + techOverride + '" — usa este nombre si no se ve claramente en las fotos.' : ''}
+Responde SOLO con un JSON válido:
+{
+  "wo": "WO# del work order (4920XXXXXX o similar)",
+  "date": "fecha YYYY-MM-DD",
+  "client": { "company": "empresa", "name": "contacto", "phone": "teléfono", "address": "dirección" },
+  "tech": { "name": "técnico${techOverride ? ' (usar: ' + techOverride + ')' : ''}", "rollTime": "hora de salida/roll time", "arrival": "hora llegada", "hours": "horas trabajadas", "mileage": "millaje recorrido" },
+  "vehicle": { "year": "año", "make": "marca", "model": "modelo", "plate": "placa/license", "vin": "VIN", "unit": "unidad", "mileage": "odómetro", "tractor": "tractor#", "trailer": "trailer#", "driver": "chofer" },
+  "notes": "TODAS las notas de reparación y trabajo realizado, combinadas de todas las fotos",
+  "tirePositions": [{ "position": "pos", "brand": "marca", "size": "tamaño", "model": "modelo", "causeOfFailure": "causa", "workAccomplished": "trabajo", "whoHasPart": "quien tiene parte", "treadDepth": "profundidad", "dotOn": "DOT instalado", "dotOff": "DOT quitado" }],
+  "total": 0.00,
+  "status": "PENDING"
+}
+Campos vacíos: usa "". No incluyas texto fuera del JSON.`;
+
+  var content = [];
+  images.forEach(function(img, i) {
+    content.push({ type: 'image', source: { type: 'base64', media_type: img.type, data: img.b64 } });
+    content.push({ type: 'text', text: 'Foto ' + (i+1) + ': ' + img.name });
+  });
+  content.push({ type: 'text', text: prompt });
+
+  var response = await fetch('https://supremekv1.michka1620.workers.dev/vision', {
+    method: 'POST',
+    headers: { 'x-api-key': apiKey, 'content-type': 'application/json' },
+    body: JSON.stringify({ model: 'claude-opus-4-8', max_tokens: 2000, messages: [{ role: 'user', content: content }] })
+  });
+
+  if (!response.ok) {
+    var err = await response.text();
+    throw new Error('API ' + response.status + ': ' + err.substring(0, 200));
+  }
+  var data = await response.json();
+  var text = data.content[0].text.trim();
+  var jsonMatch = text.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) throw new Error('No JSON: ' + text.substring(0, 100));
+  return cleanExtracted(JSON.parse(jsonMatch[0]));
+}
+
+function cleanExtracted(inv) {
+  // Remove WO numbers from text fields where they don't belong
+  function stripWO(s) {
+    if (!s || typeof s !== 'string') return s;
+    return s.replace(/^(wo\s*#?\s*\d{6,}[\s\-:,]*)/i, '').replace(/(\s*wo\s*#?\s*\d{6,})/ig, '').trim();
+  }
+  function stripLeadingNums(s) {
+    if (!s || typeof s !== 'string') return s;
+    // Remove leading standalone numbers like "#42609 " or "4920132188 "
+    return s.replace(/^[#\s]*\d{4,}\s+/, '').trim();
+  }
+  if (inv.client) {
+    inv.client.company = stripLeadingNums(stripWO(inv.client.company));
+    inv.client.name    = stripLeadingNums(stripWO(inv.client.name));
+    inv.client.address = stripWO(inv.client.address);
+  }
+  if (inv.vehicle) {
+    inv.vehicle.make  = stripLeadingNums(inv.vehicle.make);
+    inv.vehicle.model = stripLeadingNums(inv.vehicle.model);
+  }
+  // Clean WO field — keep only digits
+  if (inv.wo) inv.wo = normalizeWO(inv.wo);
+  return inv;
+}
+
+async function callClaudeVisionSingle(apiKey, b64, mediaType, fileName, techOverride) {
+  var prompt = 'You are extracting data from a roadside tire repair work order photo.\n'
+    + (techOverride ? 'TECHNICIAN: The technician for ALL these jobs is "' + techOverride + '". Use this name.\n' : '')
+    + 'Extract EVERY piece of data you can see. Look carefully at ALL text in the image.\n\n'
+    + 'IMPORTANT — this photo may be:\n'
+    + '- A dispatch app screenshot (has WO#, client company, address, phone, vehicle info)\n'
+    + '- A repair detail screen (has plate, year, make, model, VIN, repair notes)\n'
+    + '- A tire detail screen (has tire position, brand, size, cause of failure, work done)\n'
+    + '- A paper work order (has all of the above)\n\n'
+    + 'Extract EVERYTHING visible. For tire positions, extract ALL tires shown.\n'
+    + 'For Repair Note / repair notes field — copy the EXACT text word for word.\n\n'
+    + 'Respond ONLY with valid JSON:\n'
+    + '{"wo":"WO number (digits only, e.g. 4920132188)","date":"YYYY-MM-DD if visible","client":{"company":"exact company name","name":"contact name","phone":"phone number","address":"full address"},'
+    + '"tech":{"name":"' + (techOverride||'tech name') + '","rollTime":"roll time/departure time","arrival":"arrival time","hours":"hours worked","mileage":"round trip mileage"},'
+    + '"vehicle":{"year":"year","make":"make/brand","model":"model","plate":"license plate","vin":"VIN number","unit":"unit number","tractor":"tractor number","trailer":"trailer number","driver":"driver name"},'
+    + '"notes":"EXACT repair note text copied verbatim from the photo",'
+    + '"tirePositions":[{"position":"LF/RF/LR/RR/LRI/LRO/RRI/RRO etc","brand":"tire brand","size":"tire size","model":"tire model","causeOfFailure":"cause","workAccomplished":"work done","whoHasPart":"who has part","treadDepth":"tread depth","dotOn":"DOT on","dotOff":"DOT off"}],'
+    + '"total":0,"status":"PENDING"}\nEmpty fields: use "". Only JSON, no other text.';
+
+  var response = await fetch('https://supremekv1.michka1620.workers.dev/vision', {
+    method: 'POST',
+    headers: { 'x-api-key': apiKey, 'content-type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-opus-4-8',
+      max_tokens: 1500,
+      messages: [{ role: 'user', content: [
+        { type: 'image', source: { type: 'base64', media_type: mediaType, data: b64 } },
+        { type: 'text', text: prompt }
+      ]}]
+    })
+  });
+  if (!response.ok) { var err = await response.text(); throw new Error('API ' + response.status + ': ' + err.substring(0,150)); }
+  var data = await response.json();
+  var text = data.content[0].text.trim();
+  var m = text.match(/\{[\s\S]*\}/);
+  if (!m) throw new Error('No JSON');
+  return JSON.parse(m[0]);
+}
+
+async function callClaudeVision(apiKey, b64, mediaType) {
+  var prompt = `Analiza esta foto de un work order de reparación de vehículos/llantas.
+Extrae TODOS los datos que puedas ver. Responde SOLO con un JSON válido con esta estructura exacta:
+{
+  "wo": "número de work order (4920XXXXXX)",
+  "date": "fecha en formato YYYY-MM-DD",
+  "client": {
+    "company": "nombre de la empresa cliente",
+    "name": "nombre del contacto",
+    "phone": "teléfono",
+    "address": "dirección completa"
+  },
+  "tech": {
+    "name": "nombre del técnico"
+  },
+  "vehicle": {
+    "year": "año",
+    "make": "marca",
+    "model": "modelo",
+    "plate": "placa",
+    "vin": "VIN",
+    "unit": "número de unidad",
+    "mileage": "millaje",
+    "rollTime": "tiempo de rodaje/roll time"
+  },
+  "notes": "descripción del trabajo realizado, notas de reparación",
+  "tirePositions": [
+    {
+      "position": "posición (LF/RF/LR/RR/etc)",
+      "brand": "marca de llanta",
+      "size": "tamaño",
+      "causeOfFailure": "causa de falla",
+      "workAccomplished": "trabajo realizado",
+      "whoHasPart": "quién tiene la parte",
+      "treadDepth": "profundidad de banda",
+      "dotOn": "DOT de la llanta que se puso",
+      "dotOff": "DOT de la llanta que se quitó"
+    }
+  ],
+  "total": 0.00,
+  "status": "PENDING"
+}
+Si un campo no está visible, usa "" o 0. No incluyas texto fuera del JSON.`;
+
+  var response = await fetch('https://supremekv1.michka1620.workers.dev/vision', {
+    method: 'POST',
+    headers: {
+      'x-api-key': apiKey,
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'claude-opus-4-8',
+      max_tokens: 1500,
+      messages: [{
+        role: 'user',
+        content: [{
+          type: 'image',
+          source: { type: 'base64', media_type: mediaType, data: b64 }
+        }, {
+          type: 'text',
+          text: prompt
+        }]
+      }]
+    })
+  });
+
+  if (!response.ok) {
+    var err = await response.text();
+    throw new Error('API error ' + response.status + ': ' + err.substring(0, 200));
+  }
+
+  var data = await response.json();
+  var text = data.content[0].text.trim();
+  // Extract JSON from response (in case there's extra text)
+  var jsonMatch = text.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) throw new Error('No JSON en respuesta: ' + text.substring(0, 100));
+  return JSON.parse(jsonMatch[0]);
+}
+
+function mergeExtractedByWO() {
+  // Group photos by WO#, merge data from all photos of same WO
+  var groups = []; // array of merged invoice objects
+  var woMap = {}; // wo# -> index in groups
+  var noWOGroup = null;
+
+  _extractedData.forEach(function(inv) {
+    if (inv._error) return;
+    var wo = normalizeWO(inv.wo);
+
+    function pick(a, b) { return (a && a !== '' && a !== '0' && a !== 0) ? a : b; }
+    function mergeObj(base, extra) {
+      if (!extra) return base || {};
+      var r = Object.assign({}, base || {});
+      Object.keys(extra).forEach(function(k) {
+        if (extra[k] && extra[k] !== '' && extra[k] !== '0') r[k] = extra[k];
+      });
+      return r;
+    }
+
+    if (!wo) {
+      // No WO# — attach to last group or create standalone
+      if (groups.length > 0) {
+        var last = groups[groups.length - 1];
+        last._photos.push(inv._photoName);
+        if (inv.notes && inv.notes.trim()) last.notes = last.notes ? last.notes + '\n' + inv.notes : inv.notes;
+        if (inv.tirePositions && inv.tirePositions.length) last.tirePositions = last.tirePositions.concat(inv.tirePositions);
+        last.client = mergeObj(last.client, inv.client);
+        last.vehicle = mergeObj(last.vehicle, inv.vehicle);
+        last.tech = mergeObj(last.tech, inv.tech);
+        last.total = pick(last.total, inv.total);
+        last.date = pick(last.date, inv.date);
+      }
+      return;
+    }
+
+    if (woMap[wo] !== undefined) {
+      var g = groups[woMap[wo]];
+      g._photos.push(inv._photoName);
+      g.notes = pick(inv.notes, g.notes) || (g.notes && inv.notes ? g.notes + '\n' + inv.notes : g.notes || inv.notes || '');
+      if (inv.tirePositions && inv.tirePositions.length) g.tirePositions = g.tirePositions.concat(inv.tirePositions);
+      g.client = mergeObj(g.client, inv.client);
+      g.vehicle = mergeObj(g.vehicle, inv.vehicle);
+      g.tech = mergeObj(g.tech, inv.tech);
+      g.total = pick(g.total, inv.total);
+      g.date = pick(g.date, inv.date);
+    } else {
+      var newGroup = Object.assign({}, inv, { _photos: [inv._photoName], tirePositions: inv.tirePositions || [] });
+      woMap[wo] = groups.length;
+      groups.push(newGroup);
+    }
+  });
+
+  return groups;
+}
+
+function renderExtractedInvoices() {
+  var container = document.getElementById('extracted-invoices');
+  container.innerHTML = '';
+  document.getElementById('photo-results').style.display = 'block';
+
+  // Count errors
+  var errors = _extractedData.filter(function(d){ return d._error; });
+  if (errors.length > 0) {
+    var errDiv = document.createElement('div');
+    errDiv.style.cssText = 'background:#1a0a0a;border:1px solid #7f1d1d;border-radius:8px;padding:10px;margin-bottom:12px;color:#f87171;font-size:12px;';
+    errDiv.innerHTML = '⚠️ '+errors.length+' foto(s) con error (ignoradas): ' + errors.map(function(e){ return e._photoName; }).join(', ');
+    container.appendChild(errDiv);
+  }
+
+  var merged = (_mergedData && _mergedData.length > 0) ? _mergedData : mergeExtractedByWO();
+  _mergedData = merged;
+
+  if (merged.length === 0) {
+    container.innerHTML += '<div style="color:#94a3b8;padding:20px;text-align:center;">No se pudieron extraer datos de las fotos.</div>';
+    return;
+  }
+
+  var summary = document.createElement('div');
+  summary.style.cssText = 'background:#0a1a0a;border:1px solid #166534;border-radius:8px;padding:10px;margin-bottom:16px;color:#4ade80;font-size:13px;font-weight:700;';
+  summary.textContent = '✅ ' + merged.length + ' facturas identificadas de ' + _extractedData.filter(function(d){return !d._error;}).length + ' fotos';
+  container.appendChild(summary);
+
+  merged.forEach(function(inv, idx) {
+    var c = inv.client || {};
+    var v = inv.vehicle || {};
+    var t = inv.tech || {};
+    var techDisplay = t.name || '—';
+    var div = document.createElement('div');
+    div.style.cssText = 'border:1px solid #1e293b;border-radius:8px;padding:14px;margin-bottom:12px;background:#0d1117;';
+    div.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">'
+      + '<div style="font-weight:700;color:#c084fc;font-size:13px;">📋 WO# '+((inv.wo||'').replace(/^wo\s*#?\s*/i,'').trim()||'No WO')
+      + ' <span style="background:#1e1a2e;border:1px solid #7c3aed;color:#c084fc;font-size:10px;padding:2px 8px;border-radius:4px;margin-left:6px;">👤 '+techDisplay+'</span>'
+      + ' <span style="color:#64748b;font-size:11px;font-weight:400;margin-left:6px;">('+( inv._photos ? inv._photos.length : 1)+' foto'+(( inv._photos ? inv._photos.length : 1)>1?'s':'')+')</span></div>'
+      + '<label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:#94a3b8;">'
+      + '<input type="checkbox" checked id="ext-check-'+idx+'"> Incluir</label>'
+      + '</div>'
+      + '<div style="font-size:10px;color:#475569;margin-bottom:8px;">'+(inv._photos||[inv._photoName]).join(' · ')+'</div>'
+      + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;">'
+      + makeExtField('WO #', 'wo', idx, (inv.wo||'').replace(/^wo\s*#?\s*/i,'').trim())
+      + makeExtField('Date', 'date', idx, inv.date)
+      + makeExtField('Client', 'client_company', idx, c.company)
+      + makeExtField('Contact', 'client_name', idx, c.name)
+      + makeExtField('Phone', 'client_phone', idx, c.phone)
+      + makeExtField('Address', 'client_address', idx, c.address)
+      + makeExtField('Tech', 'tech_name', idx, t.name)
+      + makeExtField('Year', 'vehicle_year', idx, v.year)
+      + makeExtField('Make', 'vehicle_make', idx, v.make)
+      + makeExtField('Model', 'vehicle_model', idx, v.model)
+      + makeExtField('Plate', 'vehicle_plate', idx, v.plate)
+      + makeExtField('Unit', 'vehicle_unit', idx, v.unit)
+      + makeExtField('Mileage', 'vehicle_mileage', idx, v.mileage)
+      + makeExtField('Roll Time', 'vehicle_rollTime', idx, v.rollTime)
+      + makeExtField('Tractor #', 'vehicle_tractor', idx, v.tractor)
+      + makeExtField('Trailer #', 'vehicle_trailer', idx, v.trailer)
+      + makeExtField('Driver', 'vehicle_driver', idx, v.driver)
+      + makeExtField('Total $', 'total', idx, inv.total)
+      + '</div>'
+      + '<div style="margin-top:8px;">'
+      + '<label style="font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:1px;">Repair Notes / Work Accomplished</label>'
+      + '<textarea id="ext-notes-'+idx+'" style="width:100%;margin-top:3px;background:#111;border:1px solid #1e293b;color:#e2e8f0;border-radius:4px;padding:6px;font-size:12px;min-height:70px;">'+(inv.notes||'')+'</textarea>'
+      + '</div>';
+    if (inv.tirePositions && inv.tirePositions.length > 0) {
+      div.innerHTML += '<div style="margin-top:8px;font-size:11px;color:#94a3b8;">🔧 Llantas: '
+        + inv.tirePositions.map(function(tp){ return (tp.position||'?')+' '+(tp.brand||'')+(tp.size?' '+tp.size:''); }).join(' | ')
+        + '</div>';
+    }
+    container.appendChild(div);
+  });
+}
+
+function makeExtField(label, field, idx, val) {
+  return '<div style="display:flex;flex-direction:column;gap:2px;">'
+    + '<label style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">'+label+'</label>'
+    + '<input type="text" value="'+(val||'')+'" data-idx="'+idx+'" data-field="'+field+'" '
+    + 'style="background:#111;border:1px solid #1e293b;color:#e2e8f0;border-radius:4px;padding:5px 7px;font-size:12px;" '
+    + 'onchange="updateExtField('+idx+',\''+field+'\',this.value)">'
+    + '</div>';
+}
+
+function updateExtField(idx, field, value) {
+  var data = (_mergedData && _mergedData[idx]) ? _mergedData : _extractedData;
+  if (!data[idx]) return;
+  if (field === 'client_company') { data[idx].client = data[idx].client||{}; data[idx].client.company = value; }
+  else if (field === 'client_name') { data[idx].client = data[idx].client||{}; data[idx].client.name = value; }
+  else if (field === 'client_phone') { data[idx].client = data[idx].client||{}; data[idx].client.phone = value; }
+  else if (field === 'client_address') { data[idx].client = data[idx].client||{}; data[idx].client.address = value; }
+  else if (field === 'tech_name') { data[idx].tech = data[idx].tech||{}; data[idx].tech.name = value; }
+  else if (field.startsWith('vehicle_')) { var vf = field.replace('vehicle_',''); data[idx].vehicle = data[idx].vehicle||{}; data[idx].vehicle[vf] = value; }
+  else data[idx][field] = value;
+}
+
+var _mergedData = [];
+
+function normalizeWO(wo) {
+  if (!wo) return '';
+  var m = wo.toString().match(/\d{5,}/);
+  return m ? m[0] : '';
+}
+
+// ===== ADD TIRES TO EXISTING INVOICE =====
+var _addTireFiles = [];
+var _addTireData  = [];
+
+function lookupAddTireInvoice() {
+  var wo = document.getElementById('add-tire-wo').value.trim().replace(/\D/g,'');
+  var lbl = document.getElementById('add-tire-invoice-label');
+  if (!wo) { lbl.textContent = ''; return; }
+  var inv = getInvoices().find(function(i){ return normalizeWO(i.wo) === wo; });
+  if (inv) {
+    lbl.style.color = '#4ade80';
+    lbl.textContent = '✅ ' + (inv.client&&inv.client.company ? inv.client.company : 'Factura encontrada') + ' — ORDER# ' + inv.number;
+  } else {
+    lbl.style.color = '#f87171';
+    lbl.textContent = '❌ WO# no encontrado';
+  }
+}
+
+function handleAddTireDrop(e) {
+  e.preventDefault();
+  e.currentTarget.style.borderColor = '#1e3a4a';
+  handleAddTireSelect(e.dataTransfer.files);
+}
+
+function handleAddTireSelect(files) {
+  for (var i = 0; i < files.length; i++) _addTireFiles.push(files[i]);
+  renderAddTirePreview();
+}
+
+function renderAddTirePreview() {
+  var area = document.getElementById('add-tire-preview');
+  area.innerHTML = '';
+  _addTireFiles.forEach(function(f, i) {
+    var url = URL.createObjectURL(f);
+    area.innerHTML += '<div style="position:relative;"><img src="'+url+'" style="width:70px;height:70px;object-fit:cover;border-radius:6px;border:1px solid #1e3a4a;">'
+      +'<button onclick="removeAddTireFile('+i+')" style="position:absolute;top:-4px;right:-4px;background:#7f1d1d;color:#fff;border:none;border-radius:50%;width:18px;height:18px;cursor:pointer;font-size:11px;line-height:1;">×</button></div>';
+  });
+  var show = _addTireFiles.length > 0;
+  document.getElementById('add-tire-btn').style.display = show ? 'inline-block' : 'none';
+  document.getElementById('clear-add-tire-btn').style.display = show ? 'inline-block' : 'none';
+}
+
+function removeAddTireFile(idx) {
+  _addTireFiles.splice(idx, 1);
+  renderAddTirePreview();
+}
+
+function clearAddTireQueue() {
+  _addTireFiles = [];
+  _addTireData  = [];
+  renderAddTirePreview();
+  document.getElementById('add-tire-results').style.display = 'none';
+}
+
+async function processAddTirePhotos() {
+  var wo = document.getElementById('add-tire-wo').value.trim().replace(/\D/g,'');
+  if (!wo) { showToast('⚠️ Ingresa el WO# primero'); return; }
+  var inv = getInvoices().find(function(i){ return normalizeWO(i.wo) === wo; });
+  if (!inv) { showToast('❌ WO# ' + wo + ' no encontrado'); return; }
+  var apiKey = localStorage.getItem('supreme_api_key') || document.getElementById('photo-api-key').value.trim();
+  if (!apiKey) { showToast('⚠️ Ingresa tu API Key'); return; }
+  if (!_addTireFiles.length) { showToast('⚠️ Sube al menos una foto'); return; }
+
+  document.getElementById('add-tire-progress').style.display = 'block';
+  document.getElementById('add-tire-results').style.display  = 'none';
+  document.getElementById('add-tire-btn').disabled = true;
+  _addTireData = [];
+
+  for (var i = 0; i < _addTireFiles.length; i++) {
+    var pct = Math.round((i / _addTireFiles.length) * 100);
+    document.getElementById('add-tire-progress-bar').style.width = pct + '%';
+    document.getElementById('add-tire-progress-text').textContent = 'Foto ' + (i+1) + ' de ' + _addTireFiles.length + ': ' + _addTireFiles[i].name;
+    try {
+      var b64 = await fileToBase64(_addTireFiles[i]);
+      var res = await callClaudeTireSingle(apiKey, b64, _addTireFiles[i].type || 'image/jpeg');
+      if (res && res.position) _addTireData.push(res);
+    } catch(e) { console.error('Tire scan error:', e); }
+  }
+
+  document.getElementById('add-tire-progress-bar').style.width = '100%';
+  document.getElementById('add-tire-progress').style.display = 'none';
+  document.getElementById('add-tire-btn').disabled = false;
+  renderAddTireResults(wo);
+}
+
+async function callClaudeTireSingle(apiKey, b64, mediaType) {
+  var prompt = 'Extract tire data from this roadside repair app screenshot.\n'
+    + 'Respond ONLY with valid JSON:\n'
+    + '{"position":"tire position code e.g. LFI/LFO/RFI/RFO/LRI/LRO/RRI/RRO/LF/RF/LR/RR","brand":"tire brand","size":"tire size","model":"tire model","causeOfFailure":"cause of failure","workAccomplished":"work accomplished","whoHasPart":"who has part","treadDepth":"tread depth","ply":"ply rating","valve":"valve","dotOn":"DOT On number","dotOff":"DOT Off number"}\n'
+    + 'Empty fields: use "". Only JSON, no other text.';
+  var response = await fetch('https://supremekv1.michka1620.workers.dev/vision', {
+    method: 'POST',
+    headers: { 'x-api-key': apiKey, 'content-type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-opus-4-8', max_tokens: 600,
+      messages: [{ role: 'user', content: [
+        { type: 'image', source: { type: 'base64', media_type: mediaType, data: b64 } },
+        { type: 'text', text: prompt }
+      ]}]
+    })
+  });
+  if (!response.ok) throw new Error('API ' + response.status);
+  var data = await response.json();
+  var text = data.content[0].text.trim();
+  var m = text.match(/\{[\s\S]*\}/);
+  if (!m) throw new Error('No JSON');
+  return JSON.parse(m[0]);
+}
+
+function renderAddTireResults(wo) {
+  if (!_addTireData.length) { showToast('⚠️ No se encontraron datos de llantas'); return; }
+  var list = document.getElementById('add-tire-list');
+  list.innerHTML = '';
+  _addTireData.forEach(function(t, i) {
+    list.innerHTML += '<div style="background:#0d1117;border:1px solid #1e3a4a;border-radius:8px;padding:10px;margin-bottom:8px;display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:6px;">'
+      + '<div><span style="font-size:10px;color:#64748b;">POSICIÓN</span><br><strong style="color:#38bdf8;">'+t.position+'</strong></div>'
+      + '<div><span style="font-size:10px;color:#64748b;">TAMAÑO</span><br><span style="color:#e2e8f0;">'+t.size+'</span></div>'
+      + '<div><span style="font-size:10px;color:#64748b;">MARCA</span><br><span style="color:#e2e8f0;">'+t.brand+'</span></div>'
+      + '<div><span style="font-size:10px;color:#64748b;">MODELO</span><br><span style="color:#e2e8f0;">'+t.model+'</span></div>'
+      + '<div><span style="font-size:10px;color:#64748b;">TRABAJO</span><br><span style="color:#e2e8f0;">'+t.workAccomplished+'</span></div>'
+      + '<div><span style="font-size:10px;color:#64748b;">TREAD</span><br><span style="color:#e2e8f0;">'+t.treadDepth+'</span></div>'
+      + '</div>';
+  });
+  document.getElementById('add-tire-results-title').textContent = _addTireData.length + ' llanta(s) detectada(s) — listas para agregar a WO# ' + wo;
+  document.getElementById('add-tire-wo-display').textContent = wo;
+  document.getElementById('add-tire-results').style.display = 'block';
+}
+
+function saveAddedTires() {
+  var wo = document.getElementById('add-tire-wo').value.trim().replace(/\D/g,'');
+  if (!wo || !_addTireData.length) return;
+
+  var all = getInvoices();
+  var inv = all.find(function(i){ return normalizeWO(i.wo) === wo; });
+  if (!inv) { showToast('❌ Factura no encontrada'); return; }
+
+  if (!inv.tirePositions) inv.tirePositions = [];
+  _addTireData.forEach(function(t) { inv.tirePositions.push(t); });
+
+  // Persist
+  var userNew = JSON.parse(localStorage.getItem('sup_new') || '[]');
+  var edits   = JSON.parse(localStorage.getItem('sup_edits') || '{}');
+  var deleted = JSON.parse(localStorage.getItem('sup_deleted') || '[]');
+
+  var found = false;
+  for (var i = 0; i < userNew.length; i++) {
+    if (normalizeWO(userNew[i].wo) === wo) { userNew[i] = inv; found = true; break; }
+  }
+  if (!found) {
+    // It's in HISTORICAL_DATA — move to edits
+    edits[inv.number] = inv;
+  }
+
+  localStorage.setItem('sup_new', JSON.stringify(userNew));
+  localStorage.setItem('sup_edits', JSON.stringify(edits));
+  pushEditsToKV(edits, deleted, userNew);
+
+  showToast('✅ ' + _addTireData.length + ' llanta(s) agregadas a WO# ' + wo);
+  _addTireData = [];
+  _addTireFiles = [];
+  renderAddTirePreview();
+  document.getElementById('add-tire-results').style.display = 'none';
+  renderHistory();
+}
+
+function saveAllExtracted() {
+  var all = getInvoices();
+  var existingWOs = new Set(all.map(function(i){ return normalizeWO(i.wo); }).filter(Boolean));
+  var saved = 0, skipped = 0;
+
+  var dataToSave = _mergedData.length > 0 ? _mergedData : _extractedData;
+
+  // Pre-calculate starting Order# to avoid stale reads inside loop
+  var allNums = all.map(function(i){ return parseInt(i.number)||0; }).filter(function(n){ return n>202600000&&n<210000000; });
+  var nextOrderNum = allNums.length ? Math.max.apply(null,allNums)+1 : 202609500;
+
+  dataToSave.forEach(function(inv, idx) {
+    if (inv._error) return;
+    var chk = document.getElementById('ext-check-'+idx);
+    if (chk && !chk.checked) return;
+
+    var wo = normalizeWO(inv.wo);
+
+    // Skip duplicates — WO already exists in system
+    if (existingWOs.has(wo)) {
+      skipped++;
+      return;
+    }
+
+    var c = inv.client || {};
+    var v = inv.vehicle || {};
+    var t = inv.tech || {};
+    var notesEl = document.getElementById('ext-notes-'+idx);
+    var notes = notesEl ? notesEl.value : (inv.notes || '');
+
+    var newInv = {
+      number: String(nextOrderNum++),
+      wo: wo,
+      date: inv.date || new Date().toISOString().split('T')[0],
+      status: 'PENDING',
+      payment: '',
+      notes: notes,
+      partsGeneral: '',
+      total: parseFloat(inv.total) || 0,
+      totalLabor: 0,
+      sentState: 0,
+      client: { company: c.company||'', name: c.name||'', phone: c.phone||'', address: c.address||'' },
+      tech: { name: t.name||'', id: '', rolltime: t.rollTime||'', arrival: t.arrival||'', hours: t.hours||'', mileage: t.mileage||'' },
+      vehicle: { year: v.year||'', make: v.make||'', model: v.model||'', plate: v.plate||'', vin: v.vin||'', unit: v.unit||'', mileage: v.mileage||'', rollTime: v.rollTime||'', tractor: v.tractor||'', trailer: v.trailer||'', driver: v.driver||'' },
+      tirePositions: inv.tirePositions || [],
+      expenses: []
+    };
+    all.push(newInv);
+    if (wo) existingWOs.add(wo); // prevent duplicates within same batch
+    saved++;
+  });
+
+  if (saved === 0 && skipped === 0) { showToast('No hay facturas seleccionadas'); return; }
+  if (saved > 0) saveInvoices(all);
+  var msg = '✅ ' + saved + ' factura(s) guardadas';
+  if (skipped > 0) msg += ' · ' + skipped + ' duplicada(s) omitida(s)';
+  showToast(msg);
+  clearPhotoQueue();
+  setTimeout(function(){ showPage('history'); renderHistory(); }, 800);
+}
+
+// ===== REPAIR: if sup_deleted has historical entries, clear them =====
+function repairDeletedList() {
+  try {
+    var deleted = JSON.parse(localStorage.getItem('sup_deleted') || '[]');
+    if (deleted.length < 10) return; // nothing suspicious
+
+    // Build set of historical keys
+    var histKeys = new Set(HISTORICAL_DATA.map(function(i){
+      return String(i.number)+'|'+String(i.wo||'');
+    }));
+
+    // Keep only truly user-deleted entries (not in HISTORICAL_DATA)
+    var clean = deleted.filter(function(k){ return !histKeys.has(k); });
+
+    if (clean.length < deleted.length) {
+      console.warn('repairDeletedList: removed', deleted.length - clean.length, 'historical entries from sup_deleted');
+      localStorage.setItem('sup_deleted', JSON.stringify(clean));
+      // Re-sync to KV
+      var edits   = JSON.parse(localStorage.getItem('sup_edits') || '{}');
+      var userNew = JSON.parse(localStorage.getItem('sup_new')   || '[]');
+      pushEditsToKV(edits, clean, userNew);
+    }
+  } catch(e) {}
+}
+
+// ===== TIRE PATCHES — manually entered tire data per WO# =====
+var TIRE_PATCHES = {
+  '4920132730': [
+    {position:'RRO',brand:'Firestone',model:'TRANSFORCE',size:'225/70R19.5',causeOfFailure:'Worn',damage:'Worn',workAccomplished:'Replace with New',whoHasPart:'',treadDepth:'',ply:'',valve:'',dotOn:'',dotOff:''},
+    {position:'RRI',brand:'Firestone',model:'TRANSFORCE',size:'225/70R19.5',causeOfFailure:'Worn',damage:'Worn',workAccomplished:'Replace with New',whoHasPart:'',treadDepth:'',ply:'',valve:'',dotOn:'',dotOff:''}
+  ],
+  '4920132726': [
+    {position:'LFI',brand:'Double Coin',model:'Rr99',size:'11R24.5',causeOfFailure:'Damage',workAccomplished:'Replace with New',whoHasPart:'Dealer holds the tire',treadDepth:'11/32',ply:'16',valve:'1',dotOn:'',dotOff:''},
+    {position:'LFO',brand:'Double Coin',model:'Rr99',size:'11R24.5',causeOfFailure:'Damage',workAccomplished:'Replace with New',whoHasPart:'Dealer holds the tire',treadDepth:'11/32',ply:'16',valve:'1',dotOn:'',dotOff:''},
+    {position:'RFI',brand:'Double Coin',model:'Rr99',size:'11R24.5',causeOfFailure:'Damage',workAccomplished:'Replace with New',whoHasPart:'Dealer holds the tire',treadDepth:'14/32',ply:'16',valve:'1',dotOn:'',dotOff:''},
+    {position:'RFO',brand:'Double Coin',model:'Rr99',size:'11R24.5',causeOfFailure:'Damage',workAccomplished:'Replace with New',whoHasPart:'Dealer holds the tire',treadDepth:'13/32',ply:'16',valve:'1',dotOn:'',dotOff:''}
+  ]
+};
+
+function applyTirePatches() {
+  var userNew = JSON.parse(localStorage.getItem('sup_new') || '[]');
+  var edits   = JSON.parse(localStorage.getItem('sup_edits') || '{}');
+  var deleted = JSON.parse(localStorage.getItem('sup_deleted') || '[]');
+  var changed = false;
+
+  Object.keys(TIRE_PATCHES).forEach(function(wo) {
+    var tires = TIRE_PATCHES[wo];
+    // Find in sup_new
+    var inv = null;
+    var idx = -1;
+    for (var i = 0; i < userNew.length; i++) {
+      if (String(userNew[i].wo||'').replace(/\D/g,'') === wo || String(userNew[i].number||'').replace(/\D/g,'') === wo) {
+        inv = userNew[i]; idx = i; break;
+      }
+    }
+    // Find in edits
+    if (!inv) {
+      for (var k in edits) {
+        if (String(edits[k].wo||'').replace(/\D/g,'') === wo || String(edits[k].number||'').replace(/\D/g,'') === wo) {
+          inv = edits[k]; break;
+        }
+      }
+    }
+    if (!inv) return; // invoice not found locally, skip
+    if (!inv.tirePositions) inv.tirePositions = [];
+    // Add any tire positions not already present (by position code)
+    var existingPos = new Set(inv.tirePositions.map(function(t){ return t.position; }));
+    var added = false;
+    tires.forEach(function(t){
+      if (!existingPos.has(t.position)) { inv.tirePositions.push(t); added = true; }
+    });
+    if (!added) return;
+    if (idx >= 0) userNew[idx] = inv;
+    else edits[inv.number] = inv;
+    changed = true;
+    console.log('Tire patch applied for WO#', wo, '—', tires.length, 'tires');
+  });
+
+  if (changed) {
+    localStorage.setItem('sup_new', JSON.stringify(userNew));
+    localStorage.setItem('sup_edits', JSON.stringify(edits));
+    pushEditsToKV(edits, deleted, userNew);
+  }
+}
+
+// ===== INIT =====
+window.onload = () => {
+  // Clear local edits and KV if ?reset=1 in URL
+  if (location.search.indexOf('reset=1') >= 0) {
+    localStorage.removeItem('sup_edits');
+    localStorage.removeItem('sup_deleted');
+    localStorage.removeItem('sup_new');
+    fetch('https://supremekv1.michka1620.workers.dev/edits', {method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}).catch(function(){});
+    history.replaceState(null,'',location.pathname);
+  }
+  // Migrate old sup_sent data to sup_edits sentState
+  try {
+    var oldSent = JSON.parse(localStorage.getItem('sup_sent') || '{}');
+    if (Object.keys(oldSent).length > 0) {
+      var all = getInvoices();
+      var changed = false;
+      Object.keys(oldSent).forEach(function(key) {
+        var entry = oldSent[key];
+        var state = entry && entry.state ? entry.state : 1;
+        var parts = key.split('|');
+        var num = parts[0], wo = parts[1]||'';
+        var inv = all.find(function(i){ return String(i.number)===num && String(i.wo||'')===wo; });
+        if (inv && !inv.sentState) { inv.sentState = state; changed = true; }
+      });
+      if (changed) saveInvoices(all);
+      localStorage.removeItem('sup_sent');
+    }
+  } catch(e) {}
+  // Pull all edits from KV first, then initialize
+  pullEditsFromKV(function() {
+    // Remove invoices dated Jun 28-30 from localStorage
+    (function() {
+      try {
+        var banned = ['2026-06-28','2026-06-29','2026-06-30'];
+        var userNew = JSON.parse(localStorage.getItem('sup_new')||'[]');
+        var before = userNew.length;
+        userNew = userNew.filter(function(inv){ return banned.indexOf(String(inv.date||'')) < 0; });
+        if (userNew.length !== before) {
+          localStorage.setItem('sup_new', JSON.stringify(userNew));
+          var edits = JSON.parse(localStorage.getItem('sup_edits')||'{}');
+          var deleted = JSON.parse(localStorage.getItem('sup_deleted')||'[]');
+          pushEditsToKV(edits, deleted, userNew);
+        }
+      } catch(e) {}
+    })();
+    repairDeletedList();
+    initializeData();
+    applyTirePatches();
+    updateClientList();
+    showPage('history');
+    setTimeout(function() { fillNewInvoice(); }, 200);
+    setTimeout(function() { loadApiKey(); }, 100);
+    pullSentFromKV(function() { renderHistory(); });
+  });
+};
+
+// ===== PRE-FILL NEW INVOICE FROM APP DATA =====
+const PREFILL_DATA = {"number": "766793326", "wo": "4920132535", "date": "2026-06-25", "status": "PENDING", "payment": "Wex", "area": "Llantas (van azul)", "notes": "Drove to location and removed front wheels, removed tires and installed new ones, air up tires to 80 psi and reinstalled wheels, torqued lug nuts to 185 ft lbs, removed spare tire on RRI and installed new tires air up tires to 80 psi and left spare tire next to truck, on LRI and LRO tires had trouble removing wheels, I was able to removed LRO wheel and was not able to removed LRI, has rust and replaced tire on LRO air up to 80 psi and reinstalled torqued lug nuts to 185 ft lbs, also truck needs to go to the shop to do balance and replaced LRI tire complete truck locked", "partsGeneral": "", "client": {"company": "TRUTH TRANSPORT INC", "unit": "#557609 / TRACTOR #SV-C92986", "driver": "Johnny", "phone": "(972) 865-5410", "roadside": "14902 Interstate 20 Cisco, TX 76437 \u2014 at yard, not marked", "attn": "", "email": "", "po": "", "address": "14902 Interstate 20 Cisco, TX 76437"}, "tech": {"name": "Jhon", "rolltime": "22:37", "arrival": "22:37", "hours": "4.5", "mileage": "140", "ubication": "at yard, not marked"}, "vehicle": {"make": "Ford", "model": "F350", "year": "2023", "vin": "N/A", "odometer": "0000", "license": "TRY+1088 / Texas", "tractor": "#SV-C92986", "trailer": ""}, "tirePositions": [{"position": "LS", "size": "LT245/75R17", "brand": "Firestone", "model": "Transforce AT2", "causeOfFailure": "Damage", "damage": "Worn", "workAccomplished": "Replace with New", "whoHasPart": "Dealer holds the tire", "treadDepth": "4/32", "ply": "", "valve": "", "dotOn": "", "dotOff": ""}, {"position": "RS", "size": "LT245/75R17", "brand": "Firestone", "model": "Transforce AT2", "causeOfFailure": "Damage", "damage": "Worn", "workAccomplished": "Replace with New", "whoHasPart": "Dealer holds the tire", "treadDepth": "4/32", "ply": "", "valve": "", "dotOn": "", "dotOff": ""}, {"position": "LRI", "size": "LT245/75R17", "brand": "Unable to removed wheels", "model": "Unable to removed wheels", "causeOfFailure": "Noted During PM or Inspection", "damage": "", "workAccomplished": "Work Incomplete", "whoHasPart": "Leave at Yard", "treadDepth": "", "ply": "", "valve": "", "dotOn": "", "dotOff": ""}, {"position": "LRO", "size": "LT245/75R17", "brand": "Firestone", "model": "Transforce AT2", "causeOfFailure": "Damage", "damage": "Worn", "workAccomplished": "Replace with New", "whoHasPart": "Dealer holds the tire", "treadDepth": "6/32", "ply": "", "valve": "", "dotOn": "", "dotOff": ""}, {"position": "RRI", "size": "LT245/75R17", "brand": "Firestone", "model": "Transforce AT2", "causeOfFailure": "Damage", "damage": "Worn", "workAccomplished": "Replace with New", "whoHasPart": "Dealer holds the tire", "treadDepth": "", "ply": "", "valve": "", "dotOn": "", "dotOff": ""}, {"position": "RRO", "size": "LT245/75R17", "brand": "Firestone", "model": "Transforce AT2", "causeOfFailure": "Damage", "damage": "Worn", "workAccomplished": "Replace with New", "whoHasPart": "Dealer holds the tire", "treadDepth": "", "ply": "", "valve": "", "dotOn": "", "dotOff": ""}], "expenses": [], "total": 0, "totalLabor": 0, "totalMaterial": 0};
+
+var _formSaved = false;
+function fillNewInvoice() {
+  // If user just saved an invoice, start fresh for next one
+  if (_formSaved) {
+    _formSaved = false;
+    // Clear form silently (no confirm)
+    document.querySelectorAll('#new-invoice input:not([readonly]),#new-invoice select,#new-invoice textarea')
+      .forEach(el => { if(el.tagName==='SELECT') el.selectedIndex=0; else el.value=''; });
+    document.getElementById('expenses-body').innerHTML='';
+    document.getElementById('tire-positions-wrapper').innerHTML='';
+    tireCount=0;
+    document.getElementById('t-material').textContent='$0.00';
+    document.getElementById('t-total').textContent='$0.00';
+    document.getElementById('inv-number').value = generateInvoiceNumber();
+    document.getElementById('inv-date').value = new Date().toISOString().split('T')[0];
+    addExpenseRow(); addExpenseRow(); addExpenseRow();
+    return;
+  }
+  const d = PREFILL_DATA;
+  // Dispatch
+  document.getElementById('inv-number').value  = d.number;
+  document.getElementById('inv-wo').value       = d.wo;
+  document.getElementById('inv-date').value     = d.date;
+  document.getElementById('inv-status').value   = d.status;
+  document.getElementById('inv-payment').value  = d.payment;
+  document.getElementById('inv-area').value     = d.area;
+  // Client
+  document.getElementById('cli-company').value  = d.client.company;
+  document.getElementById('cli-unit').value     = d.client.unit;
+  document.getElementById('cli-driver').value   = d.client.driver;
+  document.getElementById('cli-phone').value    = d.client.phone;
+  document.getElementById('cli-roadside').value = d.client.roadside;
+  document.getElementById('cli-attn').value     = d.client.attn;
+  document.getElementById('cli-email').value    = d.client.email;
+  document.getElementById('cli-po').value       = d.client.po;
+  document.getElementById('cli-address').value  = d.client.address;
+  // Tech & Vehicle
+  document.getElementById('tech-name').value     = d.tech.name;
+  document.getElementById('tech-rolltime').value = d.tech.rolltime;
+  document.getElementById('tech-arrival').value  = d.tech.arrival;
+  document.getElementById('tech-hours').value    = d.tech.hours;
+  document.getElementById('tech-mileage').value  = d.tech.mileage;
+  document.getElementById('tech-ubication').value= d.tech.ubication;
+  document.getElementById('veh-make').value      = d.vehicle.make;
+  document.getElementById('veh-model').value     = d.vehicle.model;
+  document.getElementById('veh-year').value      = d.vehicle.year;
+  document.getElementById('veh-vin').value       = d.vehicle.vin;
+  document.getElementById('veh-odometer').value  = d.vehicle.odometer;
+  document.getElementById('veh-license').value   = d.vehicle.license;
+  document.getElementById('veh-tractor').value   = d.vehicle.tractor;
+  document.getElementById('veh-trailer').value   = d.vehicle.trailer;
+  // Notes
+  document.getElementById('inv-notes').value     = d.notes;
+  // Tire positions
+  document.getElementById('tire-positions-wrapper').innerHTML = '';
+  tireCount = 0;
+  d.tirePositions.forEach(t => addTirePosition(t));
+  // Add default expense rows if none exist
+  var expBody = document.getElementById('expenses-body');
+  if (!expBody.children.length) {
+    addExpenseRow(); addExpenseRow(); addExpenseRow();
+  }
+  showToast('✅ Invoice data loaded!');
+}
+
+
+// ===== EXPORT / IMPORT =====
+function cleanAllSaved() {
+  function stripWO(s) {
+    if (!s || typeof s !== 'string') return s;
+    return s.replace(/^(wo\s*#?\s*\d{5,}[\s\-:,]*)/i,'').replace(/(\s*wo\s*#?\s*\d{5,})/ig,'').trim();
+  }
+  function stripLeadingNums(s) {
+    if (!s || typeof s !== 'string') return s;
+    return s.replace(/^[#\s]*\d{4,}\s+/,'').trim();
+  }
+  function fixWONum(wo) {
+    if (!wo) return '';
+    var m = wo.toString().match(/\d{5,}/);
+    return m ? m[0] : '';
+  }
+
+  // Read sup_new directly (user-created invoices from photo import)
+  var userNew = JSON.parse(localStorage.getItem('sup_new') || '[]');
+  var edits   = JSON.parse(localStorage.getItem('sup_edits') || '{}');
+  var deleted = JSON.parse(localStorage.getItem('sup_deleted') || '[]');
+
+  // Find highest correct Order# across ALL invoices
+  var allInvs = getInvoices();
+  var orderNums = allInvs.map(function(i){ return parseInt(i.number)||0; }).filter(function(n){ return n>202600000&&n<210000000; });
+  var nextNum = orderNums.length ? Math.max.apply(null,orderNums)+1 : 202609437;
+
+  var seen = {};
+  // Pre-seed seen with HISTORICAL_DATA WOs so we don't duplicate them
+  HISTORICAL_DATA.forEach(function(i){ if(i.wo) seen[String(i.wo).trim()] = true; });
+
+  var fixed = 0, dupsRemoved = 0;
+
+  var cleaned = userNew.filter(function(inv) {
+    var wo = fixWONum(inv.wo);
+
+    // Remove duplicate WOs
+    if (wo && seen[wo]) { dupsRemoved++; return false; }
+    if (wo) seen[wo] = true;
+
+    // Detect swapped fields: number=4920132XXX (WO format) AND wo=202609XXX (Order format)
+    var num = parseInt(inv.number)||0;
+    var woNum = parseInt(inv.wo)||0;
+    var numIsWOFormat   = num   > 4900000000;
+    var woIsOrderFormat = woNum > 202600000 && woNum < 210000000;
+    if (numIsWOFormat && woIsOrderFormat) {
+      var tmp = inv.number; inv.number = inv.wo; inv.wo = tmp;
+      wo = fixWONum(inv.wo);
+      fixed++;
+    } else if (num < 202600000 || num > 210000000) {
+      inv.number = String(nextNum++);
+      fixed++;
+    }
+    var curNum = parseInt(inv.number)||0;
+    if (curNum >= nextNum) nextNum = curNum + 1;
+
+    // Fix WO field
+    if (inv.wo) inv.wo = wo || inv.wo;
+
+    // Clean client fields
+    if (inv.client) {
+      inv.client.company = stripLeadingNums(stripWO(inv.client.company||''));
+      inv.client.name    = stripLeadingNums(stripWO(inv.client.name||''));
+      inv.client.address = stripWO(inv.client.address||'');
+    }
+    if (inv.vehicle) {
+      inv.vehicle.make  = stripLeadingNums(inv.vehicle.make||'');
+      inv.vehicle.model = stripLeadingNums(inv.vehicle.model||'');
+    }
+    return true;
+  });
+
+  localStorage.setItem('sup_new', JSON.stringify(cleaned));
+  pushEditsToKV(edits, deleted, cleaned);
+  showToast('✅ ' + fixed + ' Order# corregidos (202609XXX), ' + dupsRemoved + ' duplicados eliminados');
+  renderHistory();
+}
+
+function deduplicateInvoices() {
+  var all = getInvoices();
+  var seen = {};
+  var kept = [];
+  var removed = 0;
+
+  all.forEach(function(inv) {
+    var wo = normalizeWO(inv.wo);
+    if (!wo) { kept.push(inv); return; } // no WO# — keep always
+
+    if (!seen[wo]) {
+      seen[wo] = true;
+      kept.push(inv);
+    } else {
+      removed++;
+    }
+  });
+
+  if (removed === 0) {
+    showToast('✅ No hay duplicados');
+    return;
+  }
+
+  // Save deduplicated list
+  var histNums = new Set(HISTORICAL_DATA.map(function(i){ return String(i.number)+'|'+String(i.wo||''); }));
+  var userNew = kept.filter(function(i){ return !histNums.has(String(i.number)+'|'+String(i.wo||'')); });
+  localStorage.setItem('sup_new', JSON.stringify(userNew));
+  pushEditsToKV(
+    JSON.parse(localStorage.getItem('sup_edits') || '{}'),
+    JSON.parse(localStorage.getItem('sup_deleted') || '[]'),
+    userNew
+  );
+  showToast('🗑 ' + removed + ' duplicado(s) eliminado(s)');
+  renderHistory();
+}
+
+function exportData() {
+  var invs = getInvoices();
+  var userNew  = JSON.parse(localStorage.getItem('sup_new')     || '[]');
+  var edits    = JSON.parse(localStorage.getItem('sup_edits')   || '{}');
+  var deleted  = JSON.parse(localStorage.getItem('sup_deleted') || '[]');
+  var data = {
+    version: 'supreme_backup_v2',
+    exportDate: new Date().toISOString(),
+    totalInvoices: invs.length,
+    userNew: userNew,
+    edits: edits,
+    deleted: deleted
+  };
+  var json = JSON.stringify(data, null, 2);
+  var blob = new Blob([json], {type: 'application/json'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  var date = new Date().toISOString().split('T')[0];
+  a.href = url;
+  a.download = 'SUPREME_BACKUP_' + date + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('✅ Backup saved! ' + userNew.length + ' new invoices + ' + Object.keys(edits).length + ' edits exported');
+}
+
+function importData(input) {
+  var file = input.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      var data = JSON.parse(e.target.result);
+      if (!confirm('Restore backup from ' + (data.exportDate||'unknown date') + '? This will restore your edits and new invoices.')) {
+        input.value = ''; return;
+      }
+      if (data.version === 'supreme_backup_v2') {
+        // New format - restore exactly
+        if (data.userNew)  localStorage.setItem('sup_new',     JSON.stringify(data.userNew));
+        if (data.edits)    localStorage.setItem('sup_edits',   JSON.stringify(data.edits));
+        if (data.deleted)  localStorage.setItem('sup_deleted', JSON.stringify(data.deleted));
+      } else {
+        // Old format - try to extract new invoices
+        var invs = data.invoices || data;
+        if (Array.isArray(invs)) {
+          var histNums = new Set(HISTORICAL_DATA.map(function(i){ return String(i.number)+'|'+String(i.wo||''); }));
+          var userNew = invs.filter(function(i){ return !histNums.has(String(i.number)+'|'+String(i.wo||'')); });
+          localStorage.setItem('sup_new', JSON.stringify(userNew));
+        }
+      }
+      renderHistory();
+      showToast('✅ Backup restored! ' + getInvoices().length + ' total invoices loaded.');
+      input.value = '';
+    } catch(err) {
+      alert('Error importing: ' + err.message);
+      input.value = '';
+    }
+  };
+  reader.readAsText(file);
+}
+
+
+// ===== DOWNLOAD INVOICE AS PDF =====
+function downloadInvoicePDF() {
+  var content = document.getElementById('inv-doc-content');
+  if (!content || !content.innerHTML) { alert('No invoice to download.'); return; }
+  // Get current invoice from preview
+  var invs = getInvoices();
+  // Find by matching content - use the invoice currently shown
+  if (window._currentPreviewInv) {
+    openPrintView([window._currentPreviewInv]);
+  } else {
+    openPrintView(null, content.innerHTML);
+  }
+}
+
+
+
+// ===== PRINT VIEW =====
+function openPrintView(invoices, rawHTML) {
+  if (!invoices || !invoices.length) { alert('No invoices selected.'); return; }
+  
+  var invNum = invoices[0].number || 'invoice';
+  
+  // Build invoice pages with inline styles
+  var pages = invoices.map(function(inv, idx) {
+    var pageBreak = idx < invoices.length - 1 ? 'style="page-break-after:always"' : '';
+    return '<div ' + pageBreak + '>' + buildPrintableInvoice(inv) + '</div>';
+  }).join('');
+
+  var fullHTML = '<!DOCTYPE html><html><head>'
+    + '<meta charset="UTF-8">'
+    + '<title>Invoice #' + invNum + ' — SUPREME AutoPro LLC</title>'
+    + '<style>'
+    + '* { box-sizing:border-box; margin:0; padding:0; }'
+    + 'body { font-family:Arial,Helvetica,sans-serif; background:#fff; color:#000; }'
+    + '.no-print { display:none !important; }'
+    + '@media print {'
+    + '  .no-print { display:none !important; }'
+    + '  @page { margin:0.4in; size:letter; }'
+    + '  * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }'
+    + '}'
+    + '</style>'
+    + '</head><body>'
+    + '<div class="no-print" style="background:#1e3a5f;padding:12px 20px;display:flex;align-items:center;gap:16px;">'
+    + '<strong style="color:#fff;font-size:15px;">Invoice #' + invNum + '</strong>'
+    + '<button onclick="window.print()" style="background:#e53e3e;color:#fff;border:none;padding:9px 24px;border-radius:5px;cursor:pointer;font-weight:700;font-size:14px;">⬇ Save as PDF</button>'
+    + '<span style="color:#90cdf4;font-size:12px;">Chrome: check ✓ Gráficos de fondo / Background graphics</span>'
+    + '</div>'
+    + pages
+    + '</body></html>';
+
+  // Open new tab
+  var tab = window.open('', '_blank');
+  if (tab) {
+    tab.document.write(fullHTML);
+    tab.document.close();
+    tab.focus();
+  } else {
+    // Fallback: download
+    var blob = new Blob([fullHTML], {type:'text/html;charset=utf-8'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'SUPREME_Invoice_' + invNum + '.html';
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 5000);
+    showToast('Descargado! Abrelo y presiona Ctrl+P → Guardar como PDF');
+  }
+}
+
+function buildPrintableInvoice(d) {
+  var fmtDate = d.date ? new Date(d.date+'T12:00:00').toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}) : '—';
+  var fmt = function(n){ return '$'+parseFloat(n||0).toFixed(2); };
+  var esc = function(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); };
+  
+  // Tire rows
+  var tireHTML = '';
+  var tires = (d.tirePositions||[]).filter(function(t){ return t && t.position; });
+  if (tires.length) {
+    tireHTML = '<div style="margin:10px 0;">'
+      + '<div style="background:#222;color:#fff;padding:5px 10px;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:1px;">Tire Positions</div>'
+      + '<table style="width:100%;border-collapse:collapse;font-size:10px;">'
+      + '<thead><tr style="background:#444;color:#fff;">'
+      + '<th style="padding:4px 6px;text-align:left;">Pos</th>'
+      + '<th style="padding:4px 6px;text-align:left;">Size</th>'
+      + '<th style="padding:4px 6px;text-align:left;">Brand</th>'
+      + '<th style="padding:4px 6px;text-align:left;">Model</th>'
+      + '<th style="padding:4px 6px;text-align:left;">Work Done</th>'
+      + '<th style="padding:4px 6px;text-align:left;">Cause</th>'
+      + '<th style="padding:4px 6px;text-align:left;">Who Has Part</th>'
+      + '<th style="padding:4px 6px;text-align:center;">Tread</th>'
+      + '</tr></thead><tbody>';
+    tires.forEach(function(t, i) {
+      var bg = i%2===0 ? '#fff' : '#f5f5f5';
+      tireHTML += '<tr style="background:'+bg+';">'
+        + '<td style="padding:3px 6px;border:1px solid #ddd;font-weight:900;color:#c00;text-align:center;">'+esc(t.position)+'</td>'
+        + '<td style="padding:3px 6px;border:1px solid #ddd;">'+esc(t.size)+'</td>'
+        + '<td style="padding:3px 6px;border:1px solid #ddd;">'+esc(t.brand)+'</td>'
+        + '<td style="padding:3px 6px;border:1px solid #ddd;">'+esc(t.model)+'</td>'
+        + '<td style="padding:3px 6px;border:1px solid #ddd;">'+esc(t.workAccomplished)+'</td>'
+        + '<td style="padding:3px 6px;border:1px solid #ddd;">'+esc(t.causeOfFailure)+'</td>'
+        + '<td style="padding:3px 6px;border:1px solid #ddd;">'+esc(t.whoHasPart)+'</td>'
+        + '<td style="padding:3px 6px;border:1px solid #ddd;text-align:center;">'+esc(t.treadDepth)+'</td>'
+        + '</tr>';
+    });
+    tireHTML += '</tbody></table></div>';
+  }
+
+  // Expenses
+  var expHTML = '';
+  var exps = (d.expenses||[]).filter(function(e){ return e && e.desc; });
+  if (exps.length) {
+    expHTML = '<div style="margin:10px 0;">'
+      + '<div style="background:#222;color:#fff;padding:5px 10px;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:1px;">Expenses</div>'
+      + '<table style="width:100%;border-collapse:collapse;font-size:10px;">'
+      + '<thead><tr style="background:#444;color:#fff;">'
+      + '<th style="padding:4px 8px;text-align:left;">Description</th>'
+      + '<th style="padding:4px 8px;text-align:center;">Qty</th>'
+      + '<th style="padding:4px 8px;text-align:right;">Unit Price</th>'
+      + '<th style="padding:4px 8px;text-align:right;">Total</th>'
+      + '</tr></thead><tbody>';
+    exps.forEach(function(e, i) {
+      var bg = i%2===0 ? '#fff' : '#f5f5f5';
+      expHTML += '<tr style="background:'+bg+';">'
+        + '<td style="padding:3px 8px;border:1px solid #ddd;">'+esc(e.desc)+'</td>'
+        + '<td style="padding:3px 8px;border:1px solid #ddd;text-align:center;">'+esc(e.qty)+'</td>'
+        + '<td style="padding:3px 8px;border:1px solid #ddd;text-align:right;">'+fmt(e.price)+'</td>'
+        + '<td style="padding:3px 8px;border:1px solid #ddd;text-align:right;">'+fmt(e.total)+'</td>'
+        + '</tr>';
+    });
+    expHTML += '</tbody></table></div>';
+  }
+
+  var c = d.client || {};
+  var t = d.tech || {};
+  var v = d.vehicle || {};
+  var totalLabor = parseFloat(d.totalLabor||d.total||0);
+  var totalMaterial = parseFloat(d.totalMaterial||0);
+  var grandTotal = parseFloat(d.total||0);
+
+  // Get logo from existing invoice if available
+  var logoSrc = '';
+  var existingLogo = document.querySelector('.inv-logo, img[src^="data:image"]');
+  if (existingLogo) logoSrc = existingLogo.src;
+  var logoHTML = logoSrc 
+    ? '<img src="'+logoSrc+'" style="width:65px;height:65px;object-fit:contain;">'
+    : '<div style="width:65px;height:65px;background:#111;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:18px;">S</div>';
+
+  return '<div style="max-width:720px;margin:0 auto;padding:24px;font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.4;color:#000;">'
+    // Header
+    + '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:12px;border-bottom:3px solid #111;margin-bottom:12px;">'
+      + '<div style="display:flex;align-items:center;gap:12px;">'
+        + logoHTML
+        + '<div style="font-size:26px;font-weight:900;color:#111;letter-spacing:2px;">INVOICE</div>'
+      + '</div>'
+      + '<div style="text-align:right;">'
+        + '<div style="font-size:13px;font-weight:900;">SUPREME AutoPro LLC</div>'
+        + '<div style="font-size:10px;color:#555;">233 Sugarberry Ave, Abilene, TX 79602</div>'
+        + '<div style="font-size:10px;color:#555;">📞 325-207-5839 &nbsp; ✉ contact@supremeautopro.com</div>'
+      + '</div>'
+    + '</div>'
+    // From / For
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;background:#f8f8f8;padding:10px 14px;border-left:4px solid #333;margin:10px 0;border-radius:2px;">'
+      + '<div><div style="font-size:9px;color:#555;text-transform:uppercase;font-weight:900;letter-spacing:1px;margin-bottom:3px;">FROM</div>'
+        + '<strong style="font-size:11px;">SUPREME AutoPro LLC</strong>'
+        + '<div style="font-size:10px;color:#444;margin-top:2px;">233 Sugarberry Ave, Abilene TX 79602<br>325-207-5839 | contact@supremeautopro.com</div>'
+      + '</div>'
+      + '<div><div style="font-size:9px;color:#555;text-transform:uppercase;font-weight:900;letter-spacing:1px;margin-bottom:3px;">FOR</div>'
+        + '<strong style="font-size:12px;">'+esc(c.company)+'</strong>'
+        + (c.address ? '<div style="font-size:10px;color:#444;margin-top:2px;">'+esc(c.address)+'</div>' : '')
+        + (c.phone ? '<div style="font-size:10px;color:#444;">📞 '+esc(c.phone)+'</div>' : '')
+        + (c.email ? '<div style="font-size:10px;color:#444;">✉ '+esc(c.email)+'</div>' : '')
+      + '</div>'
+    + '</div>'
+    // Invoice number box
+    + '<div style="background:#111;color:#fff;text-align:center;padding:14px 20px;margin:10px 0;border-radius:4px;display:flex;justify-content:center;gap:40px;align-items:center;">'
+      + '<div><div style="font-size:9px;opacity:.7;letter-spacing:2px;">INVOICE SUPREME #</div>'
+        + '<div style="font-size:20px;font-weight:900;letter-spacing:2px;">'+esc(d.number)+'</div></div>'
+      + '<div style="width:1px;background:#444;height:40px;"></div>'
+      + '<div><div style="font-size:9px;opacity:.7;letter-spacing:2px;">ORDER #</div>'
+        + '<div style="font-size:20px;font-weight:900;letter-spacing:2px;">'+esc(d.wo)+'</div></div>'
+    + '</div>'
+    // Service Details
+    + '<div style="background:#222;color:#fff;padding:5px 10px;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:1px;margin:10px 0 0;">Service Details</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;border:1px solid #ddd;border-top:none;margin-bottom:8px;">'
+      + cell('Customer', esc(c.company))
+      + cell('Service Date', fmtDate)
+      + cell('WO #', esc(d.wo))
+      + cell('Hours Billed', esc(t.hours))
+      + cell('Roll Time', esc(t.rolltime))
+      + cell('Time of Arrival', esc(t.arrival))
+      + cell('Round Trip Mileage', esc(t.mileage))
+      + cell('Technician', esc(t.name))
+      + cell('Vehicle Make', esc(v.make))
+      + cell('Vehicle Model', esc(v.model))
+      + cell('Vehicle Year', esc(v.year))
+      + cell('VIN #', esc(v.vin))
+      + cell('Odometer', esc(v.odometer))
+      + cell('License / State', esc(v.license))
+      + cell('Tractor #', esc(v.tractor))
+      + cell('Trailer #', esc(v.trailer))
+      + (c.driver ? cell('Driver', esc(c.driver)) : '')
+      + (c.phone  ? cell('Phone',  esc(c.phone))  : '')
+      + (c.attn   ? cell('ATTN',   esc(c.attn))   : '')
+      + (c.po     ? cell('PO #',   esc(c.po))     : '')
+      + (t.ubication ? '<div style="padding:4px 8px;border-right:1px solid #ddd;border-bottom:1px solid #ddd;grid-column:1/-1;"><div style="font-size:8px;color:#888;text-transform:uppercase;">Roadside Location</div><div style="font-size:10px;font-weight:600;">'+esc(t.ubication)+'</div></div>' : '')
+    + '</div>'
+    // Notes
+    + (d.notes ? '<div style="background:#222;color:#fff;padding:5px 10px;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:1px;margin:10px 0 0;">Repair Notes / Work Accomplished</div>'
+      + '<div style="border:1px solid #ddd;border-top:none;padding:8px 10px;font-size:10px;line-height:1.5;margin-bottom:8px;">'+esc(d.notes)+'</div>' : '')
+    // Tires
+    + tireHTML
+    // Expenses
+    + expHTML
+    // Totals
+    + '<div style="background:#f4f4f4;padding:10px 14px;border-radius:4px;border-left:4px solid #333;margin:10px 0;">'
+      + (totalMaterial > 0 ? '<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:11px;border-bottom:1px solid #ddd;"><span>Total Material</span><span>'+fmt(totalMaterial)+'</span></div>' : '')
+      + (totalLabor > 0 ? '<div style="display:flex;justify-content:space-between;padding:3px 0;font-size:11px;border-bottom:1px solid #ddd;"><span>Total Labor</span><span>'+fmt(totalLabor)+'</span></div>' : '')
+      + '<div style="display:flex;justify-content:space-between;padding:6px 0 3px;font-size:16px;font-weight:900;"><span>TOTAL INVOICE</span><span>'+fmt(grandTotal)+'</span></div>'
+    + '</div>'
+    // Signature
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:20px;">'
+      + '<div style="border-top:2px solid #222;padding-top:4px;font-size:9px;color:#555;">Authorized Signature / Date</div>'
+      + '<div style="border-top:2px solid #222;padding-top:4px;font-size:9px;color:#555;">Customer Signature / Date</div>'
+    + '</div>'
+    + '<div style="border:1px solid #ddd;padding:8px;font-size:8px;color:#666;margin-top:10px;text-align:center;">'
+      + 'Thank you for your business! | SUPREME AutoPro LLC | 325-207-5839 | contact@supremeautopro.com'
+    + '</div>'
+  + '</div>';
+}
+
+function cell(label, value) {
+  return '<div style="padding:4px 8px;border-right:1px solid #ddd;border-bottom:1px solid #ddd;">'
+    + '<div style="font-size:8px;color:#888;text-transform:uppercase;">'+label+'</div>'
+    + '<div style="font-size:10px;font-weight:600;">'+(value||'—')+'</div>'
+    + '</div>';
+}
+
+
+// ===== BULK SELECT & PDF =====
+function toggleSelectAll(chk) {
+  document.querySelectorAll('.inv-chk').forEach(function(c){ c.checked = chk.checked; });
+  updateBulkBar();
+}
+
+function updateBulkBar() {
+  var checked = document.querySelectorAll('.inv-chk:checked');
+  var bar = document.getElementById('bulk-action-bar');
+  var countEl = document.getElementById('bulk-count');
+  if (checked.length > 0) {
+    bar.style.display = 'flex';
+    countEl.textContent = checked.length + ' invoice' + (checked.length > 1 ? 's' : '') + ' selected';
+  } else {
+    bar.style.display = 'none';
+  }
+  // Update select-all checkbox state
+  var all = document.querySelectorAll('.inv-chk');
+  var selAll = document.getElementById('select-all-chk');
+  if (selAll) {
+    selAll.indeterminate = checked.length > 0 && checked.length < all.length;
+    selAll.checked = all.length > 0 && checked.length === all.length;
+  }
+}
+
+function clearSelection() {
+  document.querySelectorAll('.inv-chk').forEach(function(c){ c.checked = false; });
+  var selAll = document.getElementById('select-all-chk');
+  if (selAll) { selAll.checked = false; selAll.indeterminate = false; }
+  document.getElementById('bulk-action-bar').style.display = 'none';
+}
+
+function getSelectedInvoices() {
+  var selected = [];
+  document.querySelectorAll('.inv-chk:checked').forEach(function(chk) {
+    var idx = parseInt(chk.dataset.idx);
+    if (window._histList && window._histList[idx]) {
+      selected.push(window._histList[idx]);
+    }
+  });
+  return selected;
+}
+
+function buildMultiInvoiceHTML(invoices) {
+  return invoices.map(function(inv, i) {
+    return '<div style="page-break-after:' + (i < invoices.length-1 ? 'always' : 'avoid') + ';margin-bottom:40px;">'
+      + buildInvoiceHTML(inv)
+      + '</div>';
+  }).join('');
+}
+
+function downloadSelectedPDFs() {
+  var selected = getSelectedInvoices();
+  if (!selected.length) { alert('No invoices selected.'); return; }
+  openPrintView(selected);
+}
+
+function printSelectedPDFs() {
+  downloadSelectedPDFs();
+}
+
+
+// ===== GOOGLE SHEETS SYNC =====
+const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwDQ8zyp3qq5tYv-eWMj1w6g4LyCWYhUbY2NjErjGJ2jGk7TM81Pmz-Lgp7I3bEoPQVXQ/exec';
+var _syncEnabled = true;
+var _syncStatus = 'idle'; // idle, syncing, error, ok
+
+function showSyncStatus(msg, color) {
+  var el = document.getElementById('sync-status');
+  if (el) { el.textContent = msg; el.style.color = color || '#4ade80'; }
+}
+
+// Load ALL invoices from Google Sheets on startup
+function loadFromSheets() {
+  showSyncStatus('⟳ Syncing...', '#fbbf24');
+  fetch(SHEETS_URL + '?action=getAll')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.status === 'ok' && data.invoices && data.invoices.length > 0) {
+        // Merge: sheets data takes priority for user invoices
+        var histNums = new Set(HISTORICAL_DATA.map(function(i){ return String(i.number)+'|'+String(i.wo||''); }));
+        var userFromSheets = data.invoices.filter(function(i){ return !histNums.has(String(i.number)+'|'+String(i.wo||'')); });
+        localStorage.setItem('sup_new', JSON.stringify(userFromSheets));
+        showSyncStatus('✅ Synced: ' + data.invoices.length + ' invoices', '#4ade80');
+        renderHistory();
+      } else {
+        // First time - upload all invoices to sheets
+        uploadAllToSheets();
+      }
+    })
+    .catch(function(e) {
+      showSyncStatus('⚠ Offline mode', '#f87171');
+      console.log('Sheets offline:', e);
+    });
+}
+
+// Upload ALL invoices to Google Sheets (first time setup)
+function uploadAllToSheets() {
+  var all = getInvoices();
+  showSyncStatus('⬆ Uploading ' + all.length + ' invoices...', '#fbbf24');
+  fetch(SHEETS_URL, {
+    method: 'POST',
+    body: JSON.stringify({ action: 'importAll', invoices: all })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (data.status === 'ok') {
+      showSyncStatus('✅ ' + data.count + ' invoices uploaded to Google Sheets!', '#4ade80');
+    }
+  })
+  .catch(function(e) {
+    showSyncStatus('⚠ Upload failed - offline mode', '#f87171');
+  });
+}
+
+// Save single invoice to Google Sheets
+function saveToSheets(inv) {
+  if (!_syncEnabled) return;
+  fetch(SHEETS_URL, {
+    method: 'POST',
+    body: JSON.stringify({ action: 'save', invoice: inv })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (data.status === 'ok') {
+      showSyncStatus('✅ Saved to Cloud', '#4ade80');
+      setTimeout(function(){ showSyncStatus('☁ Cloud Connected', '#4ade80'); }, 2000);
+    }
+  })
+  .catch(function(e) { showSyncStatus('⚠ Offline', '#f87171'); });
+}
+
+// Delete from Google Sheets
+function deleteFromSheets(number, wo) {
+  fetch(SHEETS_URL, {
+    method: 'POST',
+    body: JSON.stringify({ action: 'delete', number: number, wo: wo })
+  }).catch(function(e) { console.log('Delete sheets error:', e); });
+}
+
+// ===== SENT TRACKING =====
+function getSentData() {
+  // Read sentState directly from invoice objects
+  var result = {};
+  getInvoices().forEach(function(inv) {
+    var k = String(inv.number)+'|'+String(inv.wo||'');
+    if (inv.sentState) result[k] = { state: inv.sentState };
+  });
+  return result;
+}
+
+var KV_API = 'https://supremekv1.michka1620.workers.dev/sent';
+var KV_EDITS_API = 'https://supremekv1.michka1620.workers.dev/edits';
+
+function pushEditsToKV(edits, deleted, newInvs) {
+  try {
+    var payload = { edits: edits, deleted: deleted, newInvs: newInvs };
+    fetch(KV_EDITS_API, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) }).catch(function(){});
+  } catch(e) {}
+}
+
+function pullEditsFromKV(cb) {
+  fetch(KV_EDITS_API).then(function(r){ return r.json(); }).then(function(data) {
+    if (!data || typeof data !== 'object') { if(cb) cb(); return; }
+
+    // MERGE KV data with local data — local wins for conflicts (local is more recent)
+    var localEdits  = JSON.parse(localStorage.getItem('sup_edits')   || '{}');
+    var localNew    = JSON.parse(localStorage.getItem('sup_new')      || '[]');
+    var localDel    = JSON.parse(localStorage.getItem('sup_deleted')  || '[]');
+
+    var kvEdits  = data.edits   || {};
+    var kvNew    = data.newInvs || [];
+    var kvDel    = data.deleted || [];
+
+    // Merge edits: KV base, local overwrites
+    var mergedEdits = Object.assign({}, kvEdits, localEdits);
+
+    // Merge new invoices: KV base, local additions win (by number|wo key)
+    var mergedNewMap = {};
+    kvNew.forEach(function(i){ mergedNewMap[String(i.number)+'|'+String(i.wo||'')] = i; });
+    localNew.forEach(function(i){ mergedNewMap[String(i.number)+'|'+String(i.wo||'')] = i; }); // local overwrites
+    var mergedNew = Object.values(mergedNewMap);
+
+    // Merge deleted: union, but filter out historical entries
+    var histKeys = new Set(HISTORICAL_DATA.map(function(i){ return String(i.number)+'|'+String(i.wo||''); }));
+    var delSet = new Set(kvDel.concat(localDel).filter(function(k){ return !histKeys.has(k); }));
+    var mergedDel = Array.from(delSet);
+
+    localStorage.setItem('sup_edits',   JSON.stringify(mergedEdits));
+    localStorage.setItem('sup_deleted', JSON.stringify(mergedDel));
+    localStorage.setItem('sup_new',     JSON.stringify(mergedNew));
+
+    // Push merged result back to KV so both are in sync
+    pushEditsToKV(mergedEdits, mergedDel, mergedNew);
+
+    if (cb) cb();
+  }).catch(function(){ if(cb) cb(); });
+}
+
+function pushSentToKV() {
+  try {
+    var all = getInvoices();
+    var obj = {};
+    all.forEach(function(inv) {
+      if (inv.sentState) {
+        var k = String(inv.number)+'|'+String(inv.wo||'');
+        obj[k] = inv.sentState;
+      }
+    });
+    fetch(KV_API, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(obj) }).catch(function(){});
+  } catch(e) {}
+}
+
+function pullSentFromKV(cb) {
+  fetch(KV_API).then(function(r){ return r.json(); }).then(function(obj) {
+    if (!obj || typeof obj !== 'object') return;
+    var all = getInvoices();
+    var changed = false;
+    all.forEach(function(inv) {
+      var k = String(inv.number)+'|'+String(inv.wo||'');
+      if (obj[k] !== undefined && obj[k] !== inv.sentState) {
+        inv.sentState = obj[k];
+        changed = true;
+      }
+    });
+    if (changed) saveInvoices(all);
+    if (cb) cb();
+  }).catch(function(){});
+}
+
+function setSentState(num, wo, state) {
+  var all = getInvoices();
+  var inv = all.find(function(i){ return String(i.number)===String(num) && String(i.wo||'')===String(wo||''); });
+  if (!inv) return;
+  inv.sentState = parseInt(state) || 0;
+  saveInvoices(all);
+  pushSentToKV();
+  var m = document.getElementById('sent-menu');
+  if (m) m.remove();
+  renderHistory();
+}
+function toggleSent(num, wo, btn) {
+  var existing = document.getElementById('sent-menu');
+  if (existing) { existing.remove(); return; }
+  var all = getInvoices();
+  var inv = all.find(function(i){ return String(i.number)===String(num) && String(i.wo||'')===String(wo||''); });
+  var cur = inv ? (inv.sentState||0) : 0;
+  var rect = btn.getBoundingClientRect();
+  var menu = document.createElement('div');
+  menu.id = 'sent-menu';
+  menu.style.cssText = 'position:fixed;top:'+(rect.bottom+4)+'px;left:'+rect.left+'px;background:#1e293b;border:1px solid #334155;border-radius:8px;z-index:99999;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,0.5);min-width:160px;';
+  var opts = [
+    {state:0, label:'○ No enviada', bg:'#111', color:'#6b7280', border:'#374151'},
+    {state:1, label:'📤 Enviada', bg:'#7c2d12', color:'#fb923c', border:'#ea580c'},
+    {state:2, label:'✅ Cobrada', bg:'#052e16', color:'#4ade80', border:'#16a34a'},
+  ];
+  opts.forEach(function(o) {
+    var d = document.createElement('div');
+    d.style.cssText = 'padding:10px 16px;cursor:pointer;font-size:13px;font-weight:700;color:'+o.color+';background:'+(cur===o.state?o.bg:'transparent')+';border-left:3px solid '+(cur===o.state?o.border:'transparent')+';';
+    d.textContent = o.label;
+    d.onmouseenter = function(){ this.style.background=o.bg; };
+    d.onmouseleave = function(){ this.style.background = cur===o.state?o.bg:'transparent'; };
+    d.onclick = function(e){ e.stopPropagation(); setSentState(num,wo,o.state); };
+    menu.appendChild(d);
+  });
+  document.body.appendChild(menu);
+  setTimeout(function(){ document.addEventListener('click', function h(){ menu.remove(); document.removeEventListener('click',h); }); },0);
+}
+
+function renderSent() {
+  var invs = getInvoices();
+  var sentData = getSentData();
+  var search = (document.getElementById('sent-search')?.value||'').toLowerCase();
+  var filter = document.getElementById('sent-filter')?.value||'';
+
+  var filtered = invs.filter(function(inv) {
+    var key = String(inv.number)+'|'+String(inv.wo||'');
+    var isSent = !!sentData[key];
+    if (filter==='sent' && !isSent) return false;
+    if (filter==='notsent' && isSent) return false;
+    if (search) {
+      var hay = (inv.client?.company||'')+(inv.number||'')+(inv.wo||'');
+      if (!hay.toLowerCase().includes(search)) return false;
+    }
+    return true;
+  });
+
+  // Sort: not sent first, then by date desc
+  filtered.sort(function(a,b){
+    var ka = String(a.number)+'|'+String(a.wo||'');
+    var kb = String(b.number)+'|'+String(b.wo||'');
+    var sa = !!sentData[ka], sb = !!sentData[kb];
+    if (sa !== sb) return sa ? 1 : -1;
+    return (b.date||'').localeCompare(a.date||'');
+  });
+
+  var sentCount = invs.filter(function(i){ return !!sentData[String(i.number)+'|'+String(i.wo||'')]; }).length;
+  document.getElementById('sent-count').textContent = sentCount;
+  document.getElementById('notsent-count').textContent = invs.length - sentCount;
+
+  var rows = filtered.map(function(inv) {
+    var key = String(inv.number)+'|'+String(inv.wo||'');
+    var isSent = !!sentData[key];
+    var sentDate = sentData[key]||'';
+    var statusColor = inv.status==='PAID' ? '#4ade80' : inv.status==='CANCELLED' ? '#f87171' : '#f59e0b';
+    return '<tr style="border-bottom:1px solid #1e293b;'+(isSent?'opacity:0.65;':'')+'">'
+      + '<td style="padding:10px 12px;">'
+      +   '<button onclick="toggleSent(\''+inv.number+'\',\''+String(inv.wo||'')+'\''+')" style="background:'+(isSent?'#166534':'#1e293b')+';border:1px solid '+(isSent?'#4ade80':'#334155')+';color:'+(isSent?'#4ade80':'#94a3b8')+';padding:5px 12px;border-radius:20px;cursor:pointer;font-size:12px;font-weight:700;white-space:nowrap;">'
+      +   (isSent ? '✅ Enviada' : '○ No enviada')
+      +   '</button></td>'
+      + '<td style="padding:10px 12px;color:#e2e8f0;font-weight:700;">'+String(inv.number||'—')+'</td>'
+      + '<td style="padding:10px 12px;color:#94a3b8;">'+String(inv.wo||'—')+'</td>'
+      + '<td style="padding:10px 12px;color:#94a3b8;">'+String(inv.date||'—')+'</td>'
+      + '<td style="padding:10px 12px;color:#e2e8f0;">'+String(inv.client?.company||'—')+'</td>'
+      + '<td style="padding:10px 12px;text-align:right;color:#68d391;font-weight:700;">$'+parseFloat(inv.total||0).toFixed(2)+'</td>'
+      + '<td style="padding:10px 12px;"><span style="background:'+statusColor+'22;color:'+statusColor+';padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">'+String(inv.status||'—')+'</span></td>'
+      + '<td style="padding:10px 12px;color:#64748b;font-size:12px;">'+sentDate+'</td>'
+      + '</tr>';
+  }).join('');
+
+  document.getElementById('sent-tbody').innerHTML = rows || '<tr><td colspan="8" style="text-align:center;color:#64748b;padding:20px;">No hay facturas</td></tr>';
+}
+
+
 </script>
+<div id="photos" class="page">
+  <div class="card">
+    <h2>📸 Importar Fotos — Claude AI</h2>
+    <div style="margin-bottom:16px;color:#94a3b8;font-size:13px;">Sube fotos de los work orders y Claude extrae los datos automáticamente.</div>
+
+    <div id="photo-api-box" style="margin-bottom:16px;">
+      <label style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;">Anthropic API Key</label>
+      <div style="display:flex;gap:8px;margin-top:4px;">
+        <input type="password" id="photo-api-key" placeholder="sk-ant-api03-..." style="flex:1;background:#0d1117;border:1px solid #334155;color:#e2e8f0;padding:8px 12px;border-radius:6px;font-size:13px;">
+        <button onclick="saveApiKey()" style="background:#4c1d95;border:1px solid #7c3aed;color:#c4b5fd;padding:8px 16px;border-radius:6px;cursor:pointer;font-weight:700;font-size:13px;">Guardar</button>
+      </div>
+      <div id="api-key-status" style="font-size:11px;margin-top:4px;color:#64748b;"></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+      <div>
+        <label style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;">Técnico</label>
+        <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;" id="tech-selector">
+          <button onclick="selectTech(this,'Auto')" class="tech-btn tech-btn-active" data-tech="Auto">🔍 Auto-detectar</button>
+          <button onclick="selectTech(this,'John')" class="tech-btn" data-tech="John">👤 John</button>
+          <button onclick="selectTech(this,'Luis')" class="tech-btn" data-tech="Luis">👤 Luis</button>
+          <button onclick="selectTech(this,'__custom__')" class="tech-btn" data-tech="__custom__" id="tech-custom-btn">➕ Otro</button>
+        </div>
+        <input type="text" id="tech-custom-input" placeholder="Nombre del técnico" style="display:none;margin-top:6px;width:100%;background:#0d1117;border:1px solid #334155;color:#e2e8f0;padding:7px 10px;border-radius:6px;font-size:13px;">
+      </div>
+      <div>
+        <label style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;">Fotos por Factura</label>
+        <div style="display:flex;gap:6px;margin-top:6px;align-items:center;">
+          <input type="number" id="photos-per-invoice" min="1" max="20" value="3" style="width:70px;background:#0d1117;border:1px solid #334155;color:#e2e8f0;padding:7px 10px;border-radius:6px;font-size:14px;font-weight:700;">
+          <span style="color:#64748b;font-size:12px;">fotos = 1 factura<br><span style="font-size:10px;">(Claude las analiza juntas)</span></span>
+        </div>
+      </div>
+    </div>
+
+    <div style="border:2px dashed #334155;border-radius:10px;padding:30px;text-align:center;cursor:pointer;transition:all 0.2s;background:#0d1117;"
+         id="photo-drop-zone"
+         onclick="document.getElementById('photo-file-input').click()"
+         ondragover="event.preventDefault();this.style.borderColor='#7c3aed'"
+         ondragleave="this.style.borderColor='#334155'"
+         ondrop="handlePhotoDrop(event)">
+      <div style="font-size:40px;margin-bottom:8px;">📷</div>
+      <div style="color:#94a3b8;font-size:14px;font-weight:600;">Click aquí o arrastra las fotos</div>
+      <div style="color:#64748b;font-size:12px;margin-top:4px;">JPG, PNG — múltiples fotos a la vez</div>
+      <input type="file" id="photo-file-input" accept="image/*" multiple style="display:none" onchange="handlePhotoSelect(this.files)">
+    </div>
+
+    <div id="photo-preview-area" style="margin-top:16px;display:flex;flex-wrap:wrap;gap:10px;"></div>
+
+    <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
+      <button id="process-photos-btn" onclick="processAllPhotos()" style="background:#4c1d95;border:1px solid #7c3aed;color:#c4b5fd;padding:10px 24px;border-radius:6px;cursor:pointer;font-weight:700;font-size:14px;display:none;">
+        🤖 Procesar con Claude AI
+      </button>
+      <button onclick="clearPhotoQueue()" style="background:#1a1a1a;border:1px solid #333;color:#888;padding:10px 16px;border-radius:6px;cursor:pointer;font-size:13px;display:none;" id="clear-photos-btn">
+        🗑 Limpiar
+      </button>
+    </div>
+
+    <div id="photo-progress" style="margin-top:16px;display:none;">
+      <div style="background:#0d1117;border:1px solid #1e293b;border-radius:8px;padding:12px;">
+        <div style="font-size:12px;color:#94a3b8;margin-bottom:8px;" id="photo-progress-text">Procesando...</div>
+        <div style="background:#1e293b;border-radius:4px;height:6px;overflow:hidden;">
+          <div id="photo-progress-bar" style="height:100%;background:linear-gradient(90deg,#7c3aed,#c084fc);width:0%;transition:width 0.3s;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADD TIRES TO EXISTING INVOICE -->
+  <div class="card" style="border:1px solid #1e3a4a;background:#0a1a22;">
+    <h2 style="color:#38bdf8;">🔧 Agregar Llantas a Factura Existente</h2>
+    <div style="color:#94a3b8;font-size:13px;margin-bottom:14px;">Sube fotos de pantallas de llantas y agrégalas a una factura que ya existe por WO#.</div>
+    <div style="display:flex;gap:10px;align-items:flex-end;margin-bottom:12px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:180px;">
+        <label style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;">WO# de la Factura</label>
+        <input type="text" id="add-tire-wo" placeholder="ej. 4920132726" style="width:100%;margin-top:4px;background:#0d1117;border:1px solid #334155;color:#e2e8f0;padding:8px 12px;border-radius:6px;font-size:14px;font-weight:700;" oninput="lookupAddTireInvoice()">
+      </div>
+      <div id="add-tire-invoice-label" style="color:#64748b;font-size:12px;padding-bottom:10px;min-width:140px;"></div>
+    </div>
+    <div style="border:2px dashed #1e3a4a;border-radius:10px;padding:20px;text-align:center;cursor:pointer;background:#0a1522;"
+         onclick="document.getElementById('add-tire-file-input').click()"
+         ondragover="event.preventDefault();this.style.borderColor='#38bdf8'"
+         ondragleave="this.style.borderColor='#1e3a4a'"
+         ondrop="handleAddTireDrop(event)">
+      <div style="font-size:32px;margin-bottom:6px;">🛞</div>
+      <div style="color:#94a3b8;font-size:13px;font-weight:600;">Click o arrastra fotos de llantas</div>
+      <input type="file" id="add-tire-file-input" accept="image/*" multiple style="display:none" onchange="handleAddTireSelect(this.files)">
+    </div>
+    <div id="add-tire-preview" style="margin-top:10px;display:flex;flex-wrap:wrap;gap:8px;"></div>
+    <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;">
+      <button id="add-tire-btn" onclick="processAddTirePhotos()" style="display:none;background:#0c4a6e;border:1px solid #38bdf8;color:#7dd3fc;padding:10px 24px;border-radius:6px;cursor:pointer;font-weight:700;font-size:13px;">🤖 Escanear con Claude AI</button>
+      <button onclick="clearAddTireQueue()" id="clear-add-tire-btn" style="display:none;background:#1a1a1a;border:1px solid #333;color:#888;padding:10px 14px;border-radius:6px;cursor:pointer;font-size:13px;">🗑 Limpiar</button>
+    </div>
+    <div id="add-tire-progress" style="display:none;margin-top:10px;">
+      <div style="background:#0d1117;border:1px solid #1e293b;border-radius:8px;padding:10px;">
+        <div style="font-size:12px;color:#94a3b8;margin-bottom:6px;" id="add-tire-progress-text">Escaneando...</div>
+        <div style="background:#1e293b;border-radius:4px;height:5px;overflow:hidden;">
+          <div id="add-tire-progress-bar" style="height:100%;background:linear-gradient(90deg,#38bdf8,#7dd3fc);width:0%;transition:width 0.3s;"></div>
+        </div>
+      </div>
+    </div>
+    <div id="add-tire-results" style="display:none;margin-top:14px;">
+      <div style="font-weight:700;color:#38bdf8;margin-bottom:8px;" id="add-tire-results-title"></div>
+      <div id="add-tire-list"></div>
+      <button onclick="saveAddedTires()" style="margin-top:12px;background:#0c4a6e;border:1px solid #38bdf8;color:#7dd3fc;padding:11px 28px;border-radius:6px;cursor:pointer;font-weight:700;font-size:14px;width:100%;">💾 Agregar estas llantas a WO# <span id="add-tire-wo-display"></span></button>
+    </div>
+  </div>
+
+  <div id="photo-results" style="display:none;">
+    <div class="card">
+      <h2>✅ Datos Extraídos</h2>
+      <div style="color:#94a3b8;font-size:12px;margin-bottom:12px;">Revisa y edita los datos antes de guardar. Cada foto puede generar una factura.</div>
+      <div id="extracted-invoices"></div>
+      <button onclick="saveAllExtracted()" style="margin-top:16px;background:#14532d;border:1px solid #166534;color:#4ade80;padding:12px 28px;border-radius:6px;cursor:pointer;font-weight:700;font-size:14px;width:100%;">
+        💾 Guardar Todas las Facturas
+      </button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
