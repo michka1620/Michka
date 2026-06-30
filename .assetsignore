@@ -1,5 +1,10 @@
 _worker.js
 wrangler.toml
+.assetsignore
 .github
 README.md
 supabase-setup.sql
+node_modules
+*.toml
+*.sql
+*.md
