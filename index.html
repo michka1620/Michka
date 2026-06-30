@@ -1236,9 +1236,30 @@ function saveAndPreview() {
   // Save even if total is $0
 
   const invs = getInvoices();
-  const idx = invs.findIndex(i => i.number === d.number);
+  // Match by number+wo to avoid collisions between historical and photo invoices
+  let idx = invs.findIndex(i => i.number === d.number && String(i.wo||'') === String(d.wo||''));
+  if (idx < 0) idx = invs.findIndex(i => i.number === d.number); // fallback
   if (idx >= 0) invs[idx] = d; else invs.push(d);
-  saveInvoices(invs);
+  // For photo invoices (not in HISTORICAL_DATA): save directly to sup_new
+  var histKey = String(d.number)+'|'+String(d.wo||'');
+  var histNums = new Set(HISTORICAL_DATA.map(function(i){ return String(i.number)+'|'+String(i.wo||''); }));
+  if (!histNums.has(histKey)) {
+    var userNew = JSON.parse(localStorage.getItem('sup_new') || '[]');
+    var found = false;
+    for (var _i = 0; _i < userNew.length; _i++) {
+      if (String(userNew[_i].number)+'|'+String(userNew[_i].wo||'') === histKey ||
+          userNew[_i].number === d.number) {
+        userNew[_i] = d; found = true; break;
+      }
+    }
+    if (!found) userNew.push(d);
+    localStorage.setItem('sup_new', JSON.stringify(userNew));
+    var edits = JSON.parse(localStorage.getItem('sup_edits') || '{}');
+    var deleted = JSON.parse(localStorage.getItem('sup_deleted') || '[]');
+    pushEditsToKV(edits, deleted, userNew);
+  } else {
+    saveInvoices(invs);
+  }
   updateClientList();
 
   window._currentPreviewInv = d;
@@ -1694,11 +1715,11 @@ function viewInv(num) {
   preview.scrollIntoView({behavior:'smooth', block:'start'});
 }
 
-var _qeNum = null;
-function editInv(num) {
-  const inv = getInvoices().find(i=>String(i.number)===String(num));
+var _qeNum = null; var _qeWo = null;
+function editInv(num, wo) {
+  const inv = getInvoices().find(i=>String(i.number)===String(num) && (!wo||String(i.wo||'')===String(wo||''))) || getInvoices().find(i=>String(i.number)===String(num));
   if (!inv) return;
-  _qeNum = num;
+  _qeNum = num; _qeWo = inv.wo||'';
   const set = (id, val) => { const el=document.getElementById(id); if(el) el.value=val||''; };
   set('qe-number', inv.number); set('qe-date', inv.date); set('qe-wo', inv.wo);
   set('qe-total', inv.total||0); set('qe-status', inv.status||'PENDING'); set('qe-payment', inv.payment||'Wex');
@@ -1713,11 +1734,11 @@ function editInv(num) {
   set('qe-notes', inv.notes);
   document.getElementById('qe-overlay').style.display = 'block';
 }
-function closeQE() { document.getElementById('qe-overlay').style.display='none'; _qeNum=null; }
+function closeQE() { document.getElementById('qe-overlay').style.display='none'; _qeNum=null; _qeWo=null; }
 function saveQE() {
   if (!_qeNum) return;
   const all = getInvoices();
-  const inv = all.find(i=>String(i.number)===String(_qeNum));
+  const inv = all.find(i=>String(i.number)===String(_qeNum) && String(i.wo||'')===String(_qeWo||'')) || all.find(i=>String(i.number)===String(_qeNum));
   if (!inv) return;
   const g = id => document.getElementById(id)?.value||'';
   const licParts = g('qe-license').split('/');
@@ -1736,7 +1757,19 @@ function saveQE() {
   inv.vehicle.license = licParts[0]?.trim()||'';
   inv.vehicle.state = licParts[1]?.trim()||'';
   inv.notes = g('qe-notes');
-  saveInvoices(all);
+  // Save directly to sup_new for photo invoices, sup_edits for historical
+  var histNums2 = new Set(HISTORICAL_DATA.map(function(i){ return String(i.number)+'|'+String(i.wo||''); }));
+  var invKey2 = String(inv.number)+'|'+String(inv.wo||'');
+  if (!histNums2.has(invKey2)) {
+    var un2 = JSON.parse(localStorage.getItem('sup_new')||'[]');
+    var fi2 = un2.findIndex(function(x){ return String(x.number)+'|'+String(x.wo||'')===invKey2 || x.number===inv.number; });
+    if (fi2>=0) un2[fi2]=inv; else un2.push(inv);
+    localStorage.setItem('sup_new', JSON.stringify(un2));
+    var ed2=JSON.parse(localStorage.getItem('sup_edits')||'{}'), dl2=JSON.parse(localStorage.getItem('sup_deleted')||'[]');
+    pushEditsToKV(ed2, dl2, un2);
+  } else {
+    saveInvoices(all);
+  }
   closeQE();
   renderHistory();
   showToast('✅ Invoice updated.');
