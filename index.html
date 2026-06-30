@@ -2620,12 +2620,21 @@ function cleanAllSaved() {
     if (wo && seen[wo]) { dupsRemoved++; return false; }
     if (wo) seen[wo] = true;
 
-    // Fix number field if wrong format (not 202609XXX)
+    // Detect swapped fields: number=4920132XXX (WO format) AND wo=202609XXX (Order format)
     var num = parseInt(inv.number)||0;
-    if (num < 202600000 || num > 210000000) {
+    var woNum = parseInt(inv.wo)||0;
+    var numIsWOFormat   = num   > 4900000000;
+    var woIsOrderFormat = woNum > 202600000 && woNum < 210000000;
+    if (numIsWOFormat && woIsOrderFormat) {
+      var tmp = inv.number; inv.number = inv.wo; inv.wo = tmp;
+      wo = fixWONum(inv.wo);
+      fixed++;
+    } else if (num < 202600000 || num > 210000000) {
       inv.number = String(nextNum++);
       fixed++;
     }
+    var curNum = parseInt(inv.number)||0;
+    if (curNum >= nextNum) nextNum = curNum + 1;
 
     // Fix WO field
     if (inv.wo) inv.wo = wo || inv.wo;
