@@ -911,13 +911,15 @@ const getInvoices = function() {
       return merged;
     });
     // Add user-created invoices — exclude any that duplicate a HISTORICAL_DATA entry
-    var histKeys = new Set(HISTORICAL_DATA.map(function(i){ return String(i.number)+'|'+String(i.wo||''); }));
     var histNums = new Set(HISTORICAL_DATA.map(function(i){ return String(i.number); }));
+    var histWOs  = new Set(HISTORICAL_DATA.map(function(i){ return String(i.wo||''); }));
     userNew = userNew.filter(function(inv){
-      var k = String(inv.number)+'|'+String(inv.wo||'');
-      if (histKeys.has(k)) return false;
-      // Also filter if number alone matches (catches swapped wo/number cases)
-      if (histNums.has(String(inv.number)) && histNums.has(String(inv.wo||''))) return false;
+      var n = String(inv.number||'');
+      var w = String(inv.wo||'');
+      // Remove if number OR wo matches a historical number (catches swapped fields too)
+      if (histNums.has(n) || histNums.has(w)) return false;
+      // Remove if wo matches a historical wo
+      if (w && histWOs.has(w)) return false;
       return true;
     });
     return base.concat(normalizeTotals(userNew));
