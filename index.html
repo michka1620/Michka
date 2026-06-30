@@ -549,6 +549,7 @@
     <h2>📋 Invoice History</h2>
     <div class="filter-row">
       <button onclick="addNewInvoiceRow()" style="background:linear-gradient(135deg,#2d6a4f,#40916c);border:none;color:#fff;padding:8px 16px;border-radius:6px;cursor:pointer;font-weight:700;font-size:13px;white-space:nowrap;">➕ New Invoice</button>
+      <button onclick="forceSyncToKV()" title="Sincronizar con servidor" style="background:#1a365d;border:1px solid #2b6cb0;color:#63b3ed;padding:8px 14px;border-radius:6px;cursor:pointer;font-weight:700;font-size:13px;white-space:nowrap;">☁️ Sync</button>
       <input type="text" id="search-input" placeholder="🔍 Search client, WO#, Order#..." oninput="renderHistory()" style="flex:1;min-width:200px;">
       <select id="filter-status" onchange="renderHistory()">
         <option value="">All Status</option>
@@ -3556,11 +3557,26 @@ function getSentData() {
 var KV_API = 'https://supremekv1.michka1620.workers.dev/sent';
 var KV_EDITS_API = 'https://supremekv1.michka1620.workers.dev/edits';
 
-function pushEditsToKV(edits, deleted, newInvs) {
+function pushEditsToKV(edits, deleted, newInvs, silent) {
   try {
     var payload = { edits: edits, deleted: deleted, newInvs: newInvs };
-    fetch(KV_EDITS_API, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) }).catch(function(){});
-  } catch(e) {}
+    fetch(KV_EDITS_API, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) })
+      .then(function(r){
+        if (!silent) {
+          if (r.ok) showToast('☁️ Sincronizado con el servidor');
+          else showToast('⚠️ Error sincronizando: ' + r.status, true);
+        }
+      })
+      .catch(function(err){ if (!silent) showToast('⚠️ Sin conexión al servidor — datos solo locales', true); });
+  } catch(e) { if (!silent) showToast('⚠️ Error de sincronización', true); }
+}
+
+function forceSyncToKV() {
+  var edits   = JSON.parse(localStorage.getItem('sup_edits')   || '{}');
+  var deleted = JSON.parse(localStorage.getItem('sup_deleted') || '[]');
+  var newInvs = JSON.parse(localStorage.getItem('sup_new')     || '[]');
+  showToast('🔄 Sincronizando...');
+  pushEditsToKV(edits, deleted, newInvs, false);
 }
 
 function pullEditsFromKV(cb) {
