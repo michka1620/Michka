@@ -296,6 +296,7 @@
     <button class="tab" onclick="showPage('monthly')">📊 Monthly</button>
     <button class="tab" onclick="showPage('sent')">📤 Enviadas</button>
     <button class="tab" onclick="showPage('photos')" style="background:#1a1a2a;color:#c084fc;border:1px solid #7c3aed;">📸 Fotos</button>
+    <button class="tab" onclick="deduplicateInvoices()" style="background:#1a1a0a;color:#fbbf24;border:1px solid #92400e;">🔁 Dedup</button>
     <button class="tab" onclick="exportData()" style="background:#1a3a2a;color:#4ade80;border:1px solid #166534;">⬇ Export</button>
     <button class="tab" onclick="document.getElementById('import-file').click()" style="background:#1a1a3a;color:#a5b4fc;border:1px solid #3730a3;">⬆ Import</button>
 
@@ -2543,6 +2544,42 @@ function fillNewInvoice() {
 
 
 // ===== EXPORT / IMPORT =====
+function deduplicateInvoices() {
+  var all = getInvoices();
+  var seen = {};
+  var kept = [];
+  var removed = 0;
+
+  all.forEach(function(inv) {
+    var wo = (inv.wo || '').toString().trim();
+    if (!wo) { kept.push(inv); return; } // no WO# — keep always
+
+    if (!seen[wo]) {
+      seen[wo] = true;
+      kept.push(inv);
+    } else {
+      removed++;
+    }
+  });
+
+  if (removed === 0) {
+    showToast('✅ No hay duplicados');
+    return;
+  }
+
+  // Save deduplicated list
+  var histNums = new Set(HISTORICAL_DATA.map(function(i){ return String(i.number)+'|'+String(i.wo||''); }));
+  var userNew = kept.filter(function(i){ return !histNums.has(String(i.number)+'|'+String(i.wo||'')); });
+  localStorage.setItem('sup_new', JSON.stringify(userNew));
+  pushEditsToKV(
+    JSON.parse(localStorage.getItem('sup_edits') || '{}'),
+    JSON.parse(localStorage.getItem('sup_deleted') || '[]'),
+    userNew
+  );
+  showToast('🗑 ' + removed + ' duplicado(s) eliminado(s)');
+  renderHistory();
+}
+
 function exportData() {
   var invs = getInvoices();
   var userNew  = JSON.parse(localStorage.getItem('sup_new')     || '[]');
