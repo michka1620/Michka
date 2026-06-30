@@ -2106,21 +2106,30 @@ Campos vacíos: usa "". No incluyas texto fuera del JSON.`;
 }
 
 async function callClaudeVisionSingle(apiKey, b64, mediaType, fileName, techOverride) {
-  var prompt = 'Analiza esta foto de un work order de reparación de vehículos/llantas.\n'
-    + (techOverride ? 'El técnico es "' + techOverride + '".\n' : '')
-    + 'Extrae TODOS los datos visibles. Responde SOLO con JSON:\n'
-    + '{"wo":"WO# si visible","date":"YYYY-MM-DD","client":{"company":"","name":"","phone":"","address":""},'
-    + '"tech":{"name":"' + (techOverride||'') + '","rollTime":"","arrival":"","hours":"","mileage":""},'
-    + '"vehicle":{"year":"","make":"","model":"","plate":"","vin":"","unit":"","tractor":"","trailer":"","driver":""},'
-    + '"notes":"todo el texto de notas/trabajo realizado","tirePositions":[{"position":"","brand":"","size":"","model":"","causeOfFailure":"","workAccomplished":"","whoHasPart":"","treadDepth":"","dotOn":"","dotOff":""}],'
-    + '"total":0,"status":"PENDING"}\nCampos vacíos: usa "". Solo JSON.';
+  var prompt = 'You are extracting data from a roadside tire repair work order photo.\n'
+    + (techOverride ? 'TECHNICIAN: The technician for ALL these jobs is "' + techOverride + '". Use this name.\n' : '')
+    + 'Extract EVERY piece of data you can see. Look carefully at ALL text in the image.\n\n'
+    + 'IMPORTANT — this photo may be:\n'
+    + '- A dispatch app screenshot (has WO#, client company, address, phone, vehicle info)\n'
+    + '- A repair detail screen (has plate, year, make, model, VIN, repair notes)\n'
+    + '- A tire detail screen (has tire position, brand, size, cause of failure, work done)\n'
+    + '- A paper work order (has all of the above)\n\n'
+    + 'Extract EVERYTHING visible. For tire positions, extract ALL tires shown.\n'
+    + 'For Repair Note / repair notes field — copy the EXACT text word for word.\n\n'
+    + 'Respond ONLY with valid JSON:\n'
+    + '{"wo":"WO number (digits only, e.g. 4920132188)","date":"YYYY-MM-DD if visible","client":{"company":"exact company name","name":"contact name","phone":"phone number","address":"full address"},'
+    + '"tech":{"name":"' + (techOverride||'tech name') + '","rollTime":"roll time/departure time","arrival":"arrival time","hours":"hours worked","mileage":"round trip mileage"},'
+    + '"vehicle":{"year":"year","make":"make/brand","model":"model","plate":"license plate","vin":"VIN number","unit":"unit number","tractor":"tractor number","trailer":"trailer number","driver":"driver name"},'
+    + '"notes":"EXACT repair note text copied verbatim from the photo",'
+    + '"tirePositions":[{"position":"LF/RF/LR/RR/LRI/LRO/RRI/RRO etc","brand":"tire brand","size":"tire size","model":"tire model","causeOfFailure":"cause","workAccomplished":"work done","whoHasPart":"who has part","treadDepth":"tread depth","dotOn":"DOT on","dotOff":"DOT off"}],'
+    + '"total":0,"status":"PENDING"}\nEmpty fields: use "". Only JSON, no other text.';
 
   var response = await fetch('https://supremekv1.michka1620.workers.dev/vision', {
     method: 'POST',
     headers: { 'x-api-key': apiKey, 'content-type': 'application/json' },
     body: JSON.stringify({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 1000,
+      model: 'claude-opus-4-8',
+      max_tokens: 1500,
       messages: [{ role: 'user', content: [
         { type: 'image', source: { type: 'base64', media_type: mediaType, data: b64 } },
         { type: 'text', text: prompt }
