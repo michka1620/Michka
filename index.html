@@ -2305,7 +2305,7 @@ function renderExtractedInvoices() {
     var div = document.createElement('div');
     div.style.cssText = 'border:1px solid #1e293b;border-radius:8px;padding:14px;margin-bottom:12px;background:#0d1117;';
     div.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">'
-      + '<div style="font-weight:700;color:#c084fc;font-size:13px;">📋 WO# '+(inv.wo||'Sin WO')
+      + '<div style="font-weight:700;color:#c084fc;font-size:13px;">📋 WO# '+((inv.wo||'').replace(/^wo\s*#?\s*/i,'').trim()||'No WO')
       + ' <span style="background:#1e1a2e;border:1px solid #7c3aed;color:#c084fc;font-size:10px;padding:2px 8px;border-radius:4px;margin-left:6px;">👤 '+techDisplay+'</span>'
       + ' <span style="color:#64748b;font-size:11px;font-weight:400;margin-left:6px;">('+( inv._photos ? inv._photos.length : 1)+' foto'+(( inv._photos ? inv._photos.length : 1)>1?'s':'')+')</span></div>'
       + '<label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:#94a3b8;">'
@@ -2313,24 +2313,27 @@ function renderExtractedInvoices() {
       + '</div>'
       + '<div style="font-size:10px;color:#475569;margin-bottom:8px;">'+(inv._photos||[inv._photoName]).join(' · ')+'</div>'
       + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;">'
-      + makeExtField('WO #', 'wo', idx, inv.wo)
-      + makeExtField('Fecha', 'date', idx, inv.date)
-      + makeExtField('Cliente', 'client_company', idx, c.company)
-      + makeExtField('Contacto', 'client_name', idx, c.name)
-      + makeExtField('Teléfono', 'client_phone', idx, c.phone)
-      + makeExtField('Dirección', 'client_address', idx, c.address)
-      + makeExtField('Técnico', 'tech_name', idx, t.name)
-      + makeExtField('Año', 'vehicle_year', idx, v.year)
-      + makeExtField('Marca', 'vehicle_make', idx, v.make)
-      + makeExtField('Modelo', 'vehicle_model', idx, v.model)
-      + makeExtField('Placa', 'vehicle_plate', idx, v.plate)
-      + makeExtField('Unidad', 'vehicle_unit', idx, v.unit)
-      + makeExtField('Millaje', 'vehicle_mileage', idx, v.mileage)
+      + makeExtField('WO #', 'wo', idx, (inv.wo||'').replace(/^wo\s*#?\s*/i,'').trim())
+      + makeExtField('Date', 'date', idx, inv.date)
+      + makeExtField('Client', 'client_company', idx, c.company)
+      + makeExtField('Contact', 'client_name', idx, c.name)
+      + makeExtField('Phone', 'client_phone', idx, c.phone)
+      + makeExtField('Address', 'client_address', idx, c.address)
+      + makeExtField('Tech', 'tech_name', idx, t.name)
+      + makeExtField('Year', 'vehicle_year', idx, v.year)
+      + makeExtField('Make', 'vehicle_make', idx, v.make)
+      + makeExtField('Model', 'vehicle_model', idx, v.model)
+      + makeExtField('Plate', 'vehicle_plate', idx, v.plate)
+      + makeExtField('Unit', 'vehicle_unit', idx, v.unit)
+      + makeExtField('Mileage', 'vehicle_mileage', idx, v.mileage)
       + makeExtField('Roll Time', 'vehicle_rollTime', idx, v.rollTime)
+      + makeExtField('Tractor #', 'vehicle_tractor', idx, v.tractor)
+      + makeExtField('Trailer #', 'vehicle_trailer', idx, v.trailer)
+      + makeExtField('Driver', 'vehicle_driver', idx, v.driver)
       + makeExtField('Total $', 'total', idx, inv.total)
       + '</div>'
       + '<div style="margin-top:8px;">'
-      + '<label style="font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:1px;">Notas / Trabajo</label>'
+      + '<label style="font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:1px;">Repair Notes / Work Accomplished</label>'
       + '<textarea id="ext-notes-'+idx+'" style="width:100%;margin-top:3px;background:#111;border:1px solid #1e293b;color:#e2e8f0;border-radius:4px;padding:6px;font-size:12px;min-height:70px;">'+(inv.notes||'')+'</textarea>'
       + '</div>';
     if (inv.tirePositions && inv.tirePositions.length > 0) {
@@ -2352,14 +2355,15 @@ function makeExtField(label, field, idx, val) {
 }
 
 function updateExtField(idx, field, value) {
-  if (!_extractedData[idx]) return;
-  if (field === 'client_company') { _extractedData[idx].client = _extractedData[idx].client||{}; _extractedData[idx].client.company = value; }
-  else if (field === 'client_name') { _extractedData[idx].client = _extractedData[idx].client||{}; _extractedData[idx].client.name = value; }
-  else if (field === 'client_phone') { _extractedData[idx].client = _extractedData[idx].client||{}; _extractedData[idx].client.phone = value; }
-  else if (field === 'client_address') { _extractedData[idx].client = _extractedData[idx].client||{}; _extractedData[idx].client.address = value; }
-  else if (field === 'tech_name') { _extractedData[idx].tech = _extractedData[idx].tech||{}; _extractedData[idx].tech.name = value; }
-  else if (field.startsWith('vehicle_')) { var vf = field.replace('vehicle_',''); _extractedData[idx].vehicle = _extractedData[idx].vehicle||{}; _extractedData[idx].vehicle[vf] = value; }
-  else _extractedData[idx][field] = value;
+  var data = (_mergedData && _mergedData[idx]) ? _mergedData : _extractedData;
+  if (!data[idx]) return;
+  if (field === 'client_company') { data[idx].client = data[idx].client||{}; data[idx].client.company = value; }
+  else if (field === 'client_name') { data[idx].client = data[idx].client||{}; data[idx].client.name = value; }
+  else if (field === 'client_phone') { data[idx].client = data[idx].client||{}; data[idx].client.phone = value; }
+  else if (field === 'client_address') { data[idx].client = data[idx].client||{}; data[idx].client.address = value; }
+  else if (field === 'tech_name') { data[idx].tech = data[idx].tech||{}; data[idx].tech.name = value; }
+  else if (field.startsWith('vehicle_')) { var vf = field.replace('vehicle_',''); data[idx].vehicle = data[idx].vehicle||{}; data[idx].vehicle[vf] = value; }
+  else data[idx][field] = value;
 }
 
 var _mergedData = [];
@@ -2402,8 +2406,8 @@ function saveAllExtracted() {
       totalLabor: 0,
       sentState: 0,
       client: { company: c.company||'', name: c.name||'', phone: c.phone||'', address: c.address||'' },
-      tech: { name: t.name||'', id: '' },
-      vehicle: { year: v.year||'', make: v.make||'', model: v.model||'', plate: v.plate||'', vin: v.vin||'', unit: v.unit||'', mileage: v.mileage||'', rollTime: v.rollTime||'' },
+      tech: { name: t.name||'', id: '', rolltime: t.rollTime||'', arrival: t.arrival||'', hours: t.hours||'', mileage: t.mileage||'' },
+      vehicle: { year: v.year||'', make: v.make||'', model: v.model||'', plate: v.plate||'', vin: v.vin||'', unit: v.unit||'', mileage: v.mileage||'', rollTime: v.rollTime||'', tractor: v.tractor||'', trailer: v.trailer||'', driver: v.driver||'' },
       tirePositions: inv.tirePositions || [],
       expenses: []
     };
