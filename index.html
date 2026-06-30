@@ -2024,55 +2024,126 @@ Si un campo no está visible, usa "" o 0. No incluyas texto fuera del JSON.`;
   return JSON.parse(jsonMatch[0]);
 }
 
+function mergeExtractedByWO() {
+  // Group photos by WO#, merge data from all photos of same WO
+  var groups = []; // array of merged invoice objects
+  var woMap = {}; // wo# -> index in groups
+  var noWOGroup = null;
+
+  _extractedData.forEach(function(inv) {
+    if (inv._error) return;
+    var wo = (inv.wo || '').toString().trim();
+
+    function pick(a, b) { return (a && a !== '' && a !== '0' && a !== 0) ? a : b; }
+    function mergeObj(base, extra) {
+      if (!extra) return base || {};
+      var r = Object.assign({}, base || {});
+      Object.keys(extra).forEach(function(k) {
+        if (extra[k] && extra[k] !== '' && extra[k] !== '0') r[k] = extra[k];
+      });
+      return r;
+    }
+
+    if (!wo) {
+      // No WO# — attach to last group or create standalone
+      if (groups.length > 0) {
+        var last = groups[groups.length - 1];
+        last._photos.push(inv._photoName);
+        if (inv.notes && inv.notes.trim()) last.notes = last.notes ? last.notes + '\n' + inv.notes : inv.notes;
+        if (inv.tirePositions && inv.tirePositions.length) last.tirePositions = last.tirePositions.concat(inv.tirePositions);
+        last.client = mergeObj(last.client, inv.client);
+        last.vehicle = mergeObj(last.vehicle, inv.vehicle);
+        last.tech = mergeObj(last.tech, inv.tech);
+        last.total = pick(last.total, inv.total);
+        last.date = pick(last.date, inv.date);
+      }
+      return;
+    }
+
+    if (woMap[wo] !== undefined) {
+      var g = groups[woMap[wo]];
+      g._photos.push(inv._photoName);
+      g.notes = pick(inv.notes, g.notes) || (g.notes && inv.notes ? g.notes + '\n' + inv.notes : g.notes || inv.notes || '');
+      if (inv.tirePositions && inv.tirePositions.length) g.tirePositions = g.tirePositions.concat(inv.tirePositions);
+      g.client = mergeObj(g.client, inv.client);
+      g.vehicle = mergeObj(g.vehicle, inv.vehicle);
+      g.tech = mergeObj(g.tech, inv.tech);
+      g.total = pick(g.total, inv.total);
+      g.date = pick(g.date, inv.date);
+    } else {
+      var newGroup = Object.assign({}, inv, { _photos: [inv._photoName], tirePositions: inv.tirePositions || [] });
+      woMap[wo] = groups.length;
+      groups.push(newGroup);
+    }
+  });
+
+  return groups;
+}
+
 function renderExtractedInvoices() {
   var container = document.getElementById('extracted-invoices');
   container.innerHTML = '';
   document.getElementById('photo-results').style.display = 'block';
 
-  _extractedData.forEach(function(inv, idx) {
+  // Count errors
+  var errors = _extractedData.filter(function(d){ return d._error; });
+  if (errors.length > 0) {
+    var errDiv = document.createElement('div');
+    errDiv.style.cssText = 'background:#1a0a0a;border:1px solid #7f1d1d;border-radius:8px;padding:10px;margin-bottom:12px;color:#f87171;font-size:12px;';
+    errDiv.innerHTML = '⚠️ '+errors.length+' foto(s) con error (ignoradas): ' + errors.map(function(e){ return e._photoName; }).join(', ');
+    container.appendChild(errDiv);
+  }
+
+  var merged = mergeExtractedByWO();
+  _mergedData = merged;
+
+  if (merged.length === 0) {
+    container.innerHTML += '<div style="color:#94a3b8;padding:20px;text-align:center;">No se pudieron extraer datos de las fotos.</div>';
+    return;
+  }
+
+  var summary = document.createElement('div');
+  summary.style.cssText = 'background:#0a1a0a;border:1px solid #166534;border-radius:8px;padding:10px;margin-bottom:16px;color:#4ade80;font-size:13px;font-weight:700;';
+  summary.textContent = '✅ ' + merged.length + ' facturas identificadas de ' + _extractedData.filter(function(d){return !d._error;}).length + ' fotos';
+  container.appendChild(summary);
+
+  merged.forEach(function(inv, idx) {
+    var c = inv.client || {};
+    var v = inv.vehicle || {};
+    var t = inv.tech || {};
     var div = document.createElement('div');
     div.style.cssText = 'border:1px solid #1e293b;border-radius:8px;padding:14px;margin-bottom:12px;background:#0d1117;';
-
-    if (inv._error) {
-      div.innerHTML = '<div style="color:#f87171;font-weight:700;">❌ Error en '+inv._photoName+'</div>'
-        + '<div style="color:#94a3b8;font-size:12px;margin-top:4px;">'+inv._error+'</div>';
-    } else {
-      var c = inv.client || {};
-      var v = inv.vehicle || {};
-      var t = inv.tech || {};
-      div.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">'
-        + '<div style="font-weight:700;color:#c084fc;font-size:13px;">📸 '+inv._photoName+'</div>'
-        + '<label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:#94a3b8;">'
-        + '<input type="checkbox" checked data-idx="'+idx+'" id="ext-check-'+idx+'"> Incluir</label>'
-        + '</div>'
-        + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;">'
-        + makeExtField('WO #', 'wo', idx, inv.wo)
-        + makeExtField('Fecha', 'date', idx, inv.date)
-        + makeExtField('Cliente', 'client_company', idx, c.company)
-        + makeExtField('Contacto', 'client_name', idx, c.name)
-        + makeExtField('Teléfono', 'client_phone', idx, c.phone)
-        + makeExtField('Dirección', 'client_address', idx, c.address)
-        + makeExtField('Técnico', 'tech_name', idx, t.name)
-        + makeExtField('Año', 'vehicle_year', idx, v.year)
-        + makeExtField('Marca', 'vehicle_make', idx, v.make)
-        + makeExtField('Modelo', 'vehicle_model', idx, v.model)
-        + makeExtField('Placa', 'vehicle_plate', idx, v.plate)
-        + makeExtField('Unidad', 'vehicle_unit', idx, v.unit)
-        + makeExtField('Millaje', 'vehicle_mileage', idx, v.mileage)
-        + makeExtField('Roll Time', 'vehicle_rollTime', idx, v.rollTime)
-        + makeExtField('Total $', 'total', idx, inv.total)
-        + '</div>'
-        + '<div style="margin-top:8px;">'
-        + '<label style="font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:1px;">Notas / Trabajo</label>'
-        + '<textarea data-idx="'+idx+'" data-field="notes" style="width:100%;margin-top:3px;background:#111;border:1px solid #1e293b;color:#e2e8f0;border-radius:4px;padding:6px;font-size:12px;min-height:60px;" onchange="updateExtField('+idx+',\'notes\',this.value)">'+(inv.notes||'')+'</textarea>'
+    div.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">'
+      + '<div style="font-weight:700;color:#c084fc;font-size:13px;">📋 WO# '+(inv.wo||'Sin WO')+' <span style="color:#64748b;font-size:11px;font-weight:400;">('+inv._photos.length+' foto'+(inv._photos.length>1?'s':'')+')</span></div>'
+      + '<label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:#94a3b8;">'
+      + '<input type="checkbox" checked id="ext-check-'+idx+'"> Incluir</label>'
+      + '</div>'
+      + '<div style="font-size:10px;color:#475569;margin-bottom:8px;">'+inv._photos.join(' · ')+'</div>'
+      + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;">'
+      + makeExtField('WO #', 'wo', idx, inv.wo)
+      + makeExtField('Fecha', 'date', idx, inv.date)
+      + makeExtField('Cliente', 'client_company', idx, c.company)
+      + makeExtField('Contacto', 'client_name', idx, c.name)
+      + makeExtField('Teléfono', 'client_phone', idx, c.phone)
+      + makeExtField('Dirección', 'client_address', idx, c.address)
+      + makeExtField('Técnico', 'tech_name', idx, t.name)
+      + makeExtField('Año', 'vehicle_year', idx, v.year)
+      + makeExtField('Marca', 'vehicle_make', idx, v.make)
+      + makeExtField('Modelo', 'vehicle_model', idx, v.model)
+      + makeExtField('Placa', 'vehicle_plate', idx, v.plate)
+      + makeExtField('Unidad', 'vehicle_unit', idx, v.unit)
+      + makeExtField('Millaje', 'vehicle_mileage', idx, v.mileage)
+      + makeExtField('Roll Time', 'vehicle_rollTime', idx, v.rollTime)
+      + makeExtField('Total $', 'total', idx, inv.total)
+      + '</div>'
+      + '<div style="margin-top:8px;">'
+      + '<label style="font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:1px;">Notas / Trabajo</label>'
+      + '<textarea id="ext-notes-'+idx+'" style="width:100%;margin-top:3px;background:#111;border:1px solid #1e293b;color:#e2e8f0;border-radius:4px;padding:6px;font-size:12px;min-height:70px;">'+(inv.notes||'')+'</textarea>'
+      + '</div>';
+    if (inv.tirePositions && inv.tirePositions.length > 0) {
+      div.innerHTML += '<div style="margin-top:8px;font-size:11px;color:#94a3b8;">🔧 Llantas: '
+        + inv.tirePositions.map(function(tp){ return (tp.position||'?')+' '+(tp.brand||'')+(tp.size?' '+tp.size:''); }).join(' | ')
         + '</div>';
-
-      // Tire positions summary
-      if (inv.tirePositions && inv.tirePositions.length > 0) {
-        div.innerHTML += '<div style="margin-top:8px;font-size:11px;color:#94a3b8;">🔧 Llantas: '
-          + inv.tirePositions.map(function(t){ return (t.position||'?') + ' ' + (t.brand||'') + ' ' + (t.size||''); }).join(' | ')
-          + '</div>';
-      }
     }
     container.appendChild(div);
   });
@@ -2098,25 +2169,41 @@ function updateExtField(idx, field, value) {
   else _extractedData[idx][field] = value;
 }
 
+var _mergedData = [];
+
 function saveAllExtracted() {
   var all = getInvoices();
-  var saved = 0;
-  _extractedData.forEach(function(inv, idx) {
+  var existingWOs = new Set(all.map(function(i){ return (i.wo||'').toString().trim(); }).filter(Boolean));
+  var saved = 0, skipped = 0;
+
+  var dataToSave = _mergedData.length > 0 ? _mergedData : _extractedData;
+
+  dataToSave.forEach(function(inv, idx) {
     if (inv._error) return;
     var chk = document.getElementById('ext-check-'+idx);
     if (chk && !chk.checked) return;
 
+    var wo = (inv.wo || '').toString().trim();
+
+    // Skip duplicates — WO already exists in system
+    if (wo && existingWOs.has(wo)) {
+      skipped++;
+      return;
+    }
+
     var c = inv.client || {};
     var v = inv.vehicle || {};
     var t = inv.tech || {};
+    var notesEl = document.getElementById('ext-notes-'+idx);
+    var notes = notesEl ? notesEl.value : (inv.notes || '');
 
     var newInv = {
       number: generateInvoiceNumber(),
-      wo: inv.wo || '',
+      wo: wo,
       date: inv.date || new Date().toISOString().split('T')[0],
       status: 'PENDING',
       payment: '',
-      notes: inv.notes || '',
+      notes: notes,
       partsGeneral: '',
       total: parseFloat(inv.total) || 0,
       totalLabor: 0,
@@ -2128,12 +2215,15 @@ function saveAllExtracted() {
       expenses: []
     };
     all.push(newInv);
+    if (wo) existingWOs.add(wo); // prevent duplicates within same batch
     saved++;
   });
 
-  if (saved === 0) { showToast('No hay facturas seleccionadas'); return; }
-  saveInvoices(all);
-  showToast('✅ ' + saved + ' factura(s) guardadas');
+  if (saved === 0 && skipped === 0) { showToast('No hay facturas seleccionadas'); return; }
+  if (saved > 0) saveInvoices(all);
+  var msg = '✅ ' + saved + ' factura(s) guardadas';
+  if (skipped > 0) msg += ' · ' + skipped + ' duplicada(s) omitida(s)';
+  showToast(msg);
   clearPhotoQueue();
   setTimeout(function(){ showPage('history'); renderHistory(); }, 800);
 }
