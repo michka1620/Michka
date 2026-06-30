@@ -929,7 +929,7 @@ const saveInvoices = function(all) {
   var histNums = new Set(HISTORICAL_DATA.map(function(i){ return String(i.number)+'|'+String(i.wo||''); }));
   var userNew  = all.filter(function(i){ return !histNums.has(String(i.number)+'|'+String(i.wo||'')); });
   var edits    = {};
-  var fields   = ['date','status','payment','total','totalLabor','notes','partsGeneral','client','tech','vehicle','tirePositions','expenses','sentState'];
+  var fields   = ['wo','number','date','status','payment','total','totalLabor','notes','partsGeneral','client','tech','vehicle','tirePositions','expenses','sentState'];
   HISTORICAL_DATA.forEach(function(orig){
     var k = String(orig.number)+'|'+String(orig.wo||'');
     var edited = all.find(function(i){ return String(i.number)+'|'+String(i.wo||'') === k; });
