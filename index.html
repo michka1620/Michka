@@ -927,12 +927,15 @@ const getInvoices = function() {
 };
 const saveInvoices = function(all) {
   var histNums = new Set(HISTORICAL_DATA.map(function(i){ return String(i.number)+'|'+String(i.wo||''); }));
-  var userNew  = all.filter(function(i){ return !histNums.has(String(i.number)+'|'+String(i.wo||'')); });
+  var histNumsOnly = new Set(HISTORICAL_DATA.map(function(i){ return String(i.number); }));
+  var userNew  = all.filter(function(i){ return !histNums.has(String(i.number)+'|'+String(i.wo||'')) && !histNumsOnly.has(String(i.number)); });
   var edits    = {};
   var fields   = ['wo','number','date','status','payment','total','totalLabor','notes','partsGeneral','client','tech','vehicle','tirePositions','expenses','sentState'];
   HISTORICAL_DATA.forEach(function(orig){
     var k = String(orig.number)+'|'+String(orig.wo||'');
-    var edited = all.find(function(i){ return String(i.number)+'|'+String(i.wo||'') === k; });
+    // search by number|wo first, then by number alone (covers edited wo field)
+    var edited = all.find(function(i){ return String(i.number)+'|'+String(i.wo||'') === k; })
+              || all.find(function(i){ return String(i.number) === String(orig.number); });
     if (edited) {
       var diff = {};
       fields.forEach(function(f){ if (JSON.stringify(edited[f]) !== JSON.stringify(orig[f])) diff[f]=edited[f]; });
