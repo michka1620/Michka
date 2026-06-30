@@ -922,8 +922,7 @@ const getInvoices = function() {
       if (w && histWOs.has(w)) return false;
       return true;
     });
-    // Only the 28 invoices in HISTORICAL_DATA are shown right now — ignore any leftover user-added invoices.
-    return base;
+    return base.concat(normalizeTotals(userNew));
   } catch(e) { return base; }
 };
 const saveInvoices = function(all) {
@@ -2908,19 +2907,6 @@ window.onload = () => {
   } catch(e) {}
   // Pull all edits from KV first, then initialize
   pullEditsFromKV(function() {
-    // Force-clear any leftover user-added invoices (sup_new) from before the 28-invoice reset.
-    // Only the 28 invoices in HISTORICAL_DATA should ever appear right now.
-    (function() {
-      try {
-        var userNew = JSON.parse(localStorage.getItem('sup_new')||'[]');
-        if (userNew.length) {
-          localStorage.setItem('sup_new', JSON.stringify([]));
-          var edits = JSON.parse(localStorage.getItem('sup_edits')||'{}');
-          var deleted = JSON.parse(localStorage.getItem('sup_deleted')||'[]');
-          pushEditsToKV(edits, deleted, []);
-        }
-      } catch(e) {}
-    })();
     repairDeletedList();
     initializeData();
     applyTirePatches();
