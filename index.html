@@ -3499,9 +3499,37 @@ function pushEditsToKV(edits, deleted, newInvs) {
 function pullEditsFromKV(cb) {
   fetch(KV_EDITS_API).then(function(r){ return r.json(); }).then(function(data) {
     if (!data || typeof data !== 'object') { if(cb) cb(); return; }
-    localStorage.setItem('sup_edits',   JSON.stringify(data.edits   || {}));
-    localStorage.setItem('sup_deleted', JSON.stringify(data.deleted || []));
-    localStorage.setItem('sup_new',     JSON.stringify(data.newInvs || []));
+
+    // MERGE KV data with local data — local wins for conflicts (local is more recent)
+    var localEdits  = JSON.parse(localStorage.getItem('sup_edits')   || '{}');
+    var localNew    = JSON.parse(localStorage.getItem('sup_new')      || '[]');
+    var localDel    = JSON.parse(localStorage.getItem('sup_deleted')  || '[]');
+
+    var kvEdits  = data.edits   || {};
+    var kvNew    = data.newInvs || [];
+    var kvDel    = data.deleted || [];
+
+    // Merge edits: KV base, local overwrites
+    var mergedEdits = Object.assign({}, kvEdits, localEdits);
+
+    // Merge new invoices: KV base, local additions win (by number|wo key)
+    var mergedNewMap = {};
+    kvNew.forEach(function(i){ mergedNewMap[String(i.number)+'|'+String(i.wo||'')] = i; });
+    localNew.forEach(function(i){ mergedNewMap[String(i.number)+'|'+String(i.wo||'')] = i; }); // local overwrites
+    var mergedNew = Object.values(mergedNewMap);
+
+    // Merge deleted: union, but filter out historical entries
+    var histKeys = new Set(HISTORICAL_DATA.map(function(i){ return String(i.number)+'|'+String(i.wo||''); }));
+    var delSet = new Set(kvDel.concat(localDel).filter(function(k){ return !histKeys.has(k); }));
+    var mergedDel = Array.from(delSet);
+
+    localStorage.setItem('sup_edits',   JSON.stringify(mergedEdits));
+    localStorage.setItem('sup_deleted', JSON.stringify(mergedDel));
+    localStorage.setItem('sup_new',     JSON.stringify(mergedNew));
+
+    // Push merged result back to KV so both are in sync
+    pushEditsToKV(mergedEdits, mergedDel, mergedNew);
+
     if (cb) cb();
   }).catch(function(){ if(cb) cb(); });
 }
