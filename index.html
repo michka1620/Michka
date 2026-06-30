@@ -971,7 +971,21 @@ function generateInvoiceNumber() {
 
 // ===== TIRE POSITIONS =====
 let tireCount = 0;
-const POSITIONS = ['LFI','LFO','RFI','RFO','LRI','LRO','RRI','RRO','LMI','LMO','RMI','RMO','LF','RF','LR','RR','LS','RS','Spare','Other'];
+const POSITIONS = [
+  // Steer axle
+  'LF','RF','LFI','LFO','RFI','RFO',
+  // Drive axle 1 (rear)
+  'LRI','LRO','RRI','RRO','LR','RR',
+  // Drive axle 2 (mid)
+  'LMI','LMO','RMI','RMO','LM','RM',
+  // Tag / lift axle
+  'LTI','LTO','RTI','RTO','LT','RT',
+  // Singles
+  'LS','RS',
+  // Trailer
+  'TLF','TRF','TLR','TRR','TLRI','TLRO','TRRI','TRRO',
+  'Spare','Other'
+];
 const WORK_OPTIONS = ['Replace with New','Replace with Recap','Repair/Patch','Flat Repair','Rotate','Balance','Inflate','Mount/Dismount','Other'];
 const WHO_HAS = ['Leave at Yard','Customer Kept','Taken by Tech','Disposed','Other'];
 
