@@ -2733,6 +2733,31 @@ function saveAllExtracted() {
   setTimeout(function(){ showPage('history'); renderHistory(); }, 800);
 }
 
+// ===== REPAIR: if sup_deleted has historical entries, clear them =====
+function repairDeletedList() {
+  try {
+    var deleted = JSON.parse(localStorage.getItem('sup_deleted') || '[]');
+    if (deleted.length < 10) return; // nothing suspicious
+
+    // Build set of historical keys
+    var histKeys = new Set(HISTORICAL_DATA.map(function(i){
+      return String(i.number)+'|'+String(i.wo||'');
+    }));
+
+    // Keep only truly user-deleted entries (not in HISTORICAL_DATA)
+    var clean = deleted.filter(function(k){ return !histKeys.has(k); });
+
+    if (clean.length < deleted.length) {
+      console.warn('repairDeletedList: removed', deleted.length - clean.length, 'historical entries from sup_deleted');
+      localStorage.setItem('sup_deleted', JSON.stringify(clean));
+      // Re-sync to KV
+      var edits   = JSON.parse(localStorage.getItem('sup_edits') || '{}');
+      var userNew = JSON.parse(localStorage.getItem('sup_new')   || '[]');
+      pushEditsToKV(edits, clean, userNew);
+    }
+  } catch(e) {}
+}
+
 // ===== TIRE PATCHES — manually entered tire data per WO# =====
 var TIRE_PATCHES = {
   '4920132726': [
@@ -2815,6 +2840,7 @@ window.onload = () => {
   } catch(e) {}
   // Pull all edits from KV first, then initialize
   pullEditsFromKV(function() {
+    repairDeletedList();
     initializeData();
     applyTirePatches();
     updateClientList();
