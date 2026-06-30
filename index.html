@@ -292,6 +292,7 @@
     <button class="tab active" onclick="showPage('history')">📋 History</button>
     <button class="tab" onclick="showPage('monthly')">📊 Monthly</button>
     <button class="tab" onclick="showPage('sent')">📤 Enviadas</button>
+    <button class="tab" onclick="showPage('photos')" style="background:#1a1a2a;color:#c084fc;border:1px solid #7c3aed;">📸 Fotos</button>
     <button class="tab" onclick="exportData()" style="background:#1a3a2a;color:#4ade80;border:1px solid #166534;">⬇ Export</button>
     <button class="tab" onclick="document.getElementById('import-file').click()" style="background:#1a1a3a;color:#a5b4fc;border:1px solid #3730a3;">⬆ Import</button>
 
@@ -734,6 +735,66 @@
         </thead>
         <tbody id="sent-tbody"></tbody>
       </table>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== PHOTOS PAGE ===================== -->
+<div id="photos" class="page">
+  <div class="card">
+    <h2>📸 Importar Fotos — Claude AI</h2>
+    <div style="margin-bottom:16px;color:#94a3b8;font-size:13px;">Sube fotos de los work orders y Claude extrae los datos automáticamente.</div>
+
+    <div id="photo-api-box" style="margin-bottom:16px;">
+      <label style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;">Anthropic API Key</label>
+      <div style="display:flex;gap:8px;margin-top:4px;">
+        <input type="password" id="photo-api-key" placeholder="sk-ant-api03-..." style="flex:1;background:#0d1117;border:1px solid #334155;color:#e2e8f0;padding:8px 12px;border-radius:6px;font-size:13px;">
+        <button onclick="saveApiKey()" style="background:#4c1d95;border:1px solid #7c3aed;color:#c4b5fd;padding:8px 16px;border-radius:6px;cursor:pointer;font-weight:700;font-size:13px;">Guardar</button>
+      </div>
+      <div id="api-key-status" style="font-size:11px;margin-top:4px;color:#64748b;"></div>
+    </div>
+
+    <div style="border:2px dashed #334155;border-radius:10px;padding:30px;text-align:center;cursor:pointer;transition:all 0.2s;background:#0d1117;"
+         id="photo-drop-zone"
+         onclick="document.getElementById('photo-file-input').click()"
+         ondragover="event.preventDefault();this.style.borderColor='#7c3aed'"
+         ondragleave="this.style.borderColor='#334155'"
+         ondrop="handlePhotoDrop(event)">
+      <div style="font-size:40px;margin-bottom:8px;">📷</div>
+      <div style="color:#94a3b8;font-size:14px;font-weight:600;">Click aquí o arrastra las fotos</div>
+      <div style="color:#64748b;font-size:12px;margin-top:4px;">JPG, PNG — múltiples fotos a la vez</div>
+      <input type="file" id="photo-file-input" accept="image/*" multiple style="display:none" onchange="handlePhotoSelect(this.files)">
+    </div>
+
+    <div id="photo-preview-area" style="margin-top:16px;display:flex;flex-wrap:wrap;gap:10px;"></div>
+
+    <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
+      <button id="process-photos-btn" onclick="processAllPhotos()" style="background:#4c1d95;border:1px solid #7c3aed;color:#c4b5fd;padding:10px 24px;border-radius:6px;cursor:pointer;font-weight:700;font-size:14px;display:none;">
+        🤖 Procesar con Claude AI
+      </button>
+      <button onclick="clearPhotoQueue()" style="background:#1a1a1a;border:1px solid #333;color:#888;padding:10px 16px;border-radius:6px;cursor:pointer;font-size:13px;display:none;" id="clear-photos-btn">
+        🗑 Limpiar
+      </button>
+    </div>
+
+    <div id="photo-progress" style="margin-top:16px;display:none;">
+      <div style="background:#0d1117;border:1px solid #1e293b;border-radius:8px;padding:12px;">
+        <div style="font-size:12px;color:#94a3b8;margin-bottom:8px;" id="photo-progress-text">Procesando...</div>
+        <div style="background:#1e293b;border-radius:4px;height:6px;overflow:hidden;">
+          <div id="photo-progress-bar" style="height:100%;background:linear-gradient(90deg,#7c3aed,#c084fc);width:0%;transition:width 0.3s;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="photo-results" style="display:none;">
+    <div class="card">
+      <h2>✅ Datos Extraídos</h2>
+      <div style="color:#94a3b8;font-size:12px;margin-bottom:12px;">Revisa y edita los datos antes de guardar. Cada foto puede generar una factura.</div>
+      <div id="extracted-invoices"></div>
+      <button onclick="saveAllExtracted()" style="margin-top:16px;background:#14532d;border:1px solid #166534;color:#4ade80;padding:12px 28px;border-radius:6px;cursor:pointer;font-weight:700;font-size:14px;width:100%;">
+        💾 Guardar Todas las Facturas
+      </button>
     </div>
   </div>
 </div>
@@ -1780,6 +1841,305 @@ function normalizeTotals(arr) {
   });
 }
 
+// ===== PHOTO IMPORT =====
+var _photoFiles = [];
+var _extractedData = [];
+
+function saveApiKey() {
+  var key = document.getElementById('photo-api-key').value.trim();
+  if (!key) { showToast('Ingresa la API key'); return; }
+  localStorage.setItem('anthropic_api_key', key);
+  document.getElementById('api-key-status').textContent = '✅ Key guardada';
+  document.getElementById('api-key-status').style.color = '#4ade80';
+  showToast('API Key guardada');
+}
+
+function loadApiKey() {
+  var saved = localStorage.getItem('anthropic_api_key');
+  if (saved) {
+    document.getElementById('photo-api-key').value = saved;
+    document.getElementById('api-key-status').textContent = '✅ Key cargada';
+    document.getElementById('api-key-status').style.color = '#4ade80';
+  }
+}
+
+function handlePhotoDrop(e) {
+  e.preventDefault();
+  document.getElementById('photo-drop-zone').style.borderColor = '#334155';
+  handlePhotoSelect(e.dataTransfer.files);
+}
+
+function handlePhotoSelect(files) {
+  for (var i = 0; i < files.length; i++) {
+    _photoFiles.push(files[i]);
+  }
+  renderPhotoPreview();
+}
+
+function renderPhotoPreview() {
+  var area = document.getElementById('photo-preview-area');
+  area.innerHTML = '';
+  _photoFiles.forEach(function(f, idx) {
+    var url = URL.createObjectURL(f);
+    var div = document.createElement('div');
+    div.style.cssText = 'position:relative;width:100px;height:100px;';
+    div.innerHTML = '<img src="'+url+'" style="width:100px;height:100px;object-fit:cover;border-radius:6px;border:1px solid #334155;">'
+      + '<div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.7);color:#fff;font-size:9px;padding:2px 4px;border-radius:0 0 6px 6px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">'+f.name+'</div>'
+      + '<button onclick="removePhoto('+idx+')" style="position:absolute;top:2px;right:2px;background:#7f1d1d;border:none;color:#fff;width:18px;height:18px;border-radius:50%;cursor:pointer;font-size:11px;padding:0;line-height:1;">×</button>';
+    area.appendChild(div);
+  });
+  var show = _photoFiles.length > 0;
+  document.getElementById('process-photos-btn').style.display = show ? 'inline-block' : 'none';
+  document.getElementById('clear-photos-btn').style.display = show ? 'inline-block' : 'none';
+}
+
+function removePhoto(idx) {
+  _photoFiles.splice(idx, 1);
+  renderPhotoPreview();
+}
+
+function clearPhotoQueue() {
+  _photoFiles = [];
+  _extractedData = [];
+  renderPhotoPreview();
+  document.getElementById('photo-results').style.display = 'none';
+}
+
+function fileToBase64(file) {
+  return new Promise(function(resolve, reject) {
+    var reader = new FileReader();
+    reader.onload = function(e) { resolve(e.target.result.split(',')[1]); };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function processAllPhotos() {
+  var apiKey = localStorage.getItem('anthropic_api_key');
+  if (!apiKey) { showToast('Primero guarda tu API Key'); return; }
+  if (_photoFiles.length === 0) { showToast('No hay fotos seleccionadas'); return; }
+
+  document.getElementById('photo-progress').style.display = 'block';
+  document.getElementById('process-photos-btn').disabled = true;
+  _extractedData = [];
+
+  for (var i = 0; i < _photoFiles.length; i++) {
+    var pct = Math.round((i / _photoFiles.length) * 100);
+    document.getElementById('photo-progress-bar').style.width = pct + '%';
+    document.getElementById('photo-progress-text').textContent = 'Procesando foto ' + (i+1) + ' de ' + _photoFiles.length + ' — ' + _photoFiles[i].name;
+
+    try {
+      var b64 = await fileToBase64(_photoFiles[i]);
+      var mediaType = _photoFiles[i].type || 'image/jpeg';
+      var result = await callClaudeVision(apiKey, b64, mediaType);
+      result._photoName = _photoFiles[i].name;
+      _extractedData.push(result);
+    } catch(e) {
+      _extractedData.push({ _photoName: _photoFiles[i].name, _error: e.message });
+    }
+  }
+
+  document.getElementById('photo-progress-bar').style.width = '100%';
+  document.getElementById('photo-progress-text').textContent = '✅ Completado — ' + _photoFiles.length + ' fotos procesadas';
+  document.getElementById('process-photos-btn').disabled = false;
+  renderExtractedInvoices();
+}
+
+async function callClaudeVision(apiKey, b64, mediaType) {
+  var prompt = `Analiza esta foto de un work order de reparación de vehículos/llantas.
+Extrae TODOS los datos que puedas ver. Responde SOLO con un JSON válido con esta estructura exacta:
+{
+  "wo": "número de work order (4920XXXXXX)",
+  "date": "fecha en formato YYYY-MM-DD",
+  "client": {
+    "company": "nombre de la empresa cliente",
+    "name": "nombre del contacto",
+    "phone": "teléfono",
+    "address": "dirección completa"
+  },
+  "tech": {
+    "name": "nombre del técnico"
+  },
+  "vehicle": {
+    "year": "año",
+    "make": "marca",
+    "model": "modelo",
+    "plate": "placa",
+    "vin": "VIN",
+    "unit": "número de unidad",
+    "mileage": "millaje",
+    "rollTime": "tiempo de rodaje/roll time"
+  },
+  "notes": "descripción del trabajo realizado, notas de reparación",
+  "tirePositions": [
+    {
+      "position": "posición (LF/RF/LR/RR/etc)",
+      "brand": "marca de llanta",
+      "size": "tamaño",
+      "causeOfFailure": "causa de falla",
+      "workAccomplished": "trabajo realizado",
+      "whoHasPart": "quién tiene la parte",
+      "treadDepth": "profundidad de banda",
+      "dotOn": "DOT de la llanta que se puso",
+      "dotOff": "DOT de la llanta que se quitó"
+    }
+  ],
+  "total": 0.00,
+  "status": "PENDING"
+}
+Si un campo no está visible, usa "" o 0. No incluyas texto fuera del JSON.`;
+
+  var response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'content-type': 'application/json',
+      'anthropic-dangerous-request-proxy-enabled': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-opus-4-8',
+      max_tokens: 1500,
+      messages: [{
+        role: 'user',
+        content: [{
+          type: 'image',
+          source: { type: 'base64', media_type: mediaType, data: b64 }
+        }, {
+          type: 'text',
+          text: prompt
+        }]
+      }]
+    })
+  });
+
+  if (!response.ok) {
+    var err = await response.text();
+    throw new Error('API error ' + response.status + ': ' + err.substring(0, 200));
+  }
+
+  var data = await response.json();
+  var text = data.content[0].text.trim();
+  // Extract JSON from response (in case there's extra text)
+  var jsonMatch = text.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) throw new Error('No JSON en respuesta: ' + text.substring(0, 100));
+  return JSON.parse(jsonMatch[0]);
+}
+
+function renderExtractedInvoices() {
+  var container = document.getElementById('extracted-invoices');
+  container.innerHTML = '';
+  document.getElementById('photo-results').style.display = 'block';
+
+  _extractedData.forEach(function(inv, idx) {
+    var div = document.createElement('div');
+    div.style.cssText = 'border:1px solid #1e293b;border-radius:8px;padding:14px;margin-bottom:12px;background:#0d1117;';
+
+    if (inv._error) {
+      div.innerHTML = '<div style="color:#f87171;font-weight:700;">❌ Error en '+inv._photoName+'</div>'
+        + '<div style="color:#94a3b8;font-size:12px;margin-top:4px;">'+inv._error+'</div>';
+    } else {
+      var c = inv.client || {};
+      var v = inv.vehicle || {};
+      var t = inv.tech || {};
+      div.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">'
+        + '<div style="font-weight:700;color:#c084fc;font-size:13px;">📸 '+inv._photoName+'</div>'
+        + '<label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:#94a3b8;">'
+        + '<input type="checkbox" checked data-idx="'+idx+'" id="ext-check-'+idx+'"> Incluir</label>'
+        + '</div>'
+        + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;">'
+        + makeExtField('WO #', 'wo', idx, inv.wo)
+        + makeExtField('Fecha', 'date', idx, inv.date)
+        + makeExtField('Cliente', 'client_company', idx, c.company)
+        + makeExtField('Contacto', 'client_name', idx, c.name)
+        + makeExtField('Teléfono', 'client_phone', idx, c.phone)
+        + makeExtField('Dirección', 'client_address', idx, c.address)
+        + makeExtField('Técnico', 'tech_name', idx, t.name)
+        + makeExtField('Año', 'vehicle_year', idx, v.year)
+        + makeExtField('Marca', 'vehicle_make', idx, v.make)
+        + makeExtField('Modelo', 'vehicle_model', idx, v.model)
+        + makeExtField('Placa', 'vehicle_plate', idx, v.plate)
+        + makeExtField('Unidad', 'vehicle_unit', idx, v.unit)
+        + makeExtField('Millaje', 'vehicle_mileage', idx, v.mileage)
+        + makeExtField('Roll Time', 'vehicle_rollTime', idx, v.rollTime)
+        + makeExtField('Total $', 'total', idx, inv.total)
+        + '</div>'
+        + '<div style="margin-top:8px;">'
+        + '<label style="font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:1px;">Notas / Trabajo</label>'
+        + '<textarea data-idx="'+idx+'" data-field="notes" style="width:100%;margin-top:3px;background:#111;border:1px solid #1e293b;color:#e2e8f0;border-radius:4px;padding:6px;font-size:12px;min-height:60px;" onchange="updateExtField('+idx+',\'notes\',this.value)">'+(inv.notes||'')+'</textarea>'
+        + '</div>';
+
+      // Tire positions summary
+      if (inv.tirePositions && inv.tirePositions.length > 0) {
+        div.innerHTML += '<div style="margin-top:8px;font-size:11px;color:#94a3b8;">🔧 Llantas: '
+          + inv.tirePositions.map(function(t){ return (t.position||'?') + ' ' + (t.brand||'') + ' ' + (t.size||''); }).join(' | ')
+          + '</div>';
+      }
+    }
+    container.appendChild(div);
+  });
+}
+
+function makeExtField(label, field, idx, val) {
+  return '<div style="display:flex;flex-direction:column;gap:2px;">'
+    + '<label style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">'+label+'</label>'
+    + '<input type="text" value="'+(val||'')+'" data-idx="'+idx+'" data-field="'+field+'" '
+    + 'style="background:#111;border:1px solid #1e293b;color:#e2e8f0;border-radius:4px;padding:5px 7px;font-size:12px;" '
+    + 'onchange="updateExtField('+idx+',\''+field+'\',this.value)">'
+    + '</div>';
+}
+
+function updateExtField(idx, field, value) {
+  if (!_extractedData[idx]) return;
+  if (field === 'client_company') { _extractedData[idx].client = _extractedData[idx].client||{}; _extractedData[idx].client.company = value; }
+  else if (field === 'client_name') { _extractedData[idx].client = _extractedData[idx].client||{}; _extractedData[idx].client.name = value; }
+  else if (field === 'client_phone') { _extractedData[idx].client = _extractedData[idx].client||{}; _extractedData[idx].client.phone = value; }
+  else if (field === 'client_address') { _extractedData[idx].client = _extractedData[idx].client||{}; _extractedData[idx].client.address = value; }
+  else if (field === 'tech_name') { _extractedData[idx].tech = _extractedData[idx].tech||{}; _extractedData[idx].tech.name = value; }
+  else if (field.startsWith('vehicle_')) { var vf = field.replace('vehicle_',''); _extractedData[idx].vehicle = _extractedData[idx].vehicle||{}; _extractedData[idx].vehicle[vf] = value; }
+  else _extractedData[idx][field] = value;
+}
+
+function saveAllExtracted() {
+  var all = getInvoices();
+  var saved = 0;
+  _extractedData.forEach(function(inv, idx) {
+    if (inv._error) return;
+    var chk = document.getElementById('ext-check-'+idx);
+    if (chk && !chk.checked) return;
+
+    var c = inv.client || {};
+    var v = inv.vehicle || {};
+    var t = inv.tech || {};
+
+    var newInv = {
+      number: generateInvoiceNumber(),
+      wo: inv.wo || '',
+      date: inv.date || new Date().toISOString().split('T')[0],
+      status: 'PENDING',
+      payment: '',
+      notes: inv.notes || '',
+      partsGeneral: '',
+      total: parseFloat(inv.total) || 0,
+      totalLabor: 0,
+      sentState: 0,
+      client: { company: c.company||'', name: c.name||'', phone: c.phone||'', address: c.address||'' },
+      tech: { name: t.name||'', id: '' },
+      vehicle: { year: v.year||'', make: v.make||'', model: v.model||'', plate: v.plate||'', vin: v.vin||'', unit: v.unit||'', mileage: v.mileage||'', rollTime: v.rollTime||'' },
+      tirePositions: inv.tirePositions || [],
+      expenses: []
+    };
+    all.push(newInv);
+    saved++;
+  });
+
+  if (saved === 0) { showToast('No hay facturas seleccionadas'); return; }
+  saveInvoices(all);
+  showToast('✅ ' + saved + ' factura(s) guardadas');
+  clearPhotoQueue();
+  setTimeout(function(){ showPage('history'); renderHistory(); }, 800);
+}
+
 // ===== INIT =====
 window.onload = () => {
   // Clear local edits and KV if ?reset=1 in URL
@@ -1814,6 +2174,7 @@ window.onload = () => {
     updateClientList();
     showPage('history');
     setTimeout(function() { fillNewInvoice(); }, 200);
+    setTimeout(function() { loadApiKey(); }, 100);
     pullSentFromKV(function() { renderHistory(); });
   });
 };
