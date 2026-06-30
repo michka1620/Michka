@@ -923,8 +923,10 @@ function showPage(id) {
 function generateInvoiceNumber() {
   const inv = getInvoices();
   if (!inv.length) return '202609500';
-  const max = Math.max(...inv.map(i => parseInt(i.number) || 0));
-  return String(max + 1);
+  // Only consider Order# values in 202609XXX format (9 digits starting with 2026)
+  const orderNums = inv.map(i => parseInt(i.number) || 0).filter(n => n > 202600000 && n < 210000000);
+  if (!orderNums.length) return '202609500';
+  return String(Math.max(...orderNums) + 1);
 }
 
 // ===== TIRE POSITIONS =====
@@ -2417,6 +2419,10 @@ function saveAllExtracted() {
 
   var dataToSave = _mergedData.length > 0 ? _mergedData : _extractedData;
 
+  // Pre-calculate starting Order# to avoid stale reads inside loop
+  var allNums = all.map(function(i){ return parseInt(i.number)||0; }).filter(function(n){ return n>202600000&&n<210000000; });
+  var nextOrderNum = allNums.length ? Math.max.apply(null,allNums)+1 : 202609500;
+
   dataToSave.forEach(function(inv, idx) {
     if (inv._error) return;
     var chk = document.getElementById('ext-check-'+idx);
@@ -2437,7 +2443,7 @@ function saveAllExtracted() {
     var notes = notesEl ? notesEl.value : (inv.notes || '');
 
     var newInv = {
-      number: generateInvoiceNumber(),
+      number: String(nextOrderNum++),
       wo: wo,
       date: inv.date || new Date().toISOString().split('T')[0],
       status: 'PENDING',
@@ -2594,6 +2600,11 @@ function cleanAllSaved() {
     return m ? m[0] : '';
   }
 
+  // Find correct starting Order# from all invoices
+  var allInvs = getInvoices();
+  var orderNums = allInvs.map(function(i){ return parseInt(i.number)||0; }).filter(function(n){ return n>202600000&&n<210000000; });
+  var nextNum = orderNums.length ? Math.max.apply(null,orderNums)+1 : 202609500;
+
   var seen = {};
   var cleaned = [];
   var fixed = 0, dupsRemoved = 0;
@@ -2603,6 +2614,13 @@ function cleanAllSaved() {
     var wo = fixWO(inv.wo);
     if (wo && seen[wo]) { dupsRemoved++; return; }
     if (wo) seen[wo] = true;
+
+    // Fix number field if it's a WO-format number (4920XXXXXX) instead of Order# (202609XXX)
+    var num = parseInt(inv.number) || 0;
+    if (num < 202600000 || num > 210000000) {
+      inv.number = String(nextNum++);
+      fixed++;
+    }
 
     // Clean client fields
     if (inv.client) {
