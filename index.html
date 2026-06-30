@@ -2423,9 +2423,6 @@ function saveAllExtracted() {
 
     var wo = normalizeWO(inv.wo);
 
-    // Skip if no WO# — can't create invoice without it
-    if (!wo) { skipped++; return; }
-
     // Skip duplicates — WO already exists in system
     if (existingWOs.has(wo)) {
       skipped++;
