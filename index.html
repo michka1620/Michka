@@ -1997,6 +1997,11 @@ function initializeData() {
     localStorage.removeItem('sup_edits');
     localStorage.removeItem('sup_deleted');
     localStorage.removeItem('sup_new');
+    // Wipe the remote KV store too, so old data doesn't get pulled back in
+    try {
+      fetch('https://supremekv1.michka1620.workers.dev/edits', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({edits:{},deleted:[],newInvs:[]}) }).catch(function(){});
+      fetch('https://supremekv1.michka1620.workers.dev/sent', { method:'POST', headers:{'Content-Type':'application/json'}, body:'{}' }).catch(function(){});
+    } catch(e) {}
     const fresh = normalizeTotals(HISTORICAL_DATA.map(function(i){ return Object.assign({}, i); }));
     localStorage.setItem('supreme_invoices', JSON.stringify(fresh));
     localStorage.setItem('supreme_data_version', DATA_VERSION);
