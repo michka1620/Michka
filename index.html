@@ -550,6 +550,7 @@
     <div class="filter-row">
       <button onclick="addNewInvoiceRow()" style="background:linear-gradient(135deg,#2d6a4f,#40916c);border:none;color:#fff;padding:8px 16px;border-radius:6px;cursor:pointer;font-weight:700;font-size:13px;white-space:nowrap;">➕ New Invoice</button>
       <button onclick="forceSyncToKV()" title="Sincronizar con servidor" style="background:#1a365d;border:1px solid #2b6cb0;color:#63b3ed;padding:8px 14px;border-radius:6px;cursor:pointer;font-weight:700;font-size:13px;white-space:nowrap;">☁️ Sync</button>
+      <button onclick="limpiarExtras()" title="Borrar facturas extras del servidor" style="background:#4a1a1a;border:1px solid #c53030;color:#fc8181;padding:8px 14px;border-radius:6px;cursor:pointer;font-weight:700;font-size:13px;white-space:nowrap;">🗑️ Limpiar extras</button>
       <input type="text" id="search-input" placeholder="🔍 Search client, WO#, Order#..." oninput="renderHistory()" style="flex:1;min-width:200px;">
       <select id="filter-status" onchange="renderHistory()">
         <option value="">All Status</option>
@@ -3569,6 +3570,17 @@ function pushEditsToKV(edits, deleted, newInvs, silent) {
       })
       .catch(function(err){ if (!silent) showToast('⚠️ Sin conexión al servidor — datos solo locales', true); });
   } catch(e) { if (!silent) showToast('⚠️ Error de sincronización', true); }
+}
+
+function limpiarExtras() {
+  if (!confirm('¿Borrar facturas extras del servidor? Solo se conservan las 28 facturas oficiales.')) return;
+  var edits   = JSON.parse(localStorage.getItem('sup_edits')   || '{}');
+  var deleted = JSON.parse(localStorage.getItem('sup_deleted') || '[]');
+  localStorage.setItem('sup_new', '[]');
+  showToast('🗑️ Limpiando extras...');
+  fetch(KV_EDITS_API, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({edits:edits, deleted:deleted, newInvs:[]}) })
+    .then(function(r){ if(r.ok){ showToast('✅ Listo — recargando...'); setTimeout(function(){ location.reload(); }, 1200); } else showToast('⚠️ Error: ' + r.status, true); })
+    .catch(function(){ showToast('⚠️ Sin conexión', true); });
 }
 
 function forceSyncToKV() {
