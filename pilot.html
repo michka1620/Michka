@@ -163,6 +163,20 @@ function saveNew() {
   go(1);
 }
 
+
+// Preload sample invoices
+(function(){
+  var existing = JSON.parse(localStorage.getItem('pilot_new')||'[]');
+  var pre = [
+    {wo:'4920132410',date:'2026-07-01',status:'PENDING',client:'PERFORMANCE TRANSPORTATION LLC',unit:'TRACTOR #4230041',driver:'KYLE',phone:'(512) 609-9449',po:'766768495',loc:'300 North Judge Ely Blvd Abilene, TX 79601',notes:'performance transportation yard abilene',tech:'',payment:'Wex',pos:'RRI',size:'295/75r22.5',total:0},
+    {wo:'4920132384',date:'2026-07-01',status:'PENDING',client:'WARREN EQUIPMENT COMPANY',unit:'TRAILER #WTC015207',driver:'BRANDON',phone:'(325) 721-6555',po:'766760595',loc:'3619 Loop 322 Abilene, TX 79602',notes:'warren cat yard abilene - 3 tires LRI LRO RRI',tech:'',payment:'Wex',pos:'LRI/LRO/RRI',size:'295/75r22.5',total:0},
+    {wo:'4920132406',date:'2026-07-01',status:'PENDING',client:'DOC INC',unit:'TRAILER #22-59',driver:'NICK',phone:'(325) 280-5186',po:'766766378',loc:'116 Land Grant Lane Baird, TX 79504',notes:'doc yard in baird - 2 tires LMI LMO',tech:'',payment:'Wex',pos:'LMI/LMO',size:'11r22.5',total:0}
+  ];
+  var wos = new Set(existing.map(function(i){return i.wo;}));
+  pre.forEach(function(i){ if(!wos.has(i.wo)) existing.push(i); });
+  localStorage.setItem('pilot_new', JSON.stringify(existing));
+})();
+
 document.getElementById('fdt').valueAsDate = new Date();
 renderS();
 </script>
