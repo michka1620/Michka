@@ -919,15 +919,22 @@ const getInvoices = function() {
     // Add user-created invoices — exclude any that duplicate a HISTORICAL_DATA entry
     var histNums = new Set(HISTORICAL_DATA.map(function(i){ return String(i.number); }));
     var histWOs  = new Set(HISTORICAL_DATA.map(function(i){ return String(i.wo||''); }));
+    var PILOT_NUMS = new Set(['4920132410','4920132384','4920132406']);
     userNew = userNew.filter(function(inv){
       var n = String(inv.number||'');
       var w = String(inv.wo||'');
+      if (PILOT_NUMS.has(n) || PILOT_NUMS.has(w)) return false;
       // Remove if number OR wo matches a historical number (catches swapped fields too)
       if (histNums.has(n) || histNums.has(w)) return false;
       // Remove if wo matches a historical wo
       if (w && histWOs.has(w)) return false;
       return true;
     });
+    // Also clean localStorage if pilot invoices are still there
+    var cleanedNew = userNew.slice();
+    if (cleanedNew.length !== JSON.parse(localStorage.getItem('sup_new')||'[]').length) {
+      localStorage.setItem('sup_new', JSON.stringify(cleanedNew));
+    }
     return base.concat(normalizeTotals(userNew));
   } catch(e) { return base; }
 };
