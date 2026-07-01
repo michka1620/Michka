@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Supreme AutoPro — Factura Rápida</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; background: #f0f2f5; min-height: 100vh; }
+
+  .app { max-width: 480px; margin: 0 auto; background: #fff; min-height: 100vh; }
+
+  /* Header */
+  .header { background: #1a1a2e; color: white; padding: 16px 20px; text-align: center; }
+  .header h1 { font-size: 18px; font-weight: 700; letter-spacing: 1px; }
+  .header p { font-size: 11px; color: #aaa; margin-top: 2px; }
+
+  /* Tabs */
+  .tabs { display: flex; border-bottom: 2px solid #e0e0e0; }
+  .tab { flex: 1; padding: 12px; text-align: center; font-size: 13px; font-weight: 600; color: #999; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; }
+  .tab.active { color: #e63946; border-bottom-color: #e63946; }
+
+  /* Form */
+  .form-page { padding: 16px; display: none; }
+  .form-page.active { display: block; }
+
+  .section-title { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 1px; margin: 16px 0 8px; }
+
+  .field { margin-bottom: 12px; }
+  .field label { display: block; font-size: 12px; color: #666; margin-bottom: 4px; }
+  .field input, .field select, .field textarea {
+    width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px;
+    font-size: 14px; color: #222; background: #fafafa;
+    outline: none; transition: border-color 0.2s;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus { border-color: #e63946; background: #fff; }
+  .field textarea { resize: vertical; min-height: 60px; }
+
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+
+  .tire-row { background: #f8f8f8; border-radius: 10px; padding: 12px; margin-bottom: 10px; border: 1px solid #eee; }
+  .tire-row .remove-btn { float: right; background: none; border: none; color: #ccc; font-size: 18px; cursor: pointer; margin-top: -2px; }
+  .tire-row .remove-btn:hover { color: #e63946; }
+
+  .add-btn { width: 100%; padding: 10px; border: 2px dashed #ddd; border-radius: 8px; background: none; color: #999; font-size: 13px; cursor: pointer; margin-bottom: 16px; }
+  .add-btn:hover { border-color: #e63946; color: #e63946; }
+
+  .total-box { background: #1a1a2e; color: white; border-radius: 12px; padding: 16px 20px; margin: 16px 0; }
+  .total-box label { font-size: 12px; color: #aaa; display: block; margin-bottom: 6px; }
+  .total-box input { background: transparent; border: none; border-bottom: 2px solid #444; color: white; font-size: 28px; font-weight: 700; width: 100%; outline: none; padding: 4px 0; }
+  .total-box input::placeholder { color: #555; }
+
+  .preview-btn { width: 100%; padding: 14px; background: #e63946; color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; margin-bottom: 20px; }
+  .preview-btn:hover { background: #c1121f; }
+
+  /* Preview / Invoice */
+  .invoice-page { display: none; padding: 0; }
+  .invoice-page.active { display: block; }
+
+  .invoice { background: white; max-width: 480px; margin: 0 auto; padding: 24px 20px; }
+
+  .inv-header { text-align: center; border-bottom: 3px solid #1a1a2e; padding-bottom: 16px; margin-bottom: 16px; }
+  .inv-header .company { font-size: 22px; font-weight: 900; color: #1a1a2e; letter-spacing: 2px; }
+  .inv-header .tagline { font-size: 11px; color: #888; margin-top: 2px; }
+  .inv-header .contact { font-size: 11px; color: #555; margin-top: 6px; }
+
+  .inv-meta { display: flex; justify-content: space-between; margin-bottom: 16px; }
+  .inv-meta-block { text-align: left; }
+  .inv-meta-block.right { text-align: right; }
+  .inv-meta-block .label { font-size: 10px; color: #999; text-transform: uppercase; letter-spacing: 0.5px; }
+  .inv-meta-block .value { font-size: 14px; font-weight: 700; color: #1a1a2e; }
+  .inv-meta-block .status { display: inline-block; background: #fff3cd; color: #856404; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; border: 1px solid #ffc107; }
+
+  .inv-section { background: #f8f9fa; border-radius: 10px; padding: 14px; margin-bottom: 12px; }
+  .inv-section-title { font-size: 10px; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+  .inv-row { display: flex; justify-content: space-between; margin-bottom: 6px; }
+  .inv-row .k { font-size: 12px; color: #888; }
+  .inv-row .v { font-size: 12px; font-weight: 600; color: #222; text-align: right; max-width: 60%; }
+
+  .tire-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+  .tire-table th { font-size: 10px; color: #999; text-transform: uppercase; letter-spacing: 0.5px; padding: 4px 6px; text-align: left; border-bottom: 1px solid #eee; }
+  .tire-table td { font-size: 12px; color: #333; padding: 6px 6px; border-bottom: 1px solid #f0f0f0; }
+  .tire-table tr:last-child td { border-bottom: none; }
+  .tire-table .price-col { text-align: right; font-weight: 600; }
+
+  .inv-total { background: #1a1a2e; color: white; border-radius: 10px; padding: 16px 18px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .inv-total .label { font-size: 13px; color: #aaa; }
+  .inv-total .amount { font-size: 28px; font-weight: 900; }
+
+  .inv-footer { text-align: center; font-size: 10px; color: #bbb; padding-top: 12px; border-top: 1px solid #eee; }
+
+  .back-btn { display: block; width: 100%; padding: 12px; background: #f0f0f0; color: #333; border: none; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; margin: 16px 20px; width: calc(100% - 40px); }
+  .print-btn { display: block; width: calc(100% - 40px); margin: 0 20px 20px; padding: 14px; background: #e63946; color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; }
+
+  /* Tire position badge */
+  .pos-badge { display: inline-block; background: #e63946; color: white; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px; }
+
+  @media print {
+    .back-btn, .print-btn, .tabs, .form-page { display: none !important; }
+    .invoice-page { display: block !important; }
+    body { background: white; }
+    .invoice { padding: 10px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <h1>SUPREME AUTOPRO LLC</h1>
+    <p>Factura Rápida — Piloto</p>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <div class="tab active" onclick="showTab('form')">Crear Factura</div>
+    <div class="tab" onclick="showTab('preview')" id="preview-tab">Vista Previa</div>
+  </div>
+
+  <!-- FORM -->
+  <div class="form-page active" id="tab-form">
+
+    <div class="section-title">Datos del Dispatch</div>
+
+    <div class="row2">
+      <div class="field">
+        <label>PO # (Dispatch)</label>
+        <input type="text" id="po" placeholder="766796763">
+      </div>
+      <div class="field">
+        <label>WO # (Dispatch)</label>
+        <input type="text" id="wo_num" placeholder="4920132506">
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Cliente</label>
+      <input type="text" id="client" placeholder="RFMMB DALLAS RM05">
+    </div>
+
+    <div class="row2">
+      <div class="field">
+        <label>Unidad</label>
+        <input type="text" id="unit" placeholder="TRACTOR #12600205">
+      </div>
+      <div class="field">
+        <label>Driver</label>
+        <input type="text" id="driver" placeholder="CHRISTO">
+      </div>
+    </div>
+
+    <div class="row2">
+      <div class="field">
+        <label>Teléfono</label>
+        <input type="text" id="phone" placeholder="(432) 530-8321">
+      </div>
+      <div class="field">
+        <label>Fecha</label>
+        <input type="date" id="date" value="">
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Ubicación (Roadside)</label>
+      <input type="text" id="location" placeholder="9418 I-20, Sweetwater, TX 79556">
+    </div>
+
+    <div class="section-title">Llantas / Servicio</div>
+
+    <div id="tires-container"></div>
+    <button class="add-btn" onclick="addTire()">+ Agregar llanta / servicio</button>
+
+    <div class="field">
+      <label>Notas</label>
+      <textarea id="notes" placeholder="IN FRONT OF LOVES..."></textarea>
+    </div>
+
+    <div class="section-title">Técnico</div>
+    <div class="row2">
+      <div class="field">
+        <label>Nombre</label>
+        <input type="text" id="tech" placeholder="JHON / LUIS">
+      </div>
+      <div class="field">
+        <label>ORDER # Interno</label>
+        <input type="text" id="order_num" placeholder="202609XXX">
+      </div>
+    </div>
+
+    <div class="total-box">
+      <label>TOTAL A COBRAR</label>
+      <input type="number" id="total" placeholder="0.00" step="0.01">
+    </div>
+
+    <button class="preview-btn" onclick="generatePreview()">Ver Factura →</button>
+
+  </div>
+
+  <!-- PREVIEW -->
+  <div class="form-page" id="tab-preview">
+    <div class="invoice" id="invoice-output">
+      <!-- Generated here -->
+    </div>
+    <button class="back-btn" onclick="showTab('form')">← Editar</button>
+    <button class="print-btn" onclick="window.print()">Imprimir / Guardar PDF</button>
+  </div>
+
+</div>
+
+<script>
+// Set today's date
+document.getElementById('date').valueAsDate = new Date();
+
+var tireCount = 0;
+var POSITIONS = ['LFO','LFI','RFO','RFI','LRO','LRI','RRO','RRI','SPARE'];
+
+function addTire(pos, size, price) {
+  tireCount++;
+  var id = 'tire_' + tireCount;
+  var posOptions = POSITIONS.map(function(p){
+    return '<option value="'+p+'"'+(p===(pos||'')?'selected':'')+'>'+p+'</option>';
+  }).join('');
+  var html = '<div class="tire-row" id="'+id+'">' +
+    '<button class="remove-btn" onclick="removeTire(\''+id+'\')">×</button>' +
+    '<div class="row3">' +
+      '<div class="field"><label>Posición</label><select><option value="">—</option>'+posOptions+'</select></div>' +
+      '<div class="field"><label>Medida</label><input type="text" value="'+(size||'')+'" placeholder="11R22.5"></div>' +
+      '<div class="field"><label>Precio $</label><input type="number" value="'+(price||'')+'" placeholder="0.00" step="0.01"></div>' +
+    '</div>' +
+  '</div>';
+  document.getElementById('tires-container').insertAdjacentHTML('beforeend', html);
+}
+
+function removeTire(id) {
+  var el = document.getElementById(id);
+  if (el) el.remove();
+}
+
+function getTires() {
+  var rows = document.querySelectorAll('#tires-container .tire-row');
+  var tires = [];
+  rows.forEach(function(row) {
+    var pos   = row.querySelector('select').value;
+    var size  = row.querySelectorAll('input')[0].value.trim();
+    var price = parseFloat(row.querySelectorAll('input')[1].value) || 0;
+    if (pos || size) tires.push({pos: pos, size: size, price: price});
+  });
+  return tires;
+}
+
+function showTab(tab) {
+  document.querySelectorAll('.form-page').forEach(function(p){ p.classList.remove('active'); });
+  document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
+  document.getElementById('tab-'+tab).classList.add('active');
+  var idx = tab === 'form' ? 0 : 1;
+  document.querySelectorAll('.tab')[idx].classList.add('active');
+}
+
+function fmt(n) { return '$' + parseFloat(n||0).toFixed(2); }
+
+function fmtDate(d) {
+  if (!d) return '';
+  var parts = d.split('-');
+  return parts[1]+'/'+parts[2]+'/'+parts[0];
+}
+
+function generatePreview() {
+  var po       = document.getElementById('po').value.trim();
+  var wo       = document.getElementById('wo_num').value.trim();
+  var client   = document.getElementById('client').value.trim();
+  var unit     = document.getElementById('unit').value.trim();
+  var driver   = document.getElementById('driver').value.trim();
+  var phone    = document.getElementById('phone').value.trim();
+  var date     = document.getElementById('date').value;
+  var location = document.getElementById('location').value.trim();
+  var notes    = document.getElementById('notes').value.trim();
+  var tech     = document.getElementById('tech').value.trim().toUpperCase();
+  var orderNum = document.getElementById('order_num').value.trim();
+  var total    = parseFloat(document.getElementById('total').value) || 0;
+  var tires    = getTires();
+
+  var tiresHTML = '';
+  if (tires.length > 0) {
+    tiresHTML = '<table class="tire-table">' +
+      '<tr><th>Posición</th><th>Medida</th><th style="text-align:right">Precio</th></tr>';
+    tires.forEach(function(t){
+      tiresHTML += '<tr>' +
+        '<td><span class="pos-badge">'+(t.pos||'—')+'</span></td>' +
+        '<td>'+t.size+'</td>' +
+        '<td class="price-col">'+(t.price ? fmt(t.price) : '—')+'</td>' +
+      '</tr>';
+    });
+    tiresHTML += '</table>';
+  }
+
+  var techRow = tech ? '<div class="inv-row"><span class="k">Técnico</span><span class="v">'+tech+'</span></div>' : '';
+  var orderRow = orderNum ? '<div class="inv-row"><span class="k">Order #</span><span class="v">'+orderNum+'</span></div>' : '';
+  var notesRow = notes ? '<div class="inv-row"><span class="k">Notas</span><span class="v">'+notes+'</span></div>' : '';
+
+  var html =
+    '<div class="inv-header">' +
+      '<div class="company">SUPREME AUTOPRO LLC</div>' +
+      '<div class="tagline">Roadside Tire & Mechanical Service</div>' +
+      '<div class="contact">supremeautoprollc@gmail.com</div>' +
+    '</div>' +
+
+    '<div class="inv-meta">' +
+      '<div class="inv-meta-block">' +
+        '<div class="label">Dispatch WO#</div>' +
+        '<div class="value">'+(wo||'—')+'</div>' +
+        (po ? '<div class="label" style="margin-top:6px">PO#</div><div class="value" style="font-size:12px">'+po+'</div>' : '') +
+      '</div>' +
+      '<div class="inv-meta-block right">' +
+        '<div class="label">Fecha</div>' +
+        '<div class="value">'+fmtDate(date)+'</div>' +
+        '<div style="margin-top:6px"><span class="status">PENDING</span></div>' +
+      '</div>' +
+    '</div>' +
+
+    '<div class="inv-section">' +
+      '<div class="inv-section-title">Cliente</div>' +
+      (client ? '<div class="inv-row"><span class="k">Empresa</span><span class="v">'+client+'</span></div>' : '') +
+      (unit   ? '<div class="inv-row"><span class="k">Unidad</span><span class="v">'+unit+'</span></div>' : '') +
+      (driver ? '<div class="inv-row"><span class="k">Driver</span><span class="v">'+driver+'</span></div>' : '') +
+      (phone  ? '<div class="inv-row"><span class="k">Teléfono</span><span class="v">'+phone+'</span></div>' : '') +
+      (location ? '<div class="inv-row"><span class="k">Ubicación</span><span class="v">'+location+'</span></div>' : '') +
+    '</div>' +
+
+    (tires.length > 0 ?
+    '<div class="inv-section">' +
+      '<div class="inv-section-title">Servicio</div>' +
+      tiresHTML +
+    '</div>' : '') +
+
+    ((techRow||orderRow||notesRow) ?
+    '<div class="inv-section">' +
+      '<div class="inv-section-title">Servicio</div>' +
+      techRow + orderRow + notesRow +
+    '</div>' : '') +
+
+    '<div class="inv-total">' +
+      '<span class="label">TOTAL</span>' +
+      '<span class="amount">'+fmt(total)+'</span>' +
+    '</div>' +
+
+    '<div class="inv-footer">Supreme AutoPro LLC — Todos los derechos reservados</div>';
+
+  document.getElementById('invoice-output').innerHTML = html;
+  showTab('preview');
+}
+
+// Add one tire row by default
+addTire();
+</script>
+</body>
+</html>
