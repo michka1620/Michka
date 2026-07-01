@@ -919,9 +919,12 @@ const getInvoices = function() {
     // Add user-created invoices — exclude any that duplicate a HISTORICAL_DATA entry
     var histNums = new Set(HISTORICAL_DATA.map(function(i){ return String(i.number); }));
     var histWOs  = new Set(HISTORICAL_DATA.map(function(i){ return String(i.wo||''); }));
+    // Pilot-only test invoices — exclude from main system
+    var pilotOnly = new Set(['4920132410','4920132384','4920132406']);
     userNew = userNew.filter(function(inv){
       var n = String(inv.number||'');
       var w = String(inv.wo||'');
+      if (pilotOnly.has(n) || pilotOnly.has(w)) return false;
       // Remove if number OR wo matches a historical number (catches swapped fields too)
       if (histNums.has(n) || histNums.has(w)) return false;
       // Remove if wo matches a historical wo
