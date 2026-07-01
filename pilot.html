@@ -456,6 +456,16 @@ function showToast(msg, err) {
   t._t = setTimeout(function(){ t.className='toast'; }, 2800);
 }
 
+
+// Preloaded pilot invoices
+(function(){
+  var pre = [{"number":"4920132410","wo":"","date":"2026-07-01","status":"PENDING","payment":"Wex","total":0,"totalLabor":0,"notes":"performance transportation yard abilene","client":{"company":"PERFORMANCE TRANSPORTATION LLC","unit":"TRACTOR #4230041","driver":"KYLE","phone":"(512) 609-9449","roadside":"300 North Judge Ely Blvd Abilene, TX 79601","po":"766768495","address":"","attn":"","email":""},"tech":{"name":""},"tirePositions":[{"position":"RRI","size":"295/75r22.5","price":0}],"expenses":[],"sentState":{}},{"number":"4920132384","wo":"","date":"2026-07-01","status":"PENDING","payment":"Wex","total":0,"totalLabor":0,"notes":"warren cat yard abilene","client":{"company":"WARREN EQUIPMENT COMPANY","unit":"TRAILER #WTC015207","driver":"BRANDON","phone":"(325) 721-6555","roadside":"3619 Loop 322 Abilene, TX 79602","po":"766760595","address":"","attn":"","email":""},"tech":{"name":""},"tirePositions":[{"position":"LRI","size":"295/75r22.5","price":0},{"position":"LRO","size":"295/75r22.5","price":0},{"position":"RRI","size":"295/75r22.5","price":0}],"expenses":[],"sentState":{}},{"number":"4920132406","wo":"","date":"2026-07-01","status":"PENDING","payment":"Wex","total":0,"totalLabor":0,"notes":"doc yard in baird","client":{"company":"DOC INC","unit":"TRAILER #22-59","driver":"NICK","phone":"(325) 280-5186","roadside":"116 Land Grant Lane Baird, TX 79504","po":"766766378","address":"","attn":"","email":""},"tech":{"name":""},"tirePositions":[{"position":"LMI","size":"11r22.5","price":0},{"position":"LMO","size":"11r22.5","price":0}],"expenses":[],"sentState":{}}];
+  var stored = JSON.parse(localStorage.getItem('p_new') || '[]');
+  var existing = new Set(stored.map(function(i){ return String(i.number); }));
+  pre.forEach(function(inv){ if (!existing.has(String(inv.number))) stored.push(inv); });
+  localStorage.setItem('p_new', JSON.stringify(stored));
+})();
+
 function fmt(n) { return parseFloat(n||0).toFixed(2); }
 
 // ---- INIT ----
