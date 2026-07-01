@@ -3577,7 +3577,6 @@ function pushEditsToKV(edits, deleted, newInvs, silent) {
 }
 
 function limpiarExtras() {
-  if (!confirm('¿Borrar facturas extras del servidor? Solo se conservan las 28 facturas oficiales.')) return;
   var edits   = JSON.parse(localStorage.getItem('sup_edits')   || '{}');
   var deleted = JSON.parse(localStorage.getItem('sup_deleted') || '[]');
   localStorage.setItem('sup_new', '[]');
