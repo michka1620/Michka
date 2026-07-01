@@ -919,12 +919,9 @@ const getInvoices = function() {
     // Add user-created invoices — exclude any that duplicate a HISTORICAL_DATA entry
     var histNums = new Set(HISTORICAL_DATA.map(function(i){ return String(i.number); }));
     var histWOs  = new Set(HISTORICAL_DATA.map(function(i){ return String(i.wo||''); }));
-    // Pilot-only test invoices — exclude from main system
-    var pilotOnly = new Set(['4920132410','4920132384','4920132406']);
     userNew = userNew.filter(function(inv){
       var n = String(inv.number||'');
       var w = String(inv.wo||'');
-      if (pilotOnly.has(n) || pilotOnly.has(w)) return false;
       // Remove if number OR wo matches a historical number (catches swapped fields too)
       if (histNums.has(n) || histNums.has(w)) return false;
       // Remove if wo matches a historical wo
@@ -2888,18 +2885,6 @@ function applyTirePatches() {
 
 // ===== INIT =====
 window.onload = () => {
-  // Auto-remove pilot-only test invoices from sup_new and KV
-  (function() {
-    var pilotOnly = new Set(['4920132410','4920132384','4920132406']);
-    var n = JSON.parse(localStorage.getItem('sup_new') || '[]');
-    var clean = n.filter(function(i){ return !pilotOnly.has(String(i.number||'')); });
-    if (clean.length < n.length) {
-      localStorage.setItem('sup_new', JSON.stringify(clean));
-      var edits = JSON.parse(localStorage.getItem('sup_edits') || '{}');
-      var deleted = JSON.parse(localStorage.getItem('sup_deleted') || '[]');
-      fetch('https://supremekv1.michka1620.workers.dev/edits', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({edits:edits,deleted:deleted,newInvs:clean})}).catch(function(){});
-    }
-  })();
   // Clear local edits and KV if ?reset=1 in URL
   if (location.search.indexOf('reset=1') >= 0) {
     localStorage.removeItem('sup_edits');
@@ -3592,6 +3577,7 @@ function pushEditsToKV(edits, deleted, newInvs, silent) {
 }
 
 function limpiarExtras() {
+  if (!confirm('¿Borrar facturas extras del servidor? Solo se conservan las 28 facturas oficiales.')) return;
   var edits   = JSON.parse(localStorage.getItem('sup_edits')   || '{}');
   var deleted = JSON.parse(localStorage.getItem('sup_deleted') || '[]');
   localStorage.setItem('sup_new', '[]');
@@ -3636,7 +3622,9 @@ function pullEditsFromKV(cb) {
     var mergedNewMap = {};
     kvNew.forEach(function(i){ if (!isHistorical(i)) mergedNewMap[String(i.number)+'|'+String(i.wo||'')] = i; });
     localNew.forEach(function(i){ if (!isHistorical(i)) mergedNewMap[String(i.number)+'|'+String(i.wo||'')] = i; });
-    var mergedNew = Object.values(mergedNewMap);
+    // Remove pilot test invoices that contaminated main KV
+    var PILOT_NUMS = new Set(['4920132410','4920132384','4920132406']);
+    var mergedNew = Object.values(mergedNewMap).filter(function(i){ return !PILOT_NUMS.has(String(i.number||'')); });
 
     // Merge deleted: union, but filter out historical entries
     var histKeys = new Set(HISTORICAL_DATA.map(function(i){ return String(i.number)+'|'+String(i.wo||''); }));
