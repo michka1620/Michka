@@ -1312,13 +1312,7 @@ function buildInvoiceHTML(d) {
       <td>${t.size||'—'}</td>
       <td>${t.brand||'—'}</td>
       <td>${t.model||'—'}</td>
-      <td>${t.causeOfFailure||'—'}</td>
-      <td>${t.damage||'—'}</td>
       <td>${t.workAccomplished||'—'}</td>
-      <td>${t.whoHasPart||'—'}</td>
-      <td>${t.treadDepth||'—'}</td>
-      <td>${t.ply||'—'}</td>
-      <td>${t.valve||'—'}</td>
     </tr>
   `).join('');
 
@@ -1383,35 +1377,29 @@ function buildInvoiceHTML(d) {
     <div class="inv-cell"><div class="lbl">Roll Time</div><div class="val">${d.tech.rolltime||'—'}</div></div>
     <div class="inv-cell"><div class="lbl">Time of Arrival</div><div class="val">${d.tech.arrival||'—'}</div></div>
     <div class="inv-cell"><div class="lbl">Round Trip Mileage</div><div class="val">${d.tech.mileage||'—'}</div></div>
-    <div class="inv-cell"><div class="lbl">Odometer</div><div class="val">${d.vehicle.odometer||'—'}</div></div>
-    <div class="inv-cell"><div class="lbl">License / State</div><div class="val">${d.vehicle.license||'—'}</div></div>
     <div class="inv-cell"><div class="lbl">Technician</div><div class="val">${d.tech.name||'—'}</div></div>
-    <div class="inv-cell"><div class="lbl">Vehicle Year</div><div class="val">${d.vehicle.year||'—'}</div></div>
-    <div class="inv-cell"><div class="lbl">Vehicle Make</div><div class="val">${d.vehicle.make||'—'}</div></div>
-    <div class="inv-cell"><div class="lbl">Vehicle Model</div><div class="val">${d.vehicle.model||'—'}</div></div>
-    <div class="inv-cell"><div class="lbl">VIN</div><div class="val">${d.vehicle.vin||'—'}</div></div>
     <div class="inv-cell"><div class="lbl">Tractor #</div><div class="val">${d.vehicle.tractor||'—'}</div></div>
     <div class="inv-cell"><div class="lbl">Trailer #</div><div class="val">${d.vehicle.trailer||'—'}</div></div>
-    <div class="inv-cell full"><div class="lbl">Roadside Location</div><div class="val">${d.client.roadside||d.tech.ubication||'—'}</div></div>
-    <div class="inv-cell full"><div class="lbl">Parts</div><div class="val">${d.partsGeneral||'—'}</div></div>
+    <div class="inv-cell"><div class="lbl">Driver</div><div class="val">${d.client.driver||'—'}</div></div>
+    <div class="inv-cell"><div class="lbl">Phone</div><div class="val">${d.client.phone||'—'}</div></div>
+    <div class="inv-cell"><div class="lbl">PO #</div><div class="val">${d.client.po||'—'}</div></div>
+    <div class="inv-cell full"><div class="lbl">Location</div><div class="val">${d.client.roadside||d.tech.ubication||'—'}</div></div>
   </div>
+
+  ${d.notes ? `
+  <div class="inv-section-title">Repair Notes / Work Accomplished</div>
+  <div class="inv-notes-box">${d.notes}</div>` : ''}
 
   ${(d.tirePositions||[]).filter(t=>t.position).length > 0 ? `
   <div class="inv-section-title">Tire Positions</div>
   <table class="inv-tire-table">
     <thead>
       <tr>
-        <th>Position</th><th>Size</th><th>Brand</th><th>Model</th>
-        <th>Cause of Failure</th><th>Damage</th><th>Work Accomplished</th>
-        <th>Who Has Part</th><th>Tread Depth</th><th>Ply</th><th>Valve</th>
+        <th>Pos</th><th>Size</th><th>Brand</th><th>Model</th><th>Work Done</th>
       </tr>
     </thead>
     <tbody>${tireRows}</tbody>
   </table>` : ''}
-
-  ${d.notes ? `
-  <div class="inv-section-title">Repair Note</div>
-  <div class="inv-notes-box">${d.notes}</div>` : ''}
 
   ${(d.photos && d.photos.length) ? `
   <div class="inv-section-title">Photos</div>
