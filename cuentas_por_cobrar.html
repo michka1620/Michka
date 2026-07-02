@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cuentas por Cobrar — Supreme AutoPro</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background:#f1f5f9; color:#1e293b; }
+  
+  .header { background:linear-gradient(135deg,#1e293b 0%,#0f172a 100%); color:white; padding:28px 40px; display:flex; justify-content:space-between; align-items:center; }
+  .header-left h1 { font-size:22px; font-weight:900; letter-spacing:1px; color:#fff; }
+  .header-left p { font-size:12px; color:#94a3b8; margin-top:4px; letter-spacing:1px; text-transform:uppercase; }
+  .header-right { text-align:right; }
+  .header-right .date { font-size:11px; color:#64748b; text-transform:uppercase; letter-spacing:1px; }
+  .logo-text { font-size:28px; font-weight:900; color:#dc2626; letter-spacing:2px; }
+  
+  .summary { display:flex; gap:16px; padding:24px 40px; flex-wrap:wrap; }
+  .card { background:white; border-radius:12px; padding:20px 24px; flex:1; min-width:160px; box-shadow:0 1px 4px rgba(0,0,0,0.08); }
+  .card .val { font-size:26px; font-weight:900; line-height:1; margin-top:6px; }
+  .card .lbl { font-size:10px; color:#94a3b8; text-transform:uppercase; letter-spacing:2px; }
+  .card.red .val { color:#dc2626; }
+  .card.orange .val { color:#ea580c; }
+  .card.blue .val { color:#4338ca; }
+
+  .table-wrap { margin:0 40px 40px; background:white; border-radius:14px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,0.08); }
+  .table-header { padding:16px 20px; border-bottom:2px solid #f1f5f9; display:flex; align-items:center; gap:10px; background:white; }
+  .table-header span { font-weight:900; font-size:14px; letter-spacing:1px; color:#1e293b; }
+  
+  table { width:100%; border-collapse:collapse; }
+  thead tr { background:#f8fafc; }
+  th { padding:11px 14px; font-size:10px; color:#64748b; text-transform:uppercase; letter-spacing:1.5px; font-weight:700; border-bottom:2px solid #e2e8f0; text-align:left; }
+  th:nth-child(6) { text-align:right; }
+  th:nth-child(7), th:nth-child(8) { text-align:center; }
+  
+  tbody tr { border-bottom:1px solid #f1f5f9; transition:background 0.1s; }
+  tbody tr:hover { background:#fef3c7 !important; }
+  
+  .total-row td { padding:14px 14px; font-weight:900; background:#1e293b; color:white; font-size:14px; }
+  .total-row td:nth-child(6) { text-align:right; color:#fbbf24; font-size:17px; }
+  
+  .footer { text-align:center; padding:20px; color:#94a3b8; font-size:11px; letter-spacing:1px; text-transform:uppercase; }
+  
+  @media print {
+    body { background:white; }
+    .summary { padding:16px 20px; }
+    .table-wrap { margin:0 20px 20px; box-shadow:none; border:1px solid #e2e8f0; }
+    .header { padding:20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="logo-text">SUPREME AUTOPRO</div>
+    <h1>CUENTAS POR COBRAR</h1>
+    <p>Reporte generado: 07/02/2026</p>
+  </div>
+  <div class="header-right">
+    <div class="date">Período: Enero — Julio 2026</div>
+  </div>
+</div>
+
+<div class="summary">
+  <div class="card">
+    <div class="lbl">Total Facturas Pendientes</div>
+    <div class="val blue">70</div>
+  </div>
+  <div class="card red">
+    <div class="lbl">Total Por Cobrar</div>
+    <div class="val">$14,264.36</div>
+  </div>
+  <div class="card orange">
+    <div class="lbl">Facturas Enviadas</div>
+    <div class="val">52</div>
+  </div>
+  <div class="card">
+    <div class="lbl">No Enviadas</div>
+    <div class="val" style="color:#64748b;">18</div>
+  </div>
+</div>
+
+<div class="table-wrap">
+  <div class="table-header">
+    <span>📋 DETALLE DE FACTURAS POR COBRAR</span>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Order #</th>
+        <th>WO # (Invoice)</th>
+        <th>Fecha</th>
+        <th>Cliente</th>
+        <th style="text-align:center;">Técnico</th>
+        <th style="text-align:right;">Monto</th>
+        <th style="text-align:center;">Estado</th>
+        <th style="text-align:center;">Pago</th>
+      </tr>
+    </thead>
+    <tbody>
+      
+    <tr style="background:#ffffff;border-left:3px solid #e2e8f0;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609357</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920131449</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/10/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">AMES CONSTRUCTION</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">—</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$359.60</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#f1f5f9;color:#64748b;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">○ PENDIENTE</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#f8fafc;border-left:3px solid #e2e8f0;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609358</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920131483</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/10/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">TEXAS DEPT OF CRIMINAL JUSTICE</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">—</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$108.60</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#f1f5f9;color:#64748b;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">○ PENDIENTE</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#ffffff;border-left:3px solid #e2e8f0;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609359</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920131497</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/11/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">COCA COLA SW BEVERAGES LLC TCL</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">—</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$233.00</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#f1f5f9;color:#64748b;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">○ PENDIENTE</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#f8fafc;border-left:3px solid #e2e8f0;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609360</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920131572</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/11/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">FUTURE TELECOM INC</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">LUIS</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$80.30</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#f1f5f9;color:#64748b;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">○ PENDIENTE</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#ffffff;border-left:3px solid #e2e8f0;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609361</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920131583</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/11/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">TEXAS DEPT OF TRANSPORTATION</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">LUIS</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$104.96</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#f1f5f9;color:#64748b;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">○ PENDIENTE</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#f8fafc;border-left:3px solid #e2e8f0;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609362</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920131589</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/11/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">PENSKE 24/7 ROADSIDE</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">LUIS</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$133.76</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#f1f5f9;color:#64748b;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">○ PENDIENTE</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#ffffff;border-left:3px solid #e2e8f0;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609363</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920131591</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/11/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">JB HUNT ERS ONLY ACCOUNT</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">LUIS</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$168.76</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#f1f5f9;color:#64748b;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">○ PENDIENTE</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#f8fafc;border-left:3px solid #e2e8f0;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609364</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920131571</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/11/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">SYSCO WEST TEXAS</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">LUIS</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$137.00</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#f1f5f9;color:#64748b;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">○ PENDIENTE</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#ffffff;border-left:3px solid #e2e8f0;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609365</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920131590</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/12/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">CHAIN ELECTRIC COMPANY</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">LUIS</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$469.70</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#f1f5f9;color:#64748b;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">○ PENDIENTE</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#f8fafc;border-left:3px solid #e2e8f0;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609366</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920131646</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/12/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">HERC RENTALS INC</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">LUIS</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$83.60</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#f1f5f9;color:#64748b;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">○ PENDIENTE</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#ffffff;border-left:3px solid #e2e8f0;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609367</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920131599</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/12/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">J.F. EDWARDS CONSTRUCTION</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">LUIS</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$231.20</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#f1f5f9;color:#64748b;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">○ PENDIENTE</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#f8fafc;border-left:3px solid #e2e8f0;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609368</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920131701</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/12/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">J.F. EDWARDS CONSTRUCTION</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">LUIS</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$92.00</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#f1f5f9;color:#64748b;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">○ PENDIENTE</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#ffffff;border-left:3px solid #e2e8f0;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609369</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920131656</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/12/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">J.F. EDWARDS CONSTRUCTION</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">LUIS</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$135.50</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#f1f5f9;color:#64748b;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">○ PENDIENTE</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#fef9f0;border-left:3px solid #ea580c;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609370</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920131714</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/13/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">TAS INC</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">LUIS</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$439.50</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#7c2d12;color:#fb923c;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">📤 ENVIADA</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#fffbf5;border-left:3px solid #ea580c;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609371</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920131695</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/13/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">HERC RENTALS INC</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">LUIS</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$105.80</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#7c2d12;color:#fb923c;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">📤 ENVIADA</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#fef9f0;border-left:3px solid #ea580c;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609372</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920131724</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/14/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">MVT LEASING LLC</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">LUIS</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$374.18</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#7c2d12;color:#fb923c;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">📤 ENVIADA</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#fffbf5;border-left:3px solid #ea580c;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609373</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920131726</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/14/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">SALEM LEASING CORP</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">LUIS</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$243.00</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#7c2d12;color:#fb923c;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">📤 ENVIADA</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#fef9f0;border-left:3px solid #ea580c;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609374</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920131727</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/15/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">WB CONTAINERS SVC</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">LUIS</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$179.00</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#7c2d12;color:#fb923c;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">📤 ENVIADA</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#fffbf5;border-left:3px solid #ea580c;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609375</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920131778</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/15/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">TAS INC</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">JHON</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$158.00</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#7c2d12;color:#fb923c;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">📤 ENVIADA</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#fef9f0;border-left:3px solid #ea580c;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609376</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920131779</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/15/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">TAS INC</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">JHON</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$56.00</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#7c2d12;color:#fb923c;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">📤 ENVIADA</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#fffbf5;border-left:3px solid #ea580c;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609377</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920131815</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/16/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">RUAN LOGISTICS CS01</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">JHON</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$245.00</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#7c2d12;color:#fb923c;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">📤 ENVIADA</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#fef9f0;border-left:3px solid #ea580c;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609378</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920131923</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/16/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">R & L CARRIERS INC</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">LUIS</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$173.00</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#7c2d12;color:#fb923c;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">📤 ENVIADA</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#fffbf5;border-left:3px solid #ea580c;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609379</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920131851</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/16/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">SADDLE CREEK CORPORATION</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">JHON</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$120.80</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#7c2d12;color:#fb923c;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">📤 ENVIADA</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#fef9f0;border-left:3px solid #ea580c;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609380</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920131880</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/16/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">PEED EQUIPMENT CO</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">JHON</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$449.00</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#7c2d12;color:#fb923c;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">📤 ENVIADA</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#fffbf5;border-left:3px solid #ea580c;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609383</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920131932</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/17/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">GOOD SAM DIGITAL SOLUTIONS</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">JHON</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$201.80</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#7c2d12;color:#fb923c;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">📤 ENVIADA</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#fef9f0;border-left:3px solid #ea580c;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609391</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920132096</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/18/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">SMYRNA READY CONCRETE</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">LUIS</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$267.50</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#7c2d12;color:#fb923c;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">📤 ENVIADA</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#fffbf5;border-left:3px solid #ea580c;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609392</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920132097</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/18/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">PENSKE 24/7 ROADSIDE</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">JHON</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$193.14</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#7c2d12;color:#fb923c;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">📤 ENVIADA</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#fef9f0;border-left:3px solid #ea580c;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609393</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920132100</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/19/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">SAIA MOTOR FREIGHT LINES ERS</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">JHON</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$215.00</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#7c2d12;color:#fb923c;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">📤 ENVIADA</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#fffbf5;border-left:3px solid #ea580c;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609395</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920132175</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/19/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">SOUTHWEST FREIGHT LINES</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">JHON</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$290.00</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#7c2d12;color:#fb923c;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">📤 ENVIADA</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#fef9f0;border-left:3px solid #ea580c;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609398</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920132183</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/20/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">ANNETT HOLDINGS INC</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">JHON</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$354.80</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#7c2d12;color:#fb923c;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">📤 ENVIADA</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#fffbf5;border-left:3px solid #ea580c;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609400</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920132189</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/20/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">PENSKE 24/7 ROADSIDE</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">JHON</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$110.95</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#7c2d12;color:#fb923c;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">📤 ENVIADA</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#fef9f0;border-left:3px solid #ea580c;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609401</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920132190</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/20/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">VIP SAFE CHARTERS</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">JHON</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$179.00</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#7c2d12;color:#fb923c;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">📤 ENVIADA</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#fffbf5;border-left:3px solid #ea580c;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609403</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920132203</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/20/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">ROLFSON OIL LLC</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">JHON</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$207.50</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#7c2d12;color:#fb923c;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">📤 ENVIADA</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#fef9f0;border-left:3px solid #ea580c;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609415</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920132437</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/24/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">HELMCAMP MATERIALS LTD</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">—</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$134.60</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#7c2d12;color:#fb923c;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">📤 ENVIADA</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#fffbf5;border-left:3px solid #ea580c;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609416</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920132446</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/24/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">EQUIPMENTSHARE.COM INC</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">—</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$155.75</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#7c2d12;color:#fb923c;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">📤 ENVIADA</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#fef9f0;border-left:3px solid #ea580c;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609417</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920132496</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/24/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">SUN COAST RESOURCES INC</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">—</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$183.20</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#7c2d12;color:#fb923c;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">📤 ENVIADA</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#fffbf5;border-left:3px solid #ea580c;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609418</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920132499</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/24/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">WERNER ENTERPRISES INC</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">—</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$278.75</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#7c2d12;color:#fb923c;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">📤 ENVIADA</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#fef9f0;border-left:3px solid #ea580c;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609419</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920132505</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/24/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">BERKELEY LEASING</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">—</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$190.18</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#7c2d12;color:#fb923c;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">📤 ENVIADA</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#fffbf5;border-left:3px solid #ea580c;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609420</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920132506</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/25/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">RFMMB DALLAS RM05</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">—</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$278.75</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#7c2d12;color:#fb923c;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">📤 ENVIADA</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#fef9f0;border-left:3px solid #ea580c;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609421</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920132535</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/25/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">T R U T H TRANSPORT INC</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">—</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$314.00</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#7c2d12;color:#fb923c;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">📤 ENVIADA</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#fffbf5;border-left:3px solid #ea580c;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609422</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920132552</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/25/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">SMYRNA READY CONCRETE</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">JHON</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$212.00</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#7c2d12;color:#fb923c;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">📤 ENVIADA</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#fef9f0;border-left:3px solid #ea580c;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609423</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920132559</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/25/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">EQUIPMENTSHARE.COM INC</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">—</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$164.96</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#7c2d12;color:#fb923c;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">📤 ENVIADA</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#fffbf5;border-left:3px solid #ea580c;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609424</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920132544</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/26/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">CYPRESS TRUCK LINES INC</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">—</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$588.80</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#7c2d12;color:#fb923c;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">📤 ENVIADA</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#fef9f0;border-left:3px solid #ea580c;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609425</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920132632</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/26/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">PENSKE 24 7 ROADSIDE</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">—</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$163.92</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#7c2d12;color:#fb923c;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">📤 ENVIADA</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">—</td>
+    </tr>
+    <tr style="background:#fffbf5;border-left:3px solid #ea580c;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609426</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920132684</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/26/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">THE GREAT TASTE OF TEXAS</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">JHON</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$107.80</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#7c2d12;color:#fb923c;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">📤 ENVIADA</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#fef9f0;border-left:3px solid #ea580c;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609427</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920132703</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/26/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">GULF WINDS INTERNATIONAL</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">LUIS</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$170.00</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#7c2d12;color:#fb923c;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">📤 ENVIADA</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#fffbf5;border-left:3px solid #ea580c;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609428</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920132837</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/26/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">ODESSA CASH ACCOUNT</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">—</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$365.00</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#7c2d12;color:#fb923c;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">📤 ENVIADA</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#fef9f0;border-left:3px solid #ea580c;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609429</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920132693</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/27/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">NELSON WHOLESALE SERVICE</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">LUIS</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$420.20</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#7c2d12;color:#fb923c;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">📤 ENVIADA</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#fffbf5;border-left:3px solid #ea580c;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609430</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920132716</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/27/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">SALEM LEASING CORP</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">—</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$149.00</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#7c2d12;color:#fb923c;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">📤 ENVIADA</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#fef9f0;border-left:3px solid #ea580c;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609431</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920132695</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/27/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">SMYRNA READY MIX CONCRETE LLC</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">JHON</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$102.20</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#7c2d12;color:#fb923c;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">📤 ENVIADA</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#fffbf5;border-left:3px solid #ea580c;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609432</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920132718</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/27/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">ANDERSON TRUCKING SERVICE INC</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">—</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$296.00</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#7c2d12;color:#fb923c;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">📤 ENVIADA</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#fef9f0;border-left:3px solid #ea580c;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609434</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920132719</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/27/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">COCA COLA SW BEVERAGES LLC TCL</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">JHON</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$119.00</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#7c2d12;color:#fb923c;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">📤 ENVIADA</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#fffbf5;border-left:3px solid #ea580c;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609435</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920132720</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/27/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">COCA COLA SW BEVERAGES LLC TCL</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">JHON</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$119.00</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#7c2d12;color:#fb923c;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">📤 ENVIADA</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#fef9f0;border-left:3px solid #ea580c;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609433</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920132728</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/28/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">ABILENE CASH ACCOUNT</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">LUIS</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$197.00</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#7c2d12;color:#fb923c;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">📤 ENVIADA</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#fffbf5;border-left:3px solid #ea580c;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609436</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920132722</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/28/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">KIEWIT INFRASTRUCTURE S.</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">JHON</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$194.00</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#7c2d12;color:#fb923c;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">📤 ENVIADA</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#fef9f0;border-left:3px solid #ea580c;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609437</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920132724</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/28/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">KIEWIT INFRASTRUCTURE S.</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">JHON</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$182.00</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#7c2d12;color:#fb923c;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">📤 ENVIADA</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#fffbf5;border-left:3px solid #ea580c;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609438</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920132725</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/28/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">PENSKE 24 7 ROADSIDE</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">JHON</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$198.14</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#7c2d12;color:#fb923c;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">📤 ENVIADA</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#fef9f0;border-left:3px solid #ea580c;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609439</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920132726</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/28/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">RED DIAMOND ENERGY SRVS</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">JHON</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$482.00</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#7c2d12;color:#fb923c;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">📤 ENVIADA</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#fffbf5;border-left:3px solid #ea580c;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609443</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920132979</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/28/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">ARI</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">JHON</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$230.00</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#7c2d12;color:#fb923c;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">📤 ENVIADA</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#fef9f0;border-left:3px solid #ea580c;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609440</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920132857</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/29/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">R & L CARRIERS INC</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">LUIS</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$173.00</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#7c2d12;color:#fb923c;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">📤 ENVIADA</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#fffbf5;border-left:3px solid #ea580c;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609441</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920132858</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/30/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">TFORCE FREIGHT INC</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">LUIS</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$170.00</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#7c2d12;color:#fb923c;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">📤 ENVIADA</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#fef9f0;border-left:3px solid #ea580c;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609442</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920132859</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/30/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">WARREN CAT</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">LUIS</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$176.00</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#7c2d12;color:#fb923c;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">📤 ENVIADA</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#fffbf5;border-left:3px solid #ea580c;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609443</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920132955</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/30/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">SMYRNA READY MIX CONCRETE LLC</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">LUIS</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$372.20</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#7c2d12;color:#fb923c;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">📤 ENVIADA</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#fef9f0;border-left:3px solid #ea580c;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609444</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920132963</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/30/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">SMYRNA READY MIX CONCRETE LLC</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">LUIS</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$215.00</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#7c2d12;color:#fb923c;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">📤 ENVIADA</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#fffbf5;border-left:3px solid #ea580c;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609445</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920132970</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">06/30/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">DECKER LEASING CO</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">LUIS</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$260.96</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#7c2d12;color:#fb923c;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">📤 ENVIADA</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#f8fafc;border-left:3px solid #e2e8f0;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609446</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920133018</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">07/01/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">VAN EATON READY MIX INC</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">JHON</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$0.00</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#f1f5f9;color:#64748b;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">○ PENDIENTE</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#ffffff;border-left:3px solid #e2e8f0;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609447</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920133049</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">07/01/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">SMYRNA READY MIX CONCRETE LLC</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">JHON</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$0.00</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#f1f5f9;color:#64748b;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">○ PENDIENTE</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#f8fafc;border-left:3px solid #e2e8f0;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609448</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920133058</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">07/01/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">SMYRNA READY MIX CONCRETE LLC</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">JHON</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$0.00</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#f1f5f9;color:#64748b;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">○ PENDIENTE</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#ffffff;border-left:3px solid #e2e8f0;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609449</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920133059</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">07/01/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">MOFFITT HOLDINGS LLC</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">LUIS</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$0.00</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#f1f5f9;color:#64748b;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">○ PENDIENTE</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+    <tr style="background:#f8fafc;border-left:3px solid #e2e8f0;">
+      <td style="padding:11px 14px;font-weight:700;color:#1e293b;font-size:13px;">202609450</td>
+      <td style="padding:11px 14px;color:#6366f1;font-size:12px;font-weight:600;">4920133061</td>
+      <td style="padding:11px 14px;color:#475569;font-size:12px;">07/01/2026</td>
+      <td style="padding:11px 14px;font-weight:600;color:#1e293b;font-size:12px;">TRUCK CORE II LLC</td>
+      <td style="padding:11px 14px;text-align:center;font-size:12px;color:#64748b;">LUIS</td>
+      <td style="padding:11px 14px;text-align:right;font-weight:900;color:#dc2626;font-size:14px;">$0.00</td>
+      <td style="padding:11px 14px;text-align:center;"><span style="background:#f1f5f9;color:#64748b;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;">○ PENDIENTE</span></td>
+      <td style="padding:11px 14px;text-align:center;font-size:11px;color:#94a3b8;">Wex</td>
+    </tr>
+      <tr class="total-row">
+        <td colspan="5">TOTAL POR COBRAR — 70 facturas</td>
+        <td style="text-align:right;">$14,264.36</td>
+        <td colspan="2"></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="footer">Supreme AutoPro LLC — Reporte Confidencial — 07/02/2026</div>
+
+</body>
+</html>
