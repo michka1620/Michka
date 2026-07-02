@@ -983,9 +983,15 @@ function showPage(id) {
 function generateInvoiceNumber() {
   const inv = getInvoices();
   if (!inv.length) return '202609500';
-  // Only consider Order# values in 202609XXX format (9 digits starting with 2026)
   const orderNums = inv.map(i => parseInt(i.number) || 0).filter(n => n > 202600000 && n < 210000000);
   if (!orderNums.length) return '202609500';
+  return String(Math.max(...orderNums) + 1);
+}
+
+function getNextOrderNum() {
+  const inv = getInvoices();
+  const orderNums = inv.map(i => parseInt(i.wo) || 0).filter(n => n > 202600000 && n < 210000000);
+  if (!orderNums.length) return '';
   return String(Math.max(...orderNums) + 1);
 }
 
@@ -3087,6 +3093,7 @@ function fillNewInvoice() {
     document.getElementById('t-material').textContent='$0.00';
     document.getElementById('t-total').textContent='$0.00';
     document.getElementById('inv-number').value = generateInvoiceNumber();
+    document.getElementById('inv-wo').value = getNextOrderNum();
     document.getElementById('inv-date').value = new Date().toISOString().split('T')[0];
     addExpenseRow(); addExpenseRow(); addExpenseRow();
     return;
@@ -3094,7 +3101,7 @@ function fillNewInvoice() {
   const d = PREFILL_DATA;
   // Dispatch
   document.getElementById('inv-number').value  = d.number;
-  document.getElementById('inv-wo').value       = d.wo;
+  document.getElementById('inv-wo').value       = d.wo || getNextOrderNum();
   document.getElementById('inv-date').value     = d.date;
   document.getElementById('inv-status').value   = d.status;
   document.getElementById('inv-payment').value  = d.payment;
