@@ -647,46 +647,42 @@
 <!-- ===================== MONTHLY PAGE ===================== -->
 <div id="monthly" class="page">
 
-  <!-- Stats bar -->
-  <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px;">
-    <div style="flex:1;min-width:140px;background:#0d1117;border:1px solid #1e293b;border-radius:10px;padding:16px;text-align:center;">
-      <div style="font-size:10px;color:#64748b;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;">Total Invoices</div>
-      <div id="mf-count" style="font-size:28px;font-weight:900;color:#e2e8f0;">—</div>
+  <!-- Top KPI cards -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:24px;">
+    <div style="background:#0d1117;border:1px solid #1e293b;border-radius:12px;padding:18px 20px;">
+      <div style="font-size:10px;color:#64748b;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">Total Facturas</div>
+      <div id="mf-count" style="font-size:32px;font-weight:900;color:#e2e8f0;line-height:1;">—</div>
     </div>
-    <div style="flex:1;min-width:140px;background:#0d1117;border:1px solid #1e293b;border-radius:10px;padding:16px;text-align:center;">
-      <div style="font-size:10px;color:#64748b;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;">Total Generated</div>
-      <div id="mf-gen" style="font-size:22px;font-weight:900;color:#a5b4fc;">—</div>
+    <div style="background:#0d1117;border:1px solid #312e81;border-radius:12px;padding:18px 20px;">
+      <div style="font-size:10px;color:#818cf8;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">Total Generado</div>
+      <div id="mf-gen" style="font-size:24px;font-weight:900;color:#a5b4fc;line-height:1;">—</div>
     </div>
-    <div style="flex:1;min-width:140px;background:#0d1117;border:1px solid #1e293b;border-radius:10px;padding:16px;text-align:center;">
-      <div style="font-size:10px;color:#64748b;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;">Collected (PAID)</div>
-      <div id="mf-paid" style="font-size:22px;font-weight:900;color:#4ade80;">—</div>
+    <div style="background:#0d1117;border:1px solid #14532d;border-radius:12px;padding:18px 20px;">
+      <div style="font-size:10px;color:#4ade80;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">Cobrado</div>
+      <div id="mf-paid" style="font-size:24px;font-weight:900;color:#4ade80;line-height:1;">—</div>
     </div>
-    <div style="flex:1;min-width:140px;background:#0d1117;border:1px solid #1e293b;border-radius:10px;padding:16px;text-align:center;">
-      <div style="font-size:10px;color:#64748b;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;">Pending</div>
-      <div id="mf-pending" style="font-size:22px;font-weight:900;color:#fbbf24;">—</div>
-    </div>
-    <div style="flex:1;min-width:140px;background:#0d1117;border:1px solid #1e293b;border-radius:10px;padding:16px;text-align:center;">
-      <div style="font-size:10px;color:#64748b;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;">Hours</div>
-      <div id="mf-hours" style="font-size:22px;font-weight:900;color:#94a3b8;">—</div>
+    <div style="background:#0d1117;border:1px solid #78350f;border-radius:12px;padding:18px 20px;">
+      <div style="font-size:10px;color:#fbbf24;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">Pendiente</div>
+      <div id="mf-pending" style="font-size:24px;font-weight:900;color:#fbbf24;line-height:1;">—</div>
     </div>
   </div>
 
-  <!-- Monthly table -->
-  <div style="background:#0d1117;border:1px solid #1e293b;border-radius:12px;overflow:hidden;margin-bottom:20px;">
-    <div style="padding:16px 20px;border-bottom:1px solid #1e293b;display:flex;align-items:center;gap:10px;">
-      <span style="font-size:16px;">📅</span>
-      <span style="font-weight:800;font-size:14px;letter-spacing:1px;color:#e2e8f0;">MONTHLY SUMMARY 2026</span>
+  <!-- Main monthly table — clean like the spreadsheet -->
+  <div style="background:#0d1117;border:1px solid #1e293b;border-radius:14px;overflow:hidden;margin-bottom:24px;">
+    <div style="padding:16px 22px;border-bottom:1px solid #1e293b;display:flex;align-items:center;justify-content:space-between;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size:18px;">📅</span>
+        <span style="font-weight:900;font-size:15px;letter-spacing:1px;color:#e2e8f0;">INGRESO POR MES — 2026</span>
+      </div>
+      <div id="mf-hours" style="font-size:12px;color:#475569;"></div>
     </div>
     <table style="width:100%;border-collapse:collapse;">
       <thead>
         <tr style="background:#111827;">
-          <th style="text-align:left;padding:12px 16px;font-size:10px;color:#64748b;letter-spacing:2px;text-transform:uppercase;font-weight:700;">MONTH</th>
-          <th style="text-align:center;padding:12px 8px;font-size:10px;color:#64748b;letter-spacing:2px;text-transform:uppercase;font-weight:700;">INV</th>
-          <th style="text-align:right;padding:12px 16px;font-size:10px;color:#64748b;letter-spacing:2px;text-transform:uppercase;font-weight:700;">GENERATED</th>
-          <th style="text-align:right;padding:12px 16px;font-size:10px;color:#4ade80;letter-spacing:2px;text-transform:uppercase;font-weight:700;">COLLECTED</th>
-          <th style="text-align:right;padding:12px 16px;font-size:10px;color:#fbbf24;letter-spacing:2px;text-transform:uppercase;font-weight:700;">PENDING</th>
-          <th style="text-align:center;padding:12px 8px;font-size:10px;color:#64748b;letter-spacing:2px;text-transform:uppercase;font-weight:700;">TIRES</th>
-          <th style="text-align:center;padding:12px 8px;font-size:10px;color:#64748b;letter-spacing:2px;text-transform:uppercase;font-weight:700;">HRS</th>
+          <th style="text-align:left;padding:13px 22px;font-size:11px;color:#475569;letter-spacing:2px;text-transform:uppercase;font-weight:700;width:40%;">MES</th>
+          <th style="text-align:center;padding:13px 14px;font-size:11px;color:#475569;letter-spacing:2px;text-transform:uppercase;font-weight:700;width:10%;">#</th>
+          <th style="text-align:right;padding:13px 22px;font-size:11px;color:#818cf8;letter-spacing:2px;text-transform:uppercase;font-weight:700;width:25%;">Total ingreso</th>
+          <th style="text-align:right;padding:13px 22px;font-size:11px;color:#4ade80;letter-spacing:2px;text-transform:uppercase;font-weight:700;width:25%;">Cobrado</th>
         </tr>
       </thead>
       <tbody id="monthly-body"></tbody>
@@ -694,12 +690,12 @@
   </div>
 
   <!-- Top Clients -->
-  <div style="background:#0d1117;border:1px solid #1e293b;border-radius:12px;overflow:hidden;">
-    <div style="padding:16px 20px;border-bottom:1px solid #1e293b;display:flex;align-items:center;gap:10px;">
-      <span style="font-size:16px;">🏆</span>
-      <span style="font-weight:800;font-size:14px;letter-spacing:1px;color:#e2e8f0;">TOP CLIENTS BY REVENUE</span>
+  <div style="background:#0d1117;border:1px solid #1e293b;border-radius:14px;overflow:hidden;">
+    <div style="padding:16px 22px;border-bottom:1px solid #1e293b;display:flex;align-items:center;gap:10px;">
+      <span style="font-size:18px;">🏆</span>
+      <span style="font-weight:900;font-size:15px;letter-spacing:1px;color:#e2e8f0;">TOP CLIENTES POR INGRESOS</span>
     </div>
-    <div id="top-clients" style="padding:16px 20px;"></div>
+    <div id="top-clients" style="padding:16px 22px;"></div>
   </div>
 
 </div>
@@ -2021,96 +2017,106 @@ function delInv(num) {
 // ===== MONTHLY =====
 function renderMonthly() {
   var invs = getInvoices();
-  var MN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var MN = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
   var ALL = ['2026-01','2026-02','2026-03','2026-04','2026-05','2026-06','2026-07','2026-08','2026-09','2026-10','2026-11','2026-12'];
   var m = {};
-  ALL.forEach(function(k){ m[k]={count:0,gen:0,paid:0,pend:0,hours:0,tires:0}; });
+  ALL.forEach(function(k){ m[k]={count:0,gen:0,paid:0,pend:0}; });
   invs.forEach(function(inv){
     var k = inv.date ? inv.date.substring(0,7) : null;
     if(!k||!m[k]) return;
     var t = parseFloat(inv.total)||0;
     m[k].count++;
     m[k].gen += t;
-    if(inv.status==='PAID')    m[k].paid += t;
-    if(inv.status==='PENDING') m[k].pend += t;
-    m[k].hours += parseFloat((inv.tech&&inv.tech.hours))||0;
-    m[k].tires += (inv.tirePositions||[]).length;
+    if(inv.status==='PAID' || inv.sentState===2) m[k].paid += t;
+    else m[k].pend += t;
   });
-  var fmt = function(n){ return '$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); };
+  var fmt = function(n){ return n>0?'$ '+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'$ —'; };
   var maxGen = 1;
   ALL.forEach(function(k){ if(m[k].gen>maxGen) maxGen=m[k].gen; });
-  var tc=0,tg=0,tp=0,tpd=0,th=0;
+  var tc=0,tg=0,tp=0,tpd=0;
   var rows = '';
   ALL.forEach(function(k,i){
     var d=m[k];
-    tc+=d.count; tg+=d.gen; tp+=d.paid; tpd+=d.pend; th+=d.hours;
-    var pct = d.gen>0 ? (d.gen/maxGen*100).toFixed(1) : 0;
-    var paidPct = d.gen>0 ? Math.round(d.paid/d.gen*100) : 0;
-    var pendCount = invs.filter(function(x){ return (x.date||'').startsWith(k)&&x.status==='PENDING'; }).length;
-    var rowBg = (i%2===0) ? '#0d1117' : '#0a0f1a';
-    if(!d.count){
-      rows += '<tr><td colspan="7" style="padding:12px 16px;text-align:center;color:#374151;font-size:11px;border-bottom:1px solid #111827;">'+MN[i]+' 2026 — no invoices</td></tr>';
-      return;
-    }
-    var pendCell = d.pend>0
-      ? '<div style="font-weight:800;color:#fbbf24;font-size:14px;">'+fmt(d.pend)+'</div><div style="font-size:10px;color:#92400e;margin-top:2px;">'+pendCount+' facturas</div>'
-      : '<span style="color:#374151;">&#8212;</span>';
-    var tiresCell = d.tires>0
-      ? '<div style="font-weight:700;color:#94a3b8;font-size:13px;">'+d.tires+'</div><div style="font-size:10px;">&#x1F6DE;</div>'
-      : '<span style="color:#374151;">&#8212;</span>';
+    tc+=d.count; tg+=d.gen; tp+=d.paid; tpd+=d.pend;
+    var hasData = d.count>0;
+    var barPct = d.gen>0 ? (d.gen/maxGen*100).toFixed(1) : 0;
+    var rowBg = hasData ? (i%2===0?'#0d1117':'#0a0e17') : '#080b11';
+    var monthLabel = MN[i]+' 2026';
     rows += '<tr style="background:'+rowBg+';border-bottom:1px solid #111827;">'
-      +'<td style="padding:14px 16px;">'
-        +'<div style="font-weight:800;font-size:13px;color:#e2e8f0;">'+MN[i]+'</div>'
-        +'<div style="font-size:10px;color:#475569;margin-top:2px;">2026</div>'
+      +'<td style="padding:16px 22px;">'
+        +(hasData
+          ? '<div style="font-weight:800;font-size:14px;color:#e2e8f0;">'+monthLabel+'</div>'
+            +'<div style="background:#1e293b;border-radius:3px;height:3px;margin-top:8px;width:100%;">'
+              +'<div style="background:linear-gradient(90deg,#6366f1,#8b5cf6);height:3px;width:'+barPct+'%;border-radius:3px;transition:width 0.4s;"></div>'
+            +'</div>'
+          : '<div style="font-size:13px;color:#374151;">'+monthLabel+'</div>')
       +'</td>'
-      +'<td style="text-align:center;padding:14px 8px;">'
-        +'<span style="background:#1e293b;color:#94a3b8;font-weight:700;font-size:12px;padding:3px 10px;border-radius:20px;">'+d.count+'</span>'
+      +'<td style="text-align:center;padding:16px 14px;">'
+        +(hasData
+          ? '<span style="background:#1e293b;color:#94a3b8;font-weight:800;font-size:13px;padding:4px 12px;border-radius:20px;">'+d.count+'</span>'
+          : '<span style="color:#1f2937;">—</span>')
       +'</td>'
-      +'<td style="text-align:right;padding:14px 16px;">'
-        +'<div style="font-weight:800;color:#a5b4fc;font-size:14px;">'+fmt(d.gen)+'</div>'
-        +'<div style="background:#1e293b;border-radius:3px;height:4px;margin-top:6px;">'
-          +'<div style="background:linear-gradient(90deg,#667eea,#764ba2);height:4px;width:'+pct+'%;border-radius:3px;"></div>'
-        +'</div>'
+      +'<td style="text-align:right;padding:16px 22px;">'
+        +(hasData
+          ? '<span style="font-weight:900;font-size:16px;color:#a5b4fc;">'+fmt(d.gen)+'</span>'
+          : '<span style="color:#1f2937;font-size:14px;">$ —</span>')
       +'</td>'
-      +'<td style="text-align:right;padding:14px 16px;">'
-        +'<div style="font-weight:800;color:#4ade80;font-size:14px;">'+(d.paid>0?fmt(d.paid):'&#8212;')+'</div>'
-        +(d.paid>0?'<div style="font-size:10px;color:#166534;margin-top:2px;">'+paidPct+'% cobrado</div>':'')
+      +'<td style="text-align:right;padding:16px 22px;">'
+        +(d.paid>0
+          ? '<span style="font-weight:900;font-size:16px;color:#4ade80;">'+fmt(d.paid)+'</span>'
+          : '<span style="color:#1f2937;font-size:14px;">$ —</span>')
       +'</td>'
-      +'<td style="text-align:right;padding:14px 16px;">'+pendCell+'</td>'
-      +'<td style="text-align:center;padding:14px 8px;">'+tiresCell+'</td>'
-      +'<td style="text-align:center;padding:14px 8px;color:#64748b;font-size:12px;">'+(d.hours>0?d.hours.toFixed(1)+'h':'&#8212;')+'</td>'
       +'</tr>';
   });
+  // Totals row
+  rows += '<tr style="background:#111827;border-top:2px solid #312e81;">'
+    +'<td style="padding:14px 22px;font-size:11px;color:#6366f1;font-weight:900;letter-spacing:2px;text-transform:uppercase;">TOTAL 2026</td>'
+    +'<td style="text-align:center;padding:14px 14px;font-weight:900;color:#94a3b8;font-size:14px;">'+tc+'</td>'
+    +'<td style="text-align:right;padding:14px 22px;font-weight:900;font-size:17px;color:#a5b4fc;">'+fmt(tg)+'</td>'
+    +'<td style="text-align:right;padding:14px 22px;font-weight:900;font-size:17px;color:#4ade80;">'+fmt(tp)+'</td>'
+    +'</tr>';
   document.getElementById('monthly-body').innerHTML = rows;
   document.getElementById('mf-count').textContent   = tc;
   document.getElementById('mf-gen').textContent     = fmt(tg);
   document.getElementById('mf-paid').textContent    = fmt(tp);
-  document.getElementById('mf-pending').textContent = tpd>0?fmt(tpd):'—';
-  document.getElementById('mf-hours').textContent   = th>0?th.toFixed(1)+' h':'—';
+  document.getElementById('mf-pending').textContent = tpd>0?fmt(tpd):'$ —';
+  document.getElementById('mf-hours').innerHTML     = '';
 
   // Top clients
   var cli={};
   invs.forEach(function(inv){
     var c=(inv.client&&inv.client.company)||'Unknown';
-    if(!cli[c]) cli[c]={t:0,n:0};
-    cli[c].t+=parseFloat(inv.total)||0;
-    cli[c].n++;
+    if(!cli[c]) cli[c]={t:0,n:0,paid:0};
+    var t=parseFloat(inv.total)||0;
+    cli[c].t+=t; cli[c].n++;
+    if(inv.status==='PAID'||inv.sentState===2) cli[c].paid+=t;
   });
   var sorted=Object.entries(cli).sort(function(a,b){return b[1].t-a[1].t;}).slice(0,10);
   var mx=sorted[0]?sorted[0][1].t:1;
-  var cliHtml='';
-  sorted.forEach(function(entry){
+  var cliHtml='<table style="width:100%;border-collapse:collapse;">';
+  cliHtml+='<tr style="border-bottom:1px solid #1e293b;">'
+    +'<th style="text-align:left;padding:8px 0;font-size:10px;color:#475569;letter-spacing:2px;text-transform:uppercase;font-weight:700;">Cliente</th>'
+    +'<th style="text-align:center;padding:8px 0;font-size:10px;color:#475569;letter-spacing:2px;text-transform:uppercase;font-weight:700;width:40px;">Inv</th>'
+    +'<th style="text-align:right;padding:8px 0;font-size:10px;color:#818cf8;letter-spacing:2px;text-transform:uppercase;font-weight:700;width:130px;">Total</th>'
+    +'<th style="text-align:right;padding:8px 0;font-size:10px;color:#4ade80;letter-spacing:2px;text-transform:uppercase;font-weight:700;width:130px;">Cobrado</th>'
+    +'</tr>';
+  sorted.forEach(function(entry,idx){
     var name=entry[0]; var d=entry[1];
     var barW=(d.t/mx*100).toFixed(1);
-    cliHtml+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;padding:8px 0;border-bottom:1px solid #1e293b;">'
-      +'<div style="width:200px;font-size:12px;font-weight:700;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;color:#e2e8f0;">'+name+'</div>'
-      +'<div style="flex:1;background:#1e293b;border-radius:4px;height:8px;">'
-        +'<div style="background:linear-gradient(90deg,#667eea,#764ba2);height:8px;width:'+barW+'%;border-radius:4px;"></div>'
-      +'</div>'
-      +'<div style="width:110px;text-align:right;font-size:12px;color:#4ade80;font-weight:700;">'+fmt(d.t)+'</div>'
-      +'<div style="width:45px;text-align:right;font-size:11px;color:#6b7280;">'+d.n+' inv</div>'
-      +'</div>';
+    var rowBg=idx%2===0?'transparent':'#0a0e17';
+    cliHtml+='<tr style="background:'+rowBg+';border-bottom:1px solid #0f172a;">'
+      +'<td style="padding:13px 0;">'
+        +'<div style="font-size:13px;font-weight:700;color:#e2e8f0;margin-bottom:5px;">'+name+'</div>'
+        +'<div style="background:#1e293b;border-radius:3px;height:3px;width:100%;">'
+          +'<div style="background:linear-gradient(90deg,#6366f1,#8b5cf6);height:3px;width:'+barW+'%;border-radius:3px;"></div>'
+        +'</div>'
+      +'</td>'
+      +'<td style="text-align:center;padding:13px 8px;color:#6b7280;font-size:12px;font-weight:700;">'+d.n+'</td>'
+      +'<td style="text-align:right;padding:13px 0;font-size:14px;font-weight:900;color:#a5b4fc;">'+fmt(d.t)+'</td>'
+      +'<td style="text-align:right;padding:13px 0;font-size:14px;font-weight:900;color:'+(d.paid>0?'#4ade80':'#374151')+';">'+(d.paid>0?fmt(d.paid):'$ —')+'</td>'
+      +'</tr>';
   });
+  cliHtml+='</table>';
   document.getElementById('top-clients').innerHTML = cliHtml;
 }
 
