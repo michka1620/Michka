@@ -645,44 +645,44 @@
 </div>
 
 <!-- ===================== MONTHLY PAGE ===================== -->
-<div id="monthly" class="page">
+<div id="monthly" class="page" style="background:#f1f5f9;min-height:100vh;padding:20px;">
 
   <!-- Top KPI cards -->
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:24px;">
-    <div style="background:#0d1117;border:1px solid #1e293b;border-radius:12px;padding:18px 20px;">
-      <div style="font-size:10px;color:#64748b;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">Total Facturas</div>
-      <div id="mf-count" style="font-size:32px;font-weight:900;color:#e2e8f0;line-height:1;">—</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:24px;">
+    <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:18px 20px;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+      <div style="font-size:10px;color:#94a3b8;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">Total Facturas</div>
+      <div id="mf-count" style="font-size:32px;font-weight:900;color:#1e293b;line-height:1;">—</div>
     </div>
-    <div style="background:#0d1117;border:1px solid #312e81;border-radius:12px;padding:18px 20px;">
-      <div style="font-size:10px;color:#818cf8;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">Total Generado</div>
-      <div id="mf-gen" style="font-size:24px;font-weight:900;color:#a5b4fc;line-height:1;">—</div>
+    <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:18px 20px;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+      <div style="font-size:10px;color:#6366f1;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">Total Generado</div>
+      <div id="mf-gen" style="font-size:22px;font-weight:900;color:#4338ca;line-height:1;">—</div>
     </div>
-    <div style="background:#0d1117;border:1px solid #14532d;border-radius:12px;padding:18px 20px;">
-      <div style="font-size:10px;color:#4ade80;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">Cobrado</div>
-      <div id="mf-paid" style="font-size:24px;font-weight:900;color:#4ade80;line-height:1;">—</div>
+    <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:18px 20px;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+      <div style="font-size:10px;color:#16a34a;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">Cobrado</div>
+      <div id="mf-paid" style="font-size:22px;font-weight:900;color:#15803d;line-height:1;">—</div>
     </div>
-    <div style="background:#0d1117;border:1px solid #78350f;border-radius:12px;padding:18px 20px;">
-      <div style="font-size:10px;color:#fbbf24;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">Pendiente</div>
-      <div id="mf-pending" style="font-size:24px;font-weight:900;color:#fbbf24;line-height:1;">—</div>
+    <div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:18px 20px;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+      <div style="font-size:10px;color:#d97706;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">Pendiente</div>
+      <div id="mf-pending" style="font-size:22px;font-weight:900;color:#b45309;line-height:1;">—</div>
     </div>
   </div>
 
-  <!-- Main monthly table — clean like the spreadsheet -->
-  <div style="background:#0d1117;border:1px solid #1e293b;border-radius:14px;overflow:hidden;margin-bottom:24px;">
-    <div style="padding:16px 22px;border-bottom:1px solid #1e293b;display:flex;align-items:center;justify-content:space-between;">
+  <!-- Main monthly table -->
+  <div style="background:#fff;border:1px solid #e2e8f0;border-radius:14px;overflow:hidden;margin-bottom:24px;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+    <div style="padding:16px 22px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;background:#fff;">
       <div style="display:flex;align-items:center;gap:10px;">
         <span style="font-size:18px;">📅</span>
-        <span style="font-weight:900;font-size:15px;letter-spacing:1px;color:#e2e8f0;">INGRESO POR MES — 2026</span>
+        <span style="font-weight:900;font-size:15px;letter-spacing:1px;color:#1e293b;">INGRESO POR MES — 2026</span>
       </div>
-      <div id="mf-hours" style="font-size:12px;color:#475569;"></div>
+      <div id="mf-hours" style="font-size:12px;color:#94a3b8;"></div>
     </div>
     <table style="width:100%;border-collapse:collapse;">
       <thead>
-        <tr style="background:#111827;">
-          <th style="text-align:left;padding:13px 22px;font-size:11px;color:#475569;letter-spacing:2px;text-transform:uppercase;font-weight:700;width:40%;">MES</th>
-          <th style="text-align:center;padding:13px 14px;font-size:11px;color:#475569;letter-spacing:2px;text-transform:uppercase;font-weight:700;width:10%;">#</th>
-          <th style="text-align:right;padding:13px 22px;font-size:11px;color:#818cf8;letter-spacing:2px;text-transform:uppercase;font-weight:700;width:25%;">Total ingreso</th>
-          <th style="text-align:right;padding:13px 22px;font-size:11px;color:#4ade80;letter-spacing:2px;text-transform:uppercase;font-weight:700;width:25%;">Cobrado</th>
+        <tr style="background:#f8fafc;">
+          <th style="text-align:left;padding:13px 22px;font-size:11px;color:#64748b;letter-spacing:2px;text-transform:uppercase;font-weight:700;border-bottom:2px solid #e2e8f0;width:35%;">MES</th>
+          <th style="text-align:center;padding:13px 14px;font-size:11px;color:#64748b;letter-spacing:2px;text-transform:uppercase;font-weight:700;border-bottom:2px solid #e2e8f0;width:10%;">#</th>
+          <th style="text-align:right;padding:13px 22px;font-size:11px;color:#4338ca;letter-spacing:2px;text-transform:uppercase;font-weight:700;border-bottom:2px solid #e2e8f0;width:27%;">Total ingreso por mes</th>
+          <th style="text-align:right;padding:13px 22px;font-size:11px;color:#15803d;letter-spacing:2px;text-transform:uppercase;font-weight:700;border-bottom:2px solid #e2e8f0;width:27%;">Cobrado</th>
         </tr>
       </thead>
       <tbody id="monthly-body"></tbody>
@@ -690,10 +690,10 @@
   </div>
 
   <!-- Top Clients -->
-  <div style="background:#0d1117;border:1px solid #1e293b;border-radius:14px;overflow:hidden;">
-    <div style="padding:16px 22px;border-bottom:1px solid #1e293b;display:flex;align-items:center;gap:10px;">
+  <div style="background:#fff;border:1px solid #e2e8f0;border-radius:14px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+    <div style="padding:16px 22px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;gap:10px;background:#fff;">
       <span style="font-size:18px;">🏆</span>
-      <span style="font-weight:900;font-size:15px;letter-spacing:1px;color:#e2e8f0;">TOP CLIENTES POR INGRESOS</span>
+      <span style="font-weight:900;font-size:15px;letter-spacing:1px;color:#1e293b;">TOP CLIENTES POR INGRESOS</span>
     </div>
     <div id="top-clients" style="padding:16px 22px;"></div>
   </div>
@@ -2040,40 +2040,40 @@ function renderMonthly() {
     tc+=d.count; tg+=d.gen; tp+=d.paid; tpd+=d.pend;
     var hasData = d.count>0;
     var barPct = d.gen>0 ? (d.gen/maxGen*100).toFixed(1) : 0;
-    var rowBg = hasData ? (i%2===0?'#0d1117':'#0a0e17') : '#080b11';
+    var rowBg = hasData ? (i%2===0?'#ffffff':'#f8fafc') : '#fafafa';
     var monthLabel = MN[i]+' 2026';
-    rows += '<tr style="background:'+rowBg+';border-bottom:1px solid #111827;">'
-      +'<td style="padding:16px 22px;">'
+    rows += '<tr style="background:'+rowBg+';border-bottom:1px solid #e2e8f0;">'
+      +'<td style="padding:15px 22px;">'
         +(hasData
-          ? '<div style="font-weight:800;font-size:14px;color:#e2e8f0;">'+monthLabel+'</div>'
-            +'<div style="background:#1e293b;border-radius:3px;height:3px;margin-top:8px;width:100%;">'
-              +'<div style="background:linear-gradient(90deg,#6366f1,#8b5cf6);height:3px;width:'+barPct+'%;border-radius:3px;transition:width 0.4s;"></div>'
+          ? '<div style="font-weight:700;font-size:14px;color:#1e293b;">'+monthLabel+'</div>'
+            +'<div style="background:#e2e8f0;border-radius:3px;height:3px;margin-top:7px;width:100%;">'
+              +'<div style="background:linear-gradient(90deg,#6366f1,#818cf8);height:3px;width:'+barPct+'%;border-radius:3px;transition:width 0.4s;"></div>'
             +'</div>'
-          : '<div style="font-size:13px;color:#374151;">'+monthLabel+'</div>')
+          : '<div style="font-size:13px;color:#cbd5e1;">'+monthLabel+'</div>')
       +'</td>'
-      +'<td style="text-align:center;padding:16px 14px;">'
+      +'<td style="text-align:center;padding:15px 14px;">'
         +(hasData
-          ? '<span style="background:#1e293b;color:#94a3b8;font-weight:800;font-size:13px;padding:4px 12px;border-radius:20px;">'+d.count+'</span>'
-          : '<span style="color:#1f2937;">—</span>')
+          ? '<span style="background:#f1f5f9;color:#64748b;font-weight:800;font-size:13px;padding:4px 12px;border-radius:20px;border:1px solid #e2e8f0;">'+d.count+'</span>'
+          : '<span style="color:#e2e8f0;">—</span>')
       +'</td>'
-      +'<td style="text-align:right;padding:16px 22px;">'
+      +'<td style="text-align:right;padding:15px 22px;">'
         +(hasData
-          ? '<span style="font-weight:900;font-size:16px;color:#a5b4fc;">'+fmt(d.gen)+'</span>'
-          : '<span style="color:#1f2937;font-size:14px;">$ —</span>')
+          ? '<span style="font-weight:900;font-size:16px;color:#4338ca;">'+fmt(d.gen)+'</span>'
+          : '<span style="color:#cbd5e1;font-size:14px;">$ -</span>')
       +'</td>'
-      +'<td style="text-align:right;padding:16px 22px;">'
+      +'<td style="text-align:right;padding:15px 22px;">'
         +(d.paid>0
-          ? '<span style="font-weight:900;font-size:16px;color:#4ade80;">'+fmt(d.paid)+'</span>'
-          : '<span style="color:#1f2937;font-size:14px;">$ —</span>')
+          ? '<span style="font-weight:900;font-size:16px;color:#15803d;">'+fmt(d.paid)+'</span>'
+          : '<span style="color:#cbd5e1;font-size:14px;">$ -</span>')
       +'</td>'
       +'</tr>';
   });
   // Totals row
-  rows += '<tr style="background:#111827;border-top:2px solid #312e81;">'
-    +'<td style="padding:14px 22px;font-size:11px;color:#6366f1;font-weight:900;letter-spacing:2px;text-transform:uppercase;">TOTAL 2026</td>'
-    +'<td style="text-align:center;padding:14px 14px;font-weight:900;color:#94a3b8;font-size:14px;">'+tc+'</td>'
-    +'<td style="text-align:right;padding:14px 22px;font-weight:900;font-size:17px;color:#a5b4fc;">'+fmt(tg)+'</td>'
-    +'<td style="text-align:right;padding:14px 22px;font-weight:900;font-size:17px;color:#4ade80;">'+fmt(tp)+'</td>'
+  rows += '<tr style="background:#f1f5f9;border-top:2px solid #6366f1;">'
+    +'<td style="padding:14px 22px;font-size:11px;color:#4338ca;font-weight:900;letter-spacing:2px;text-transform:uppercase;">TOTAL 2026</td>'
+    +'<td style="text-align:center;padding:14px 14px;font-weight:900;color:#64748b;font-size:14px;">'+tc+'</td>'
+    +'<td style="text-align:right;padding:14px 22px;font-weight:900;font-size:17px;color:#4338ca;">'+fmt(tg)+'</td>'
+    +'<td style="text-align:right;padding:14px 22px;font-weight:900;font-size:17px;color:#15803d;">'+fmt(tp)+'</td>'
     +'</tr>';
   document.getElementById('monthly-body').innerHTML = rows;
   document.getElementById('mf-count').textContent   = tc;
@@ -2094,26 +2094,26 @@ function renderMonthly() {
   var sorted=Object.entries(cli).sort(function(a,b){return b[1].t-a[1].t;}).slice(0,10);
   var mx=sorted[0]?sorted[0][1].t:1;
   var cliHtml='<table style="width:100%;border-collapse:collapse;">';
-  cliHtml+='<tr style="border-bottom:1px solid #1e293b;">'
-    +'<th style="text-align:left;padding:8px 0;font-size:10px;color:#475569;letter-spacing:2px;text-transform:uppercase;font-weight:700;">Cliente</th>'
-    +'<th style="text-align:center;padding:8px 0;font-size:10px;color:#475569;letter-spacing:2px;text-transform:uppercase;font-weight:700;width:40px;">Inv</th>'
-    +'<th style="text-align:right;padding:8px 0;font-size:10px;color:#818cf8;letter-spacing:2px;text-transform:uppercase;font-weight:700;width:130px;">Total</th>'
-    +'<th style="text-align:right;padding:8px 0;font-size:10px;color:#4ade80;letter-spacing:2px;text-transform:uppercase;font-weight:700;width:130px;">Cobrado</th>'
+  cliHtml+='<tr style="border-bottom:2px solid #e2e8f0;">'
+    +'<th style="text-align:left;padding:8px 0;font-size:10px;color:#94a3b8;letter-spacing:2px;text-transform:uppercase;font-weight:700;">Cliente</th>'
+    +'<th style="text-align:center;padding:8px 0;font-size:10px;color:#94a3b8;letter-spacing:2px;text-transform:uppercase;font-weight:700;width:40px;">Inv</th>'
+    +'<th style="text-align:right;padding:8px 0;font-size:10px;color:#4338ca;letter-spacing:2px;text-transform:uppercase;font-weight:700;width:130px;">Total</th>'
+    +'<th style="text-align:right;padding:8px 0;font-size:10px;color:#15803d;letter-spacing:2px;text-transform:uppercase;font-weight:700;width:130px;">Cobrado</th>'
     +'</tr>';
   sorted.forEach(function(entry,idx){
     var name=entry[0]; var d=entry[1];
     var barW=(d.t/mx*100).toFixed(1);
-    var rowBg=idx%2===0?'transparent':'#0a0e17';
-    cliHtml+='<tr style="background:'+rowBg+';border-bottom:1px solid #0f172a;">'
+    var rowBg=idx%2===0?'#ffffff':'#f8fafc';
+    cliHtml+='<tr style="background:'+rowBg+';border-bottom:1px solid #f1f5f9;">'
       +'<td style="padding:13px 0;">'
-        +'<div style="font-size:13px;font-weight:700;color:#e2e8f0;margin-bottom:5px;">'+name+'</div>'
-        +'<div style="background:#1e293b;border-radius:3px;height:3px;width:100%;">'
-          +'<div style="background:linear-gradient(90deg,#6366f1,#8b5cf6);height:3px;width:'+barW+'%;border-radius:3px;"></div>'
+        +'<div style="font-size:13px;font-weight:700;color:#1e293b;margin-bottom:5px;">'+name+'</div>'
+        +'<div style="background:#e2e8f0;border-radius:3px;height:3px;width:100%;">'
+          +'<div style="background:linear-gradient(90deg,#6366f1,#818cf8);height:3px;width:'+barW+'%;border-radius:3px;"></div>'
         +'</div>'
       +'</td>'
-      +'<td style="text-align:center;padding:13px 8px;color:#6b7280;font-size:12px;font-weight:700;">'+d.n+'</td>'
-      +'<td style="text-align:right;padding:13px 0;font-size:14px;font-weight:900;color:#a5b4fc;">'+fmt(d.t)+'</td>'
-      +'<td style="text-align:right;padding:13px 0;font-size:14px;font-weight:900;color:'+(d.paid>0?'#4ade80':'#374151')+';">'+(d.paid>0?fmt(d.paid):'$ —')+'</td>'
+      +'<td style="text-align:center;padding:13px 8px;color:#94a3b8;font-size:12px;font-weight:700;">'+d.n+'</td>'
+      +'<td style="text-align:right;padding:13px 0;font-size:14px;font-weight:900;color:#4338ca;">'+fmt(d.t)+'</td>'
+      +'<td style="text-align:right;padding:13px 0;font-size:14px;font-weight:900;color:'+(d.paid>0?'#15803d':'#cbd5e1')+';">'+(d.paid>0?fmt(d.paid):'$ —')+'</td>'
       +'</tr>';
   });
   cliHtml+='</table>';
