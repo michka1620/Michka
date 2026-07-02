@@ -1762,14 +1762,16 @@ function renderHistory() {
     return ok1&&ok2&&ok3&&ok4;
   }).sort((a,b)=>((b.date||'')>(a.date||''))?1:-1);
 
+  const totalGen = invs.reduce((s,i)=>s+(parseFloat(i.total)||0),0);
   const paid = invs.filter(i=>i.status==='PAID').reduce((s,i)=>s+(parseFloat(i.total)||0),0);
   const pend = invs.filter(i=>i.status==='PENDING').reduce((s,i)=>s+(parseFloat(i.total)||0),0);
+  const cobrado = invs.filter(i=>i.sentState===2).reduce((s,i)=>s+(parseFloat(i.total)||0),0);
   const fmt = n => '$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
   document.getElementById('stats-grid').innerHTML = `
-    <div class="stat-card"><div class="num">${invs.length}</div><div class="lbl">Total Invoices</div></div>
-    <div class="stat-card"><div class="num">${fmt(paid)}</div><div class="lbl">Total Collected</div></div>
-    <div class="stat-card yellow"><div class="num">${fmt(pend)}</div><div class="lbl">Pending</div></div>
-    <div class="stat-card blue"><div class="num">${invs.filter(i=>i.status==='PAID').length}</div><div class="lbl">Paid Invoices</div></div>
+    <div class="stat-card"><div class="num">${invs.length}</div><div class="lbl">Total Facturas</div></div>
+    <div class="stat-card" style="border-left:4px solid #6366f1;"><div class="num" style="color:#4338ca;font-size:19px;">${fmt(totalGen)}</div><div class="lbl">Total Generado</div></div>
+    <div class="stat-card" style="border-left:4px solid #16a34a;"><div class="num" style="color:#15803d;font-size:19px;">${fmt(cobrado)}</div><div class="lbl">Cobrado</div></div>
+    <div class="stat-card yellow"><div class="num">${fmt(pend)}</div><div class="lbl">Pendiente</div></div>
   `;
 
 
