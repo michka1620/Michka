@@ -1602,6 +1602,8 @@ function buildInvoiceHTMLSimple(d) {
     </div>
   </div>`;
 }
+const INLINE_STYLE = 'background:#1a202c;color:#e2e8f0;border:1px solid #4a5568;border-radius:4px;padding:2px 6px;font-size:12px;outline:none;';
+
 function inlineEdit(td, uid, field) {
   if (td.querySelector('input,select')) return;
   const [invNum, invWo] = uid.split('||');
