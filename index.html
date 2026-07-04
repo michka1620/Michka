@@ -978,10 +978,10 @@ function showPage(id) {
 // ===== INVOICE NUMBER =====
 function generateInvoiceNumber() {
   const inv = getInvoices();
-  if (!inv.length) return '202609500';
-  const orderNums = inv.map(i => parseInt(i.number) || 0).filter(n => n > 202600000 && n < 210000000);
-  if (!orderNums.length) return '202609500';
-  return String(Math.max(...orderNums) + 1);
+  if (!inv.length) return '';
+  const nums = inv.map(i => parseInt(i.number) || 0).filter(n => n > 4900000000 && n < 5000000000);
+  if (!nums.length) return '';
+  return String(Math.max(...nums) + 1);
 }
 
 function getNextOrderNum() {
@@ -1685,8 +1685,8 @@ function addNewInvoiceRow() {
   row.style.cssText = 'background:#eef2ff;outline:2px solid #667eea;';
   row.innerHTML = `
     <td><input type="date" id="ni-date" value="${today}" style="${INLINE_STYLE}"></td>
-    <td><input type="text" id="ni-number" value="${newNum}" placeholder="Invoice #" style="${INLINE_STYLE};min-width:90px;color:#63b3ed;font-weight:700;"></td>
-    <td><input type="text" id="ni-wo" placeholder="Order #" style="${INLINE_STYLE};min-width:80px;"></td>
+    <td><input type="text" id="ni-wo" placeholder="Order # (202609...)" style="${INLINE_STYLE};min-width:90px;"></td>
+    <td><input type="text" id="ni-number" value="${newNum}" placeholder="WO# Invoice" style="${INLINE_STYLE};min-width:90px;color:#63b3ed;font-weight:700;"></td>
     <td><input type="text" id="ni-client" list="clients-list" placeholder="Client name..." style="${INLINE_STYLE};min-width:140px;">
         <datalist id="clients-list-new">${clientOptions}</datalist></td>
     <td><input type="text" id="ni-tech" placeholder="Tech" style="${INLINE_STYLE};min-width:70px;"></td>
