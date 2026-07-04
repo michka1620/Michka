@@ -1657,7 +1657,7 @@ function saveInlineEdit(el, invNum, invWo, field) {
   if (!inv) return renderHistory();
 
   if (field === 'date') inv.date = val;
-  else if (field === 'number') inv.number = val;
+  else if (field === 'number') { if (inv.number && inv.number !== val) { inv.prevNumber = inv.prevNumber || []; if (!inv.prevNumber.includes(inv.number)) inv.prevNumber.push(inv.number); } inv.number = val; }
   else if (field === 'wo') inv.wo = val;
   else if (field === 'client') { inv.client = inv.client||{}; inv.client.company = val; }
   else if (field === 'tech') { inv.tech = inv.tech||{}; inv.tech.name = val; }
@@ -1852,7 +1852,7 @@ function renderHistory() {
       + '<td style="text-align:center"><input type="checkbox" class="inv-chk" data-idx="' + i + '" onchange="updateBulkBar()"></td>'
       + '<td class="editable-cell" onclick="inlineEdit(this,\'' + uid + '\',\'date\')">' + fd + '</td>'
       + '<td class="editable-cell" onclick="inlineEdit(this,\'' + uid + '\',\'wo\')">' + (wo||'—') + '</td>'
-      + '<td class="editable-cell" style="font-weight:700;color:#63b3ed" onclick="inlineEdit(this,\'' + uid + '\',\'number\')">' + num + '</td>'
+      + '<td class="editable-cell" style="font-weight:700;color:#63b3ed" onclick="inlineEdit(this,\'' + uid + '\',\'number\')">' + num + (inv.prevNumber && inv.prevNumber.length ? '<br><span style="font-size:9px;color:#a0aec0;">' + inv.prevNumber.join(', ') + '</span>' : '') + '</td>'
       + '<td class="editable-cell" style="font-weight:600" onclick="inlineEdit(this,\'' + uid + '\',\'client\')">' + (co||'—') + '</td>'
       + '<td class="editable-cell" onclick="inlineEdit(this,\'' + uid + '\',\'tech\')">' + (tn||'—') + '</td>'
       + '<td class="editable-cell" style="text-align:center" onclick="inlineEdit(this,\'' + uid + '\',\'hours\')">' + (th||'—') + '</td>'
