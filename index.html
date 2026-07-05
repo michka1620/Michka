@@ -962,7 +962,7 @@ const saveInvoices = function(all) {
 var DEUDAS_DATA = {
   snowball: [
     {name:'Chase Freedom Unlimited (mía)', balance:604.49, color:'#f87171'},
-    {name:'Lowe's Supreme (negocio)', balance:838.82, color:'#fb923c'},
+    {name:"Lowe's Supreme (negocio)", balance:838.82, color:'#fb923c'},
     {name:'Prime Visa (esposo)', balance:2925.89, color:'#fbbf24'},
     {name:'Sapphire Preferred (esposo)', balance:4630.65, color:'#a78bfa'},
     {name:'Chase Ink Business (negocio)', balance:6351.49, color:'#60a5fa'},
@@ -3512,49 +3512,7 @@ function openPrintView(invoices, rawHTML) {
     + '<span style="color:#90cdf4;font-size:12px;">Chrome: check ✓ Gráficos de fondo / Background graphics</span>'
     + '</div>'
     + pages
-    + '
-<div id="deudas" class="page" style="background:#0f172a;min-height:100vh;padding:20px;color:#e2e8f0;">
-  <h2 style="color:#4ade80;margin-bottom:4px;font-size:22px;">💰 Deudas & Metas</h2>
-  <p style="color:#64748b;font-size:12px;margin-bottom:20px;">Actualizado: 5 julio 2026</p>
-
-  <!-- SNOWBALL -->
-  <div style="background:#1e293b;border-radius:12px;padding:18px;margin-bottom:16px;border:1px solid #166534;">
-    <h3 style="color:#4ade80;margin:0 0 4px 0;font-size:15px;">❄️ Bola de Nieve — Tarjetas de Crédito</h3>
-    <p style="color:#64748b;font-size:11px;margin:0 0 14px 0;">Pagar mínimos en todas. Todo extra va a la #1 hasta $0, luego pasa a la #2...</p>
-    <div id="snowball-list"></div>
-    <div style="border-top:1px solid #334155;margin-top:14px;padding-top:10px;display:flex;justify-content:space-between;">
-      <span style="color:#94a3b8;font-size:13px;">Total Bola de Nieve</span>
-      <span style="color:#f87171;font-weight:700;font-size:15px;" id="snowball-total"></span>
-    </div>
-  </div>
-
-  <!-- 0% INTEREST -->
-  <div style="background:#1e293b;border-radius:12px;padding:18px;margin-bottom:16px;border:1px solid #854d0e;">
-    <h3 style="color:#fbbf24;margin:0 0 4px 0;font-size:15px;">⏰ Fechas 0% Interés — Vigilar</h3>
-    <p style="color:#64748b;font-size:11px;margin:0 0 14px 0;">No compiten por dinero extra — solo pagar antes de que venza el plan.</p>
-    <div id="zero-interest-list"></div>
-  </div>
-
-  <!-- LONG TERM -->
-  <div style="background:#1e293b;border-radius:12px;padding:18px;margin-bottom:16px;border:1px solid #1e3a5f;">
-    <h3 style="color:#60a5fa;margin:0 0 4px 0;font-size:15px;">🏦 Deuda a Largo Plazo</h3>
-    <p style="color:#64748b;font-size:11px;margin:0 0 14px 0;">Tasa baja o plazo largo — no es prioridad de pago extra.</p>
-    <div id="longterm-list"></div>
-  </div>
-
-  <!-- METAS -->
-  <div style="background:#1e293b;border-radius:12px;padding:18px;margin-bottom:16px;border:1px solid #4c1d95;">
-    <h3 style="color:#a78bfa;margin:0 0 14px 0;font-size:15px;">🎯 Metas Activas</h3>
-    <div id="metas-list"></div>
-  </div>
-
-  <!-- CALENDARIO -->
-  <div style="background:#1e293b;border-radius:12px;padding:18px;margin-bottom:16px;border:1px solid #334155;">
-    <h3 style="color:#94a3b8;margin:0 0 14px 0;font-size:15px;">📅 Gastos Fijos Mensuales</h3>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;" id="calendar-blocks"></div>
-  </div>
-</div>
-</body></html>';
+    + '</body></html>';
 
   // Open new tab
   var tab = window.open('', '_blank');
@@ -3563,7 +3521,6 @@ function openPrintView(invoices, rawHTML) {
     tab.document.close();
     tab.focus();
   } else {
-    // Fallback: download
     var blob = new Blob([fullHTML], {type:'text/html;charset=utf-8'});
     var url = URL.createObjectURL(blob);
     var a = document.createElement('a');
