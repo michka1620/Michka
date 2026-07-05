@@ -296,6 +296,7 @@
     <button class="tab" onclick="showPage('monthly')">📊 Monthly</button>
     <button class="tab" onclick="showPage('sent')">📤 Enviadas</button>
     <button class="tab" onclick="showPage('photos')" style="background:#1a1a2a;color:#c084fc;border:1px solid #7c3aed;">📸 Fotos</button>
+    <button class="tab" onclick="showPage('deudas')" style="background:#0a1a0a;color:#4ade80;border:1px solid #166534;">💰 Deudas</button>
     <button class="tab" onclick="cleanAllSaved()" style="background:#1a0a1a;color:#f0abfc;border:1px solid #86198f;">🧹 Fix All</button>
     <button class="tab" onclick="deduplicateInvoices()" style="background:#1a1a0a;color:#fbbf24;border:1px solid #92400e;">🔁 Dedup</button>
     <button class="tab" onclick="exportData()" style="background:#1a3a2a;color:#4ade80;border:1px solid #166534;">⬇ Export</button>
@@ -956,6 +957,136 @@ const saveInvoices = function(all) {
 };
 
 // ===== NAV =====
+
+// ── DEUDAS & METAS ────────────────────────────────────────────────────────────
+var DEUDAS_DATA = {
+  snowball: [
+    {name:'Chase Freedom Unlimited (mía)', balance:604.49, color:'#f87171'},
+    {name:'Lowe's Supreme (negocio)', balance:838.82, color:'#fb923c'},
+    {name:'Prime Visa (esposo)', balance:2925.89, color:'#fbbf24'},
+    {name:'Sapphire Preferred (esposo)', balance:4630.65, color:'#a78bfa'},
+    {name:'Chase Ink Business (negocio)', balance:6351.49, color:'#60a5fa'},
+  ],
+  zeroInterest: [
+    {name:'Ashley Furniture Plan 1', balance:561.72, due:'2026-10-16'},
+    {name:'Ashley Furniture Plan 2', balance:920.08, due:'2027-05-16'},
+    {name:'Ashley Furniture Plan 3', balance:790.20, due:'2027-05-16'},
+    {name:'Home Depot', balance:2078.12, due:'2027-12-13'},
+  ],
+  longterm: [
+    {name:'Toyota Tacoma', balance:43156.76, note:'4.99% APR'},
+    {name:'Navitas (maquinaria, 2 contratos)', balance:31321, note:'~$31,321'},
+    {name:'Tía Gloria (2 vans)', balance:23500, note:''},
+    {name:'Hipoteca', balance:255745.84, note:'5.5%'},
+  ],
+  metas: [
+    {name:'Bajar bola de nieve a $0', target:15351.34, current:0, note:'Arranca en $15,351.34', color:'#4ade80'},
+    {name:'Cobrar pendiente de junio', target:14264.36, current:0, note:'Accounts Receivable enviadas', color:'#60a5fa'},
+    {name:'Kia Forte 2014 — comprar motor y vender', target:2700, current:0, note:'Motor $1,500 → venta $2,500–$4,200 → ganancia estimada $1,000–$2,700', color:'#fbbf24'},
+    {name:'Viaje a Colombia — octubre 2026', target:7000, current:6000, note:'15 días · cirugía + pasajes + carro + comida · $6K del Subaru ya asegurado', color:'#f472b6'},
+    {name:'HYSA — colchón 1 mes gastos fijos', target:7723, current:0, note:'$300/semana · empieza después del viaje', color:'#a78bfa'},
+  ],
+  calendar: [
+    {label:'Bloque 1 (días 1–9)', color:'#166534', items:[
+      {name:'Hipoteca',amount:2116.15},{name:'Navitas',amount:607.57},{name:'Tacoma abono',amount:400},
+      {name:'Agua',amount:120},{name:'Internet',amount:45}
+    ]},
+    {label:'Bloque 2 (días 10–19)', color:'#854d0e', items:[
+      {name:"Lowe's esposo",amount:100},{name:'Home Depot',amount:100},{name:'Chase Freedom (mínimo)',amount:0},
+      {name:'Luz',amount:290},{name:'Seguro comercial',amount:1480.88},{name:'Pensión niños',amount:1500}
+    ]},
+    {label:'Bloque 3 (días 20–30)', color:'#1e3a5f', items:[
+      {name:'Tacoma abono 2',amount:400},{name:'Prime Visa / Sapphire (mínimos)',amount:0},
+      {name:'Teléfono Supreme',amount:160.48},{name:"Lowe's Supreme (mínimo)",amount:0},
+      {name:'Ink negocio (mínimo)',amount:0},{name:'IRS esposo',amount:224}
+    ]},
+  ]
+};
+
+function renderDeudas() {
+  var today = new Date();
+
+  // Snowball
+  var total = DEUDAS_DATA.snowball.reduce(function(s,x){return s+x.balance;},0);
+  document.getElementById('snowball-total').textContent = '$' + total.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  var sb = document.getElementById('snowball-list');
+  sb.innerHTML = DEUDAS_DATA.snowball.map(function(d,i){
+    return '<div style="margin-bottom:12px;">'
+      +'<div style="display:flex;justify-content:space-between;margin-bottom:4px;">'
+      +'<span style="font-size:13px;color:#e2e8f0;">'+(i+1)+'. '+d.name+'</span>'
+      +'<span style="font-weight:700;color:'+d.color+';font-size:13px;">$'+d.balance.toLocaleString('en-US',{minimumFractionDigits:2})+'</span>'
+      +'</div>'
+      +'<div style="background:#334155;border-radius:4px;height:6px;">'
+      +'<div style="background:'+d.color+';width:'+(100-Math.min(100,(d.balance/total)*100*2)).toFixed(0)+'%;height:6px;border-radius:4px;min-width:4px;"></div>'
+      +'</div></div>';
+  }).join('');
+
+  // Zero interest
+  var zi = document.getElementById('zero-interest-list');
+  zi.innerHTML = DEUDAS_DATA.zeroInterest.map(function(d){
+    var due = new Date(d.due+'T00:00:00');
+    var days = Math.ceil((due-today)/(1000*60*60*24));
+    var urgency = days < 90 ? '#f87171' : days < 180 ? '#fbbf24' : '#4ade80';
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #334155;">'
+      +'<div><span style="color:#e2e8f0;font-size:13px;">'+d.name+'</span>'
+      +'<span style="color:'+urgency+';font-size:11px;margin-left:8px;">'+days+' días</span></div>'
+      +'<div style="text-align:right;">'
+      +'<div style="color:#fbbf24;font-weight:700;font-size:13px;">$'+d.balance.toLocaleString('en-US',{minimumFractionDigits:2})+'</div>'
+      +'<div style="color:#64748b;font-size:10px;">vence '+d.due+'</div>'
+      +'</div></div>';
+  }).join('');
+
+  // Long term
+  var lt = document.getElementById('longterm-list');
+  var ltTotal = DEUDAS_DATA.longterm.reduce(function(s,x){return s+x.balance;},0);
+  lt.innerHTML = DEUDAS_DATA.longterm.map(function(d){
+    return '<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #334155;">'
+      +'<span style="color:#94a3b8;font-size:13px;">'+d.name+(d.note?' <span style=\'color:#475569;font-size:10px;\'>('+d.note+')</span>':'')+'</span>'
+      +'<span style="color:#60a5fa;font-weight:700;font-size:13px;">$'+d.balance.toLocaleString('en-US',{minimumFractionDigits:2})+'</span>'
+      +'</div>';
+  }).join('')
+  +'<div style="display:flex;justify-content:space-between;padding-top:10px;">'
+  +'<span style="color:#64748b;font-size:12px;">Total largo plazo</span>'
+  +'<span style="color:#60a5fa;font-weight:700;">$'+ltTotal.toLocaleString('en-US',{minimumFractionDigits:2})+'</span></div>';
+
+  // Metas
+  var ml = document.getElementById('metas-list');
+  ml.innerHTML = DEUDAS_DATA.metas.map(function(m){
+    var pct = m.target > 0 ? Math.min(100,(m.current/m.target)*100) : 0;
+    return '<div style="margin-bottom:14px;">'
+      +'<div style="display:flex;justify-content:space-between;margin-bottom:3px;">'
+      +'<span style="color:#e2e8f0;font-size:13px;font-weight:600;">'+m.name+'</span>'
+      +'<span style="color:'+m.color+';font-size:12px;font-weight:700;">'+pct.toFixed(0)+'%</span>'
+      +'</div>'
+      +'<div style="color:#64748b;font-size:10px;margin-bottom:5px;">'+m.note+'</div>'
+      +'<div style="background:#334155;border-radius:6px;height:8px;">'
+      +'<div style="background:'+m.color+';width:'+pct.toFixed(0)+'%;height:8px;border-radius:6px;min-width:'+(pct>0?'6px':'0')+'"></div>'
+      +'</div>'
+      +'<div style="display:flex;justify-content:space-between;margin-top:3px;">'
+      +'<span style="color:#475569;font-size:10px;">$'+m.current.toLocaleString()+'</span>'
+      +'<span style="color:#475569;font-size:10px;">Meta: $'+m.target.toLocaleString()+'</span>'
+      +'</div></div>';
+  }).join('');
+
+  // Calendar blocks
+  var cb = document.getElementById('calendar-blocks');
+  cb.innerHTML = DEUDAS_DATA.calendar.map(function(b){
+    var blockTotal = b.items.reduce(function(s,x){return s+x.amount;},0);
+    return '<div style="background:#0f172a;border-radius:8px;padding:14px;border:1px solid '+b.color+';">'
+      +'<div style="color:#94a3b8;font-size:11px;font-weight:700;margin-bottom:10px;text-transform:uppercase;">'+b.label+'</div>'
+      +b.items.map(function(it){
+        return '<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #1e293b;">'
+          +'<span style="color:#94a3b8;font-size:12px;">'+it.name+'</span>'
+          +'<span style="color:#e2e8f0;font-size:12px;font-weight:'+(it.amount>0?'600':'400')+';color:'+(it.amount>0?'#e2e8f0':'#475569')+';">'+(it.amount>0?'$'+it.amount.toLocaleString('en-US',{minimumFractionDigits:2}):'min.')+'</span>'
+          +'</div>';
+      }).join('')
+      +'<div style="display:flex;justify-content:space-between;margin-top:8px;padding-top:6px;">'
+      +'<span style="color:#64748b;font-size:11px;">Total estimado</span>'
+      +'<span style="color:#fbbf24;font-weight:700;font-size:12px;">$'+blockTotal.toLocaleString('en-US',{minimumFractionDigits:2})+'</span>'
+      +'</div></div>';
+  }).join('');
+}
+
 function showPage(id) {
   document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
   document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
@@ -973,6 +1104,7 @@ function showPage(id) {
   if (id === 'monthly') renderMonthly();
   if (id === 'sent') renderSent();
   if (id === 'new-invoice') { if (!window._editingInvoice) { setTimeout(function(){ if(typeof fillNewInvoice==='function') fillNewInvoice(); }, 150); } window._editingInvoice = false; }
+  if (id === 'deudas') { setTimeout(renderDeudas, 50); }
 }
 
 // ===== INVOICE NUMBER =====
@@ -3380,7 +3512,49 @@ function openPrintView(invoices, rawHTML) {
     + '<span style="color:#90cdf4;font-size:12px;">Chrome: check ✓ Gráficos de fondo / Background graphics</span>'
     + '</div>'
     + pages
-    + '</body></html>';
+    + '
+<div id="deudas" class="page" style="background:#0f172a;min-height:100vh;padding:20px;color:#e2e8f0;">
+  <h2 style="color:#4ade80;margin-bottom:4px;font-size:22px;">💰 Deudas & Metas</h2>
+  <p style="color:#64748b;font-size:12px;margin-bottom:20px;">Actualizado: 5 julio 2026</p>
+
+  <!-- SNOWBALL -->
+  <div style="background:#1e293b;border-radius:12px;padding:18px;margin-bottom:16px;border:1px solid #166534;">
+    <h3 style="color:#4ade80;margin:0 0 4px 0;font-size:15px;">❄️ Bola de Nieve — Tarjetas de Crédito</h3>
+    <p style="color:#64748b;font-size:11px;margin:0 0 14px 0;">Pagar mínimos en todas. Todo extra va a la #1 hasta $0, luego pasa a la #2...</p>
+    <div id="snowball-list"></div>
+    <div style="border-top:1px solid #334155;margin-top:14px;padding-top:10px;display:flex;justify-content:space-between;">
+      <span style="color:#94a3b8;font-size:13px;">Total Bola de Nieve</span>
+      <span style="color:#f87171;font-weight:700;font-size:15px;" id="snowball-total"></span>
+    </div>
+  </div>
+
+  <!-- 0% INTEREST -->
+  <div style="background:#1e293b;border-radius:12px;padding:18px;margin-bottom:16px;border:1px solid #854d0e;">
+    <h3 style="color:#fbbf24;margin:0 0 4px 0;font-size:15px;">⏰ Fechas 0% Interés — Vigilar</h3>
+    <p style="color:#64748b;font-size:11px;margin:0 0 14px 0;">No compiten por dinero extra — solo pagar antes de que venza el plan.</p>
+    <div id="zero-interest-list"></div>
+  </div>
+
+  <!-- LONG TERM -->
+  <div style="background:#1e293b;border-radius:12px;padding:18px;margin-bottom:16px;border:1px solid #1e3a5f;">
+    <h3 style="color:#60a5fa;margin:0 0 4px 0;font-size:15px;">🏦 Deuda a Largo Plazo</h3>
+    <p style="color:#64748b;font-size:11px;margin:0 0 14px 0;">Tasa baja o plazo largo — no es prioridad de pago extra.</p>
+    <div id="longterm-list"></div>
+  </div>
+
+  <!-- METAS -->
+  <div style="background:#1e293b;border-radius:12px;padding:18px;margin-bottom:16px;border:1px solid #4c1d95;">
+    <h3 style="color:#a78bfa;margin:0 0 14px 0;font-size:15px;">🎯 Metas Activas</h3>
+    <div id="metas-list"></div>
+  </div>
+
+  <!-- CALENDARIO -->
+  <div style="background:#1e293b;border-radius:12px;padding:18px;margin-bottom:16px;border:1px solid #334155;">
+    <h3 style="color:#94a3b8;margin:0 0 14px 0;font-size:15px;">📅 Gastos Fijos Mensuales</h3>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;" id="calendar-blocks"></div>
+  </div>
+</div>
+</body></html>';
 
   // Open new tab
   var tab = window.open('', '_blank');
@@ -3954,5 +4128,47 @@ function renderSent() {
   });
 })();
 </script>
+
+<div id="deudas" class="page" style="background:#0f172a;min-height:100vh;padding:20px;color:#e2e8f0;">
+  <h2 style="color:#4ade80;margin-bottom:4px;font-size:22px;">💰 Deudas & Metas</h2>
+  <p style="color:#64748b;font-size:12px;margin-bottom:20px;">Actualizado: 5 julio 2026</p>
+
+  <!-- SNOWBALL -->
+  <div style="background:#1e293b;border-radius:12px;padding:18px;margin-bottom:16px;border:1px solid #166534;">
+    <h3 style="color:#4ade80;margin:0 0 4px 0;font-size:15px;">❄️ Bola de Nieve — Tarjetas de Crédito</h3>
+    <p style="color:#64748b;font-size:11px;margin:0 0 14px 0;">Pagar mínimos en todas. Todo extra va a la #1 hasta $0, luego pasa a la #2...</p>
+    <div id="snowball-list"></div>
+    <div style="border-top:1px solid #334155;margin-top:14px;padding-top:10px;display:flex;justify-content:space-between;">
+      <span style="color:#94a3b8;font-size:13px;">Total Bola de Nieve</span>
+      <span style="color:#f87171;font-weight:700;font-size:15px;" id="snowball-total"></span>
+    </div>
+  </div>
+
+  <!-- 0% INTEREST -->
+  <div style="background:#1e293b;border-radius:12px;padding:18px;margin-bottom:16px;border:1px solid #854d0e;">
+    <h3 style="color:#fbbf24;margin:0 0 4px 0;font-size:15px;">⏰ Fechas 0% Interés — Vigilar</h3>
+    <p style="color:#64748b;font-size:11px;margin:0 0 14px 0;">No compiten por dinero extra — solo pagar antes de que venza el plan.</p>
+    <div id="zero-interest-list"></div>
+  </div>
+
+  <!-- LONG TERM -->
+  <div style="background:#1e293b;border-radius:12px;padding:18px;margin-bottom:16px;border:1px solid #1e3a5f;">
+    <h3 style="color:#60a5fa;margin:0 0 4px 0;font-size:15px;">🏦 Deuda a Largo Plazo</h3>
+    <p style="color:#64748b;font-size:11px;margin:0 0 14px 0;">Tasa baja o plazo largo — no es prioridad de pago extra.</p>
+    <div id="longterm-list"></div>
+  </div>
+
+  <!-- METAS -->
+  <div style="background:#1e293b;border-radius:12px;padding:18px;margin-bottom:16px;border:1px solid #4c1d95;">
+    <h3 style="color:#a78bfa;margin:0 0 14px 0;font-size:15px;">🎯 Metas Activas</h3>
+    <div id="metas-list"></div>
+  </div>
+
+  <!-- CALENDARIO -->
+  <div style="background:#1e293b;border-radius:12px;padding:18px;margin-bottom:16px;border:1px solid #334155;">
+    <h3 style="color:#94a3b8;margin:0 0 14px 0;font-size:15px;">📅 Gastos Fijos Mensuales</h3>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;" id="calendar-blocks"></div>
+  </div>
+</div>
 </body>
 </html>
