@@ -1851,27 +1851,31 @@ function saveNewInvoiceRow() {
   const client = g('ni-client').trim();
   const total = parseFloat(g('ni-total'))||0;
 
-  if (!num && !client) { alert('Please enter at least an Invoice # or Client name.'); return; }
-
   const inv = {
     number: num || ('NEW-'+Date.now()),
     date: g('ni-date'),
     wo: wo,
-    status: g('ni-status'),
+    status: g('ni-status') || 'PENDING',
     payment: g('ni-payment'),
+    sentState: 0,
     area: '',
     client: { company: client, unit:'', address:'', driver:'', phone:'', attn:'', email:'', po:'', roadside:'' },
     tech: { name: g('ni-tech'), rolltime:'', arrival:'', hours: g('ni-hours'), mileage:'', ubication:'' },
     vehicle: { odometer:'', license:'', year:'', make:'', model:'', vin:'', tractor:'', trailer:'' },
     partsGeneral: '', notes: '', tirePositions: [], expenses: [],
     totalMaterial: 0, totalLabor: total, total: total,
+    newFormat: true,
     createdAt: new Date().toISOString()
   };
 
   const invs = getInvoices();
   invs.push(inv);
   saveInvoices(invs);
+  // Clear sent filter so new invoice (sentState=0) is visible
+  var sf = document.getElementById('filter-sent');
+  if (sf && sf.value !== '') sf.value = '';
   renderHistory();
+  showToast('✅ Invoice saved!');
 }
 
 function renderHistory() {
