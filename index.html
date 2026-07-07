@@ -572,6 +572,7 @@
     <div id="month-summary-bar" style="display:none;margin-bottom:14px;"></div>
     <div id="bulk-action-bar" style="display:none;background:linear-gradient(135deg,#1e293b,#0f172a);border:1px solid #334155;border-radius:8px;padding:12px 16px;margin-bottom:12px;display:none;align-items:center;gap:12px;flex-wrap:wrap;">
       <span id="bulk-count" style="color:#a5b4fc;font-weight:700;font-size:14px;">0 selected</span>
+      <span id="bulk-sum" style="color:#4ade80;font-weight:800;font-size:16px;background:#052e16;padding:4px 12px;border-radius:6px;border:1px solid #166534;display:none;">$0.00</span>
       <button onclick="downloadSelectedPDFs()" style="background:linear-gradient(135deg,#b91c1c,#ef4444);border:none;color:#fff;padding:8px 18px;border-radius:6px;cursor:pointer;font-weight:700;font-size:13px;">⬇ Download Selected PDFs</button>
       <button onclick="printSelectedPDFs()" style="background:linear-gradient(135deg,#1e3a8a,#3b82f6);border:none;color:#fff;padding:8px 18px;border-radius:6px;cursor:pointer;font-weight:700;font-size:13px;">🖨 Print Selected</button>
       <button onclick="clearSelection()" style="background:#374151;border:none;color:#9ca3af;padding:8px 14px;border-radius:6px;cursor:pointer;font-size:13px;">✕ Clear</button>
@@ -3711,11 +3712,19 @@ function updateBulkBar() {
   var checked = document.querySelectorAll('.inv-chk:checked');
   var bar = document.getElementById('bulk-action-bar');
   var countEl = document.getElementById('bulk-count');
+  var sumEl = document.getElementById('bulk-sum');
   if (checked.length > 0) {
     bar.style.display = 'flex';
-    countEl.textContent = checked.length + ' invoice' + (checked.length > 1 ? 's' : '') + ' selected';
+    countEl.textContent = checked.length + ' seleccionada' + (checked.length > 1 ? 's' : '');
+    var total = 0;
+    checked.forEach(function(chk) {
+      var idx = parseInt(chk.dataset.idx);
+      if (window._histList && window._histList[idx]) total += parseFloat(window._histList[idx].total) || 0;
+    });
+    if (sumEl) { sumEl.textContent = '$' + total.toFixed(2); sumEl.style.display = 'inline'; }
   } else {
     bar.style.display = 'none';
+    if (sumEl) sumEl.style.display = 'none';
   }
   // Update select-all checkbox state
   var all = document.querySelectorAll('.inv-chk');
