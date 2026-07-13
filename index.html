@@ -1903,8 +1903,8 @@ function renderHistory() {
   }).sort((a,b)=>((b.date||'')>(a.date||''))?1:-1);
 
   const totalGen = invs.reduce((s,i)=>s+(parseFloat(i.total)||0),0);
-  const paid = invs.filter(i=>i.status==='PAID').reduce((s,i)=>s+(parseFloat(i.total)||0),0);
-  const pend = invs.filter(i=>i.status==='PENDING').reduce((s,i)=>s+(parseFloat(i.total)||0),0);
+  const paid = invs.filter(i=>i.status==='PAID' || i.sentState===2).reduce((s,i)=>s+(parseFloat(i.total)||0),0);
+  const pend = invs.filter(i=>i.status==='PENDING' && i.sentState!==2).reduce((s,i)=>s+(parseFloat(i.total)||0),0);
   const cobrado = invs.filter(i=>i.sentState===2).reduce((s,i)=>s+(parseFloat(i.total)||0),0);
   const fmt = n => '$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
   document.getElementById('stats-grid').innerHTML = `
@@ -1920,9 +1920,12 @@ function renderHistory() {
   if (bar) {
     if (mF) {
       const allForMonth = invs.filter(i => (i.date||'').startsWith(mF));
-      const mPaid      = allForMonth.filter(i=>i.status==='PAID').reduce((s,i)=>s+(parseFloat(i.total)||0),0);
-      const mPending   = allForMonth.filter(i=>i.status==='PENDING').reduce((s,i)=>s+(parseFloat(i.total)||0),0);
-      const mCancelled = allForMonth.filter(i=>i.status==='CANCELLED').reduce((s,i)=>s+(parseFloat(i.total)||0),0);
+      const _isCollected = i => (i.status==='PAID' || i.sentState===2);
+      const _isCancelled = i => i.status==='CANCELLED';
+      const _isPending   = i => !_isCollected(i) && !_isCancelled(i);
+      const mPaid      = allForMonth.filter(_isCollected).reduce((s,i)=>s+(parseFloat(i.total)||0),0);
+      const mPending   = allForMonth.filter(_isPending).reduce((s,i)=>s+(parseFloat(i.total)||0),0);
+      const mCancelled = allForMonth.filter(_isCancelled).reduce((s,i)=>s+(parseFloat(i.total)||0),0);
       const mTotal     = mPaid + mPending + mCancelled;
       const mFmt = n => '$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
       const [mYr,mMo]  = mF.split('-');
@@ -1934,12 +1937,12 @@ function renderHistory() {
         +'<div style="flex:1;min-width:130px;background:#052e16;border:1px solid #166534;border-radius:8px;padding:12px 16px;text-align:center;">'
           +'<div style="font-size:10px;color:#4ade80;letter-spacing:1px;margin-bottom:4px;font-weight:700;">✅ COLLECTED</div>'
           +'<div style="font-size:22px;font-weight:900;color:#4ade80;">'+mFmt(mPaid)+'</div>'
-          +'<div style="font-size:11px;color:#6b7280;margin-top:3px;">'+allForMonth.filter(i=>i.status==='PAID').length+' invoices</div>'
+          +'<div style="font-size:11px;color:#6b7280;margin-top:3px;">'+allForMonth.filter(_isCollected).length+' invoices</div>'
         +'</div>'
         +'<div style="flex:1;min-width:130px;background:#1c1100;border:1px solid #92400e;border-radius:8px;padding:12px 16px;text-align:center;">'
           +'<div style="font-size:10px;color:#fbbf24;letter-spacing:1px;margin-bottom:4px;font-weight:700;">⏳ PENDING</div>'
           +'<div style="font-size:22px;font-weight:900;color:#fbbf24;">'+mFmt(mPending)+'</div>'
-          +'<div style="font-size:11px;color:#6b7280;margin-top:3px;">'+allForMonth.filter(i=>i.status==='PENDING').length+' invoices</div>'
+          +'<div style="font-size:11px;color:#6b7280;margin-top:3px;">'+allForMonth.filter(_isPending).length+' invoices</div>'
         +'</div>'
         +(mCancelled>0
           ?'<div style="flex:1;min-width:130px;background:#1c0505;border:1px solid #991b1b;border-radius:8px;padding:12px 16px;text-align:center;">'
