@@ -2028,7 +2028,6 @@ function renderHistory() {
 
   const escQ = s => String(s||'').replace(/'/g,"&#39;").replace(/"/g,"&quot;");
   window._histList = list;
-  var lastSentKey = localStorage.getItem('sup_last_sent_key') || '';
   var rows = '';
   for (var i = 0; i < list.length; i++) {
     var inv = list[i];
@@ -2048,11 +2047,7 @@ function renderHistory() {
     var PENDING_SEND = new Set([]);
     var isPDF = PDF_JUNE30.has(num);
     var isPendingSend = PENDING_SEND.has(num);
-    var isLastSent = lastSentKey !== '' && (num + '|' + wo) === lastSentKey;
     var rowStyle = isPendingSend ? 'background:rgba(34,197,94,0.30);border-left:4px solid #16a34a;' : isPDF ? 'background:rgba(139,92,246,0.35);border-left:4px solid #a78bfa;' : sentState===1 ? 'background:rgba(234,88,12,0.13);border-left:3px solid #ea580c;' : sentState===2 ? 'background:rgba(22,163,74,0.13);border-left:3px solid #16a34a;' : '';
-    // Outline only — no background/box-shadow overlay, so it doesn't wash out
-    // the row's own status color (e.g. green for Cobrada, orange for Enviada).
-    if (isLastSent) rowStyle += 'outline:3px solid #ff2fd0;outline-offset:-3px;';
     rows += '<tr style="' + rowStyle + '">'
       + '<td style="text-align:center"><input type="checkbox" class="inv-chk" data-idx="' + i + '" onchange="updateBulkBar()"></td>'
       + '<td class="editable-cell" onclick="inlineEdit(this,\'' + uid + '\',\'date\')">' + fd + '</td>'
@@ -2066,7 +2061,6 @@ function renderHistory() {
       + '<td class="editable-cell" onclick="inlineEdit(this,\'' + uid + '\',\'payment\')">' + (py||'—') + '</td>'
       + '<td style="text-align:center">'
       + '<button onclick="toggleSent(\'' + num + '\',\'' + wo + '\',this)" title="Clic para cambiar estado" style="background:'+(sentState===1?'#7c2d12':sentState===2?'#052e16':'#111')+';border:1px solid '+(sentState===1?'#ea580c':sentState===2?'#16a34a':'#374151')+';color:'+(sentState===1?'#fb923c':sentState===2?'#4ade80':'#6b7280')+';padding:3px 8px;border-radius:10px;cursor:pointer;font-size:11px;font-weight:700;white-space:nowrap;">'+(sentState===1?'📤 Enviada':sentState===2?'✅ Cobrada':'○ Pendiente')+'</button>'
-      + (isLastSent ? '<div style="color:#ff2fd0;font-size:10px;font-weight:800;margin-top:3px;white-space:nowrap;text-shadow:0 0 6px rgba(255,47,208,0.6);">🔖 Última</div>' : '')
       + '</td>'
       + '<td style="white-space:nowrap">'
       + '<button data-idx="' + i + '" onclick="viewInv(window._histList[this.dataset.idx].number)" style="background:#1a365d;border:none;color:#63b3ed;padding:3px 9px;border-radius:4px;cursor:pointer;font-size:11px;">👁</button> '
@@ -4163,10 +4157,6 @@ function setSentState(num, wo, state) {
   else if (inv.status === 'PAID') { inv.status = 'PENDING'; }
   saveInvoices(all);
   pushSentToKV();
-  // Remember which invoice was just touched here, so the table can bookmark
-  // "the last one I marked" — useful when sending a weekly batch and losing
-  // track of where you left off.
-  localStorage.setItem('sup_last_sent_key', String(num) + '|' + String(wo || ''));
   var m = document.getElementById('sent-menu');
   if (m) m.remove();
   renderHistory();
