@@ -23,6 +23,11 @@ export default {
       return request.headers.get('x-api-key') === env.SYNC_KEY;
     }
 
+    if (url.pathname === '/debug-sync-key') {
+      const raw = env.SYNC_KEY || '';
+      return json({ present: !!env.SYNC_KEY, length: raw.length, trimmedLength: raw.trim().length, firstChar: raw[0] || null, lastChar: raw[raw.length-1] || null });
+    }
+
     if (url.pathname === '/edits') {
       if (request.method === 'GET') {
         const [editRows, delRows, newRows] = await Promise.all([
