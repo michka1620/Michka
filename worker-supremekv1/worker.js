@@ -28,6 +28,60 @@ export default {
       return json({ present: !!env.SYNC_KEY, length: raw.length, trimmedLength: raw.trim().length, firstChar: raw[0] || null, lastChar: raw[raw.length-1] || null });
     }
 
+    // One-time recovery: read whatever is still sitting in the old KV store
+    // (from before the D1 migration) and merge it into D1 without wiping
+    // anything already in D1. Safe to call more than once.
+    if (url.pathname === '/migrate-from-kv') {
+      if (!checkAuth()) return new Response('Unauthorized', { status: 401, headers: cors });
+      if (!env.SUPREME_KV) return json({ error: 'SUPREME_KV binding not found' }, 400);
+      const rawEdits = await env.SUPREME_KV.get('invoiceEdits');
+      const rawSent = await env.SUPREME_KV.get('sentStates');
+      const old = rawEdits ? JSON.parse(rawEdits) : {};
+      const oldSent = rawSent ? JSON.parse(rawSent) : {};
+      const now = Date.now();
+      const stmts = [];
+
+      const edits = old.edits || {};
+      const deleted = Array.isArray(old.deleted) ? old.deleted : [];
+      const newInvs = Array.isArray(old.newInvs) ? old.newInvs : [];
+
+      for (const key of Object.keys(edits)) {
+        stmts.push(env.SUPREME_DB.prepare(
+          `INSERT INTO edits (key, diff, updated_at) VALUES (?1, ?2, ?3)
+           ON CONFLICT(key) DO UPDATE SET diff=excluded.diff, updated_at=excluded.updated_at
+           WHERE excluded.updated_at >= edits.updated_at`
+        ).bind(key, JSON.stringify(edits[key]), now));
+      }
+      for (const key of deleted) {
+        stmts.push(env.SUPREME_DB.prepare(
+          `INSERT INTO deleted_keys (key, deleted_at) VALUES (?1, ?2) ON CONFLICT(key) DO NOTHING`
+        ).bind(key, now));
+      }
+      const deletedSet = new Set(deleted);
+      for (const inv of newInvs) {
+        const key = String(inv.number) + '|' + String(inv.wo || '');
+        if (deletedSet.has(key)) continue;
+        stmts.push(env.SUPREME_DB.prepare(
+          `INSERT INTO new_invoices (key, data, updated_at) VALUES (?1, ?2, ?3)
+           ON CONFLICT(key) DO UPDATE SET data=excluded.data, updated_at=excluded.updated_at
+           WHERE excluded.updated_at >= new_invoices.updated_at`
+        ).bind(key, JSON.stringify(inv), now));
+      }
+      for (const key of Object.keys(oldSent)) {
+        stmts.push(env.SUPREME_DB.prepare(
+          `INSERT INTO sent_states (key, state, updated_at) VALUES (?1, ?2, ?3)
+           ON CONFLICT(key) DO UPDATE SET state=excluded.state, updated_at=excluded.updated_at
+           WHERE excluded.updated_at >= sent_states.updated_at`
+        ).bind(key, oldSent[key], now));
+      }
+
+      if (stmts.length) await env.SUPREME_DB.batch(stmts);
+      return json({
+        status: 'ok',
+        foundInKV: { edits: Object.keys(edits).length, deleted: deleted.length, newInvs: newInvs.length, sent: Object.keys(oldSent).length },
+      });
+    }
+
     if (url.pathname === '/edits') {
       if (request.method === 'GET') {
         const [editRows, delRows, newRows] = await Promise.all([
