@@ -1906,12 +1906,18 @@ function historySortValue(inv, col) {
 function historySortComparator(a, b) {
   var col = _histSort.col, dir = _histSort.dir === 'asc' ? 1 : -1;
   var va = historySortValue(a, col), vb = historySortValue(b, col);
-  var na = parseFloat(va), nb = parseFloat(vb);
   var cmp;
-  if (col === 'total' || (!isNaN(na) && !isNaN(nb) && va !== '' && vb !== '')) {
-    cmp = na - nb;
+  if (col === 'date') {
+    // ISO "YYYY-MM-DD" strings sort correctly as plain strings — parseFloat would
+    // truncate to just the year and make every date in the same year compare equal.
+    cmp = String(va).localeCompare(String(vb));
   } else {
-    cmp = String(va).localeCompare(String(vb), undefined, { numeric: true });
+    var na = parseFloat(va), nb = parseFloat(vb);
+    if (col === 'total' || (!isNaN(na) && !isNaN(nb) && va !== '' && vb !== '')) {
+      cmp = na - nb;
+    } else {
+      cmp = String(va).localeCompare(String(vb), undefined, { numeric: true });
+    }
   }
   if (cmp === 0 && col !== 'date') cmp = (a.date||'') < (b.date||'') ? 1 : -1;
   return cmp * dir;
