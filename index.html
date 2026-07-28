@@ -583,13 +583,13 @@
         <thead>
           <tr>
             <th style="width:30px;text-align:center"><input type="checkbox" id="select-all-chk" onclick="toggleSelectAll(this)" title="Select All"></th>
-            <th>Date</th>
-            <th>Order #</th>
-            <th>WO #</th>
-            <th>Client</th>
+            <th id="th-date" onclick="sortHistoryBy('date')" style="cursor:pointer;user-select:none;">Date</th>
+            <th id="th-wo" onclick="sortHistoryBy('wo')" style="cursor:pointer;user-select:none;">Order #</th>
+            <th id="th-number" onclick="sortHistoryBy('number')" style="cursor:pointer;user-select:none;">WO #</th>
+            <th id="th-client" onclick="sortHistoryBy('client')" style="cursor:pointer;user-select:none;">Client</th>
             <th>Tech</th>
             <th>Hours</th>
-            <th>Total</th>
+            <th id="th-total" onclick="sortHistoryBy('total')" style="cursor:pointer;user-select:none;">Total</th>
             <th>Status</th>
             <th>Payment</th>
             <th style="color:#4ade80;">Enviada</th>
@@ -1890,6 +1890,43 @@ function saveNewInvoiceRow() {
   showToast('✅ Invoice saved!');
 }
 
+// ===== HISTORY TABLE COLUMN SORT =====
+var _histSort = (function(){
+  try { return JSON.parse(localStorage.getItem('sup_hist_sort')) || { col: 'date', dir: 'desc' }; }
+  catch(e) { return { col: 'date', dir: 'desc' }; }
+})();
+function historySortValue(inv, col) {
+  if (col === 'date') return inv.date || '';
+  if (col === 'wo') return inv.wo || '';
+  if (col === 'number') return inv.number || '';
+  if (col === 'client') return (inv.client && inv.client.company) || '';
+  if (col === 'total') return parseFloat(inv.total) || 0;
+  return '';
+}
+function historySortComparator(a, b) {
+  var col = _histSort.col, dir = _histSort.dir === 'asc' ? 1 : -1;
+  var va = historySortValue(a, col), vb = historySortValue(b, col);
+  var na = parseFloat(va), nb = parseFloat(vb);
+  var cmp;
+  if (col === 'total' || (!isNaN(na) && !isNaN(nb) && va !== '' && vb !== '')) {
+    cmp = na - nb;
+  } else {
+    cmp = String(va).localeCompare(String(vb), undefined, { numeric: true });
+  }
+  if (cmp === 0 && col !== 'date') cmp = (a.date||'') < (b.date||'') ? 1 : -1;
+  return cmp * dir;
+}
+function sortHistoryBy(col) {
+  if (_histSort.col === col) { _histSort.dir = _histSort.dir === 'asc' ? 'desc' : 'asc'; }
+  else { _histSort = { col: col, dir: (col === 'date') ? 'desc' : 'asc' }; }
+  localStorage.setItem('sup_hist_sort', JSON.stringify(_histSort));
+  renderHistory();
+}
+function historySortArrow(col) {
+  if (_histSort.col !== col) return '';
+  return _histSort.dir === 'asc' ? ' ▲' : ' ▼';
+}
+
 function renderHistory() {
   const invs = getInvoices();
   const search = (document.getElementById('search-input').value||'').toLowerCase();
@@ -1910,7 +1947,7 @@ function renderHistory() {
     var _ss = i.sentState || 0;
     const ok4 = !sentF || (sentF==='sent' && _ss===1) || (sentF==='notsent' && _ss===0) || (sentF==='cobrada' && _ss===2);
     return ok1&&ok2&&ok3&&ok4;
-  }).sort((a,b)=>((b.date||'')>(a.date||''))?1:-1);
+  }).sort(historySortComparator);
 
   const totalGen = invs.reduce((s,i)=>s+(parseFloat(i.total)||0),0);
   const paid = invs.filter(i=>i.status==='PAID' || i.sentState===2).reduce((s,i)=>s+(parseFloat(i.total)||0),0);
@@ -1970,6 +2007,12 @@ function renderHistory() {
       bar.style.display = 'none';
     }
   }
+
+  var thDate = document.getElementById('th-date'); if (thDate) thDate.innerHTML = 'Date' + historySortArrow('date');
+  var thWo = document.getElementById('th-wo'); if (thWo) thWo.innerHTML = 'Order #' + historySortArrow('wo');
+  var thNumber = document.getElementById('th-number'); if (thNumber) thNumber.innerHTML = 'WO #' + historySortArrow('number');
+  var thClient = document.getElementById('th-client'); if (thClient) thClient.innerHTML = 'Client' + historySortArrow('client');
+  var thTotal = document.getElementById('th-total'); if (thTotal) thTotal.innerHTML = 'Total' + historySortArrow('total');
 
   const tbody = document.getElementById('history-body');
   if (!list.length) { tbody.innerHTML='<tr><td colspan="10" style="text-align:center;color:#718096;padding:24px">No invoices found</td></tr>'; return; }
