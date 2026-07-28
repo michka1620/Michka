@@ -2313,6 +2313,10 @@ function initializeData() {
     // Version changed — update cache but KEEP user edits (sup_edits, sup_deleted, sup_new)
     localStorage.removeItem('supreme_invoices');
     localStorage.removeItem('supreme_data_version');
+    // NOTE: sup_edits/sup_deleted/sup_new (and the remote store) are intentionally
+    // NOT wiped here anymore — a DATA_VERSION bump now just means new historical
+    // invoices were added, and wiping on every bump used to erase real user edits
+    // and the whole remote store along with them.
     const fresh = normalizeTotals(HISTORICAL_DATA.map(function(i){ return Object.assign({}, i); }));
     localStorage.setItem('supreme_invoices', JSON.stringify(fresh));
     localStorage.setItem('supreme_data_version', DATA_VERSION);
@@ -3195,7 +3199,13 @@ window.onload = () => {
     localStorage.removeItem('sup_edits');
     localStorage.removeItem('sup_deleted');
     localStorage.removeItem('sup_new');
-    fetch('https://supremekv1.michka1620.workers.dev/edits', {method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}).catch(function(){});
+    localStorage.removeItem('sup_edits_prev');
+    localStorage.removeItem('sup_edit_ts');
+    localStorage.removeItem('sup_new_prev');
+    localStorage.removeItem('sup_new_ts');
+    localStorage.removeItem('sup_known_new_keys');
+    localStorage.removeItem('sup_sync_pending');
+    fetch('https://supremekv1.michka1620.workers.dev/edits', {method:'POST',headers:_syncHeaders(),body:JSON.stringify({wipeAll:true})}).catch(function(){});
     history.replaceState(null,'',location.pathname);
   }
   // Migrate old sup_sent data to sup_edits sentState
@@ -3874,30 +3884,119 @@ function getSentData() {
 
 var KV_API = 'https://supremekv1.michka1620.workers.dev/sent';
 var KV_EDITS_API = 'https://supremekv1.michka1620.workers.dev/edits';
+// Must match the SYNC_KEY secret configured on the supremekv1 Worker.
+var SYNC_KEY = 'NjqjcbvNyuhTSJHcqDJRJS4d4Jns8xpY';
 
+function _syncHeaders() {
+  return { 'Content-Type': 'application/json', 'x-api-key': SYNC_KEY };
+}
+
+// Persistent (not auto-hiding) sync indicator — replaces the old "always says Ready" label.
+function showPendingBanner(pendingCount) {
+  var el = document.getElementById('sync-status');
+  if (!el) return;
+  if (pendingCount > 0) {
+    el.textContent = '⚠️ Cambios sin subir — reintentando…';
+    el.style.color = '#f87171';
+  } else {
+    el.textContent = '✅ Todo sincronizado';
+    el.style.color = '#4ade80';
+  }
+}
+
+// Each invoice/edit is upserted individually on the server (D1), keyed by its own
+// number|wo — so two devices saving different invoices at the same time no longer
+// clobber each other. We tag each entry with an updatedAt so genuinely concurrent
+// edits to the SAME invoice resolve by "most recent wins" instead of "whoever
+// uploaded last, regardless of age, wins".
 function pushEditsToKV(edits, deleted, newInvs, silent) {
   try {
-    var payload = { edits: edits, deleted: deleted, newInvs: newInvs };
-    fetch(KV_EDITS_API, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) })
+    var prevEdits = JSON.parse(localStorage.getItem('sup_edits_prev') || '{}');
+    var editTs    = JSON.parse(localStorage.getItem('sup_edit_ts')    || '{}');
+    var prevNew   = JSON.parse(localStorage.getItem('sup_new_prev')   || '{}');
+    var newTs     = JSON.parse(localStorage.getItem('sup_new_ts')     || '{}');
+    var knownNewKeys = JSON.parse(localStorage.getItem('sup_known_new_keys') || '[]');
+    var now = Date.now();
+
+    var wrappedEdits = {};
+    Object.keys(edits).forEach(function(k) {
+      if (JSON.stringify(edits[k]) !== JSON.stringify(prevEdits[k]) || !editTs[k]) editTs[k] = now;
+      wrappedEdits[k] = { diff: edits[k], updatedAt: editTs[k] };
+    });
+
+    var currentNewKeys = newInvs.map(function(i){ return String(i.number)+'|'+String(i.wo||''); });
+    var wrappedNew = newInvs.map(function(inv, idx) {
+      var k = currentNewKeys[idx];
+      if (JSON.stringify(inv) !== JSON.stringify(prevNew[k]) || !newTs[k]) newTs[k] = now;
+      return Object.assign({}, inv, { _updatedAt: newTs[k] });
+    });
+
+    // A new invoice that vanished locally (user deleted it) must be told to the
+    // server explicitly, since the server now only adds/updates — it never infers
+    // a deletion from an entry's mere absence in this device's payload.
+    var removedNewKeys = knownNewKeys.filter(function(k){ return currentNewKeys.indexOf(k) === -1; });
+    var fullDeleted = deleted.concat(removedNewKeys);
+
+    var payload = { edits: wrappedEdits, deleted: fullDeleted, newInvs: wrappedNew };
+
+    fetch(KV_EDITS_API, { method:'POST', headers: _syncHeaders(), body: JSON.stringify(payload) })
       .then(function(r){
-        if (!silent) {
-          if (r.ok) showToast('☁️ Sincronizado con el servidor');
-          else showToast('⚠️ Error sincronizando: ' + r.status, true);
+        if (r.ok) {
+          localStorage.setItem('sup_edits_prev', JSON.stringify(edits));
+          localStorage.setItem('sup_edit_ts', JSON.stringify(editTs));
+          var newPrevMap = {}; newInvs.forEach(function(inv,idx){ newPrevMap[currentNewKeys[idx]] = inv; });
+          localStorage.setItem('sup_new_prev', JSON.stringify(newPrevMap));
+          localStorage.setItem('sup_new_ts', JSON.stringify(newTs));
+          localStorage.setItem('sup_known_new_keys', JSON.stringify(currentNewKeys));
+          localStorage.removeItem('sup_sync_pending');
+          if (!silent) showToast('☁️ Sincronizado con el servidor');
+          showPendingBanner(0);
+        } else {
+          localStorage.setItem('sup_sync_pending', '1');
+          if (!silent) showToast('⚠️ Error sincronizando: ' + r.status, true);
+          showPendingBanner(1);
+          scheduleRetrySync();
         }
       })
-      .catch(function(err){ if (!silent) showToast('⚠️ Sin conexión al servidor — datos solo locales', true); });
+      .catch(function(err){
+        localStorage.setItem('sup_sync_pending', '1');
+        if (!silent) showToast('⚠️ Sin conexión al servidor — datos solo locales', true);
+        showPendingBanner(1);
+        scheduleRetrySync();
+      });
   } catch(e) { if (!silent) showToast('⚠️ Error de sincronización', true); }
 }
 
-function limpiarExtras() {
-  if (!confirm('¿Borrar facturas extras del servidor? Solo se conservan las 28 facturas oficiales.')) return;
+var _retryTimer = null;
+function _retryPendingSync() {
+  if (localStorage.getItem('sup_sync_pending') !== '1') return;
   var edits   = JSON.parse(localStorage.getItem('sup_edits')   || '{}');
   var deleted = JSON.parse(localStorage.getItem('sup_deleted') || '[]');
-  localStorage.setItem('sup_new', '[]');
+  var newInvs = JSON.parse(localStorage.getItem('sup_new')     || '[]');
+  pushEditsToKV(edits, deleted, newInvs, true);
+}
+function scheduleRetrySync() {
+  if (_retryTimer) return;
+  _retryTimer = setTimeout(function() { _retryTimer = null; _retryPendingSync(); }, 30000);
+}
+window.addEventListener('online', _retryPendingSync);
+
+function limpiarExtras() {
+  if (!confirm('¿Borrar facturas extras del servidor? Solo se conservan las 28 facturas oficiales.')) return;
   showToast('🗑️ Limpiando extras...');
-  fetch(KV_EDITS_API, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({edits:edits, deleted:deleted, newInvs:[]}) })
-    .then(function(r){ if(r.ok){ showToast('✅ Listo — recargando...'); setTimeout(function(){ location.reload(); }, 1200); } else showToast('⚠️ Error: ' + r.status, true); })
-    .catch(function(){ showToast('⚠️ Sin conexión', true); });
+  // The server only adds/updates now (it never wipes on an empty newInvs list), so
+  // clearing extras means explicitly listing every extra invoice as "deleted" —
+  // both the ones this device knows about AND whatever the server has from other devices.
+  fetch(KV_EDITS_API).then(function(r){ return r.json(); }).then(function(data) {
+    var serverKeys = (data.newInvs || []).map(function(i){ return String(i.number)+'|'+String(i.wo||''); });
+    var localKeys  = JSON.parse(localStorage.getItem('sup_new') || '[]').map(function(i){ return String(i.number)+'|'+String(i.wo||''); });
+    var allExtraKeys = Array.from(new Set(serverKeys.concat(localKeys)));
+    localStorage.setItem('sup_new', '[]');
+    localStorage.setItem('sup_known_new_keys', '[]');
+    return fetch(KV_EDITS_API, { method:'POST', headers: _syncHeaders(), body: JSON.stringify({ edits:{}, deleted: allExtraKeys, newInvs:[] }) });
+  })
+  .then(function(r){ if(r.ok){ showToast('✅ Listo — recargando...'); setTimeout(function(){ location.reload(); }, 1200); } else showToast('⚠️ Error: ' + r.status, true); })
+  .catch(function(){ showToast('⚠️ Sin conexión', true); });
 }
 
 function forceSyncToKV() {
@@ -3912,42 +4011,57 @@ function pullEditsFromKV(cb) {
   fetch(KV_EDITS_API).then(function(r){ return r.json(); }).then(function(data) {
     if (!data || typeof data !== 'object') { if(cb) cb(); return; }
 
-    // MERGE KV data with local data — local wins for conflicts (local is more recent)
-    var localEdits  = JSON.parse(localStorage.getItem('sup_edits')   || '{}');
-    var localNew    = JSON.parse(localStorage.getItem('sup_new')      || '[]');
-    var localDel    = JSON.parse(localStorage.getItem('sup_deleted')  || '[]');
+    var serverEdits = data.edits   || {};
+    var serverNew   = data.newInvs || [];
+    var serverDel   = data.deleted || [];
 
-    var kvEdits  = data.edits   || {};
-    var kvNew    = data.newInvs || [];
-    var kvDel    = data.deleted || [];
-
-    // Merge edits: KV base, local overwrites
-    var mergedEdits = Object.assign({}, kvEdits, localEdits);
-
-    // Merge new invoices: KV base, local additions win (by number|wo key)
-    // Filter out any entry whose number/wo matches HISTORICAL_DATA (prevents stale KV from adding fake invoices)
+    // Filter out any entry whose number/wo matches HISTORICAL_DATA (prevents stale data from adding fake invoices)
     var histNums = new Set(HISTORICAL_DATA.map(function(i){ return String(i.number); }));
     var histWOs  = new Set(HISTORICAL_DATA.map(function(i){ return String(i.wo||''); }).filter(Boolean));
     function isHistorical(i) {
       var n = String(i.number||''), w = String(i.wo||'');
       return histNums.has(n) || histNums.has(w) || (w && histWOs.has(w));
     }
-    var mergedNewMap = {};
-    kvNew.forEach(function(i){ if (!isHistorical(i)) mergedNewMap[String(i.number)+'|'+String(i.wo||'')] = i; });
-    localNew.forEach(function(i){ if (!isHistorical(i)) mergedNewMap[String(i.number)+'|'+String(i.wo||'')] = i; });
-    var mergedNew = Object.values(mergedNewMap);
+    var cleanServerNew = serverNew.filter(function(i){ return !isHistorical(i); });
 
-    // Merge deleted: union, but filter out historical entries
-    var histKeys = new Set(HISTORICAL_DATA.map(function(i){ return String(i.number)+'|'+String(i.wo||''); }));
-    var delSet = new Set(kvDel.concat(localDel).filter(function(k){ return !histKeys.has(k); }));
-    var mergedDel = Array.from(delSet);
+    // The server (D1) now merges every device's edits additively — it's the source
+    // of truth. We only need to protect local changes that haven't been
+    // acknowledged by the server yet (a save that's mid-flight or that failed).
+    var pending = localStorage.getItem('sup_sync_pending') === '1';
+    var finalEdits, finalNew, finalDel;
 
-    localStorage.setItem('sup_edits',   JSON.stringify(mergedEdits));
-    localStorage.setItem('sup_deleted', JSON.stringify(mergedDel));
-    localStorage.setItem('sup_new',     JSON.stringify(mergedNew));
+    if (pending) {
+      var localEdits = JSON.parse(localStorage.getItem('sup_edits')   || '{}');
+      var localNew   = JSON.parse(localStorage.getItem('sup_new')     || '[]');
+      var localDel   = JSON.parse(localStorage.getItem('sup_deleted') || '[]');
+      finalEdits = Object.assign({}, serverEdits, localEdits);
+      var mergedNewMap = {};
+      cleanServerNew.forEach(function(i){ mergedNewMap[String(i.number)+'|'+String(i.wo||'')] = i; });
+      localNew.forEach(function(i){ if (!isHistorical(i)) mergedNewMap[String(i.number)+'|'+String(i.wo||'')] = i; });
+      finalNew = Object.values(mergedNewMap);
+      finalDel = Array.from(new Set(serverDel.concat(localDel)));
+    } else {
+      finalEdits = serverEdits;
+      finalNew   = cleanServerNew;
+      finalDel   = serverDel;
+    }
 
-    // Push merged result back to KV so both are in sync
-    pushEditsToKV(mergedEdits, mergedDel, mergedNew);
+    localStorage.setItem('sup_edits',   JSON.stringify(finalEdits));
+    localStorage.setItem('sup_deleted', JSON.stringify(finalDel));
+    localStorage.setItem('sup_new',     JSON.stringify(finalNew));
+
+    if (pending) {
+      // Still have unacknowledged local work — try to push it again.
+      pushEditsToKV(finalEdits, finalDel, finalNew, true);
+    } else {
+      // Record the server's state as our acknowledged baseline so the next save
+      // only reports what actually changed on THIS device.
+      localStorage.setItem('sup_edits_prev', JSON.stringify(serverEdits));
+      var newPrevMap = {}; cleanServerNew.forEach(function(i){ newPrevMap[String(i.number)+'|'+String(i.wo||'')] = i; });
+      localStorage.setItem('sup_new_prev', JSON.stringify(newPrevMap));
+      localStorage.setItem('sup_known_new_keys', JSON.stringify(cleanServerNew.map(function(i){ return String(i.number)+'|'+String(i.wo||''); })));
+    }
+    showPendingBanner(pending ? 1 : 0);
 
     if (cb) cb();
   }).catch(function(){ if(cb) cb(); });
@@ -3963,7 +4077,7 @@ function pushSentToKV() {
         obj[k] = inv.sentState;
       }
     });
-    fetch(KV_API, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(obj) }).catch(function(){});
+    fetch(KV_API, { method:'POST', headers: _syncHeaders(), body: JSON.stringify(obj) }).catch(function(){});
   } catch(e) {}
 }
 
