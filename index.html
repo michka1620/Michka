@@ -3257,6 +3257,21 @@ window.onload = () => {
     fetch('https://supremekv1.michka1620.workers.dev/edits', {method:'POST',headers:_syncHeaders(),body:JSON.stringify({wipeAll:true})}).catch(function(){});
     history.replaceState(null,'',location.pathname);
   }
+  // Safe, non-destructive fix for a device stuck re-pushing stale local data:
+  // ?clearpending=1 drops only this browser's local edits/cache so the next
+  // load takes the server's data as-is, without touching the server at all.
+  if (location.search.indexOf('clearpending=1') >= 0) {
+    localStorage.removeItem('sup_edits');
+    localStorage.removeItem('sup_new');
+    localStorage.removeItem('sup_deleted');
+    localStorage.removeItem('sup_edits_prev');
+    localStorage.removeItem('sup_edit_ts');
+    localStorage.removeItem('sup_new_prev');
+    localStorage.removeItem('sup_new_ts');
+    localStorage.removeItem('sup_known_new_keys');
+    localStorage.removeItem('sup_sync_pending');
+    history.replaceState(null,'',location.pathname);
+  }
   // Migrate old sup_sent data to sup_edits sentState
   try {
     var oldSent = JSON.parse(localStorage.getItem('sup_sent') || '{}');
