@@ -17,7 +17,7 @@ export default {
     if (request.method === 'OPTIONS') return new Response(null, { headers: cors });
 
     function json(obj, status) {
-      return new Response(JSON.stringify(obj), { status: status || 200, headers: { ...cors, 'Content-Type': 'application/json' } });
+      return new Response(JSON.stringify(obj), { status: status || 200, headers: { ...cors, 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } });
     }
     function checkAuth() {
       return request.headers.get('x-api-key') === env.SYNC_KEY;

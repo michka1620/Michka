@@ -4051,7 +4051,7 @@ function limpiarExtras() {
   // The server only adds/updates now (it never wipes on an empty newInvs list), so
   // clearing extras means explicitly listing every extra invoice as "deleted" —
   // both the ones this device knows about AND whatever the server has from other devices.
-  fetch(KV_EDITS_API).then(function(r){ return r.json(); }).then(function(data) {
+  fetch(KV_EDITS_API, { cache: 'no-store' }).then(function(r){ return r.json(); }).then(function(data) {
     var serverKeys = (data.newInvs || []).map(function(i){ return String(i.number)+'|'+String(i.wo||''); });
     var localKeys  = JSON.parse(localStorage.getItem('sup_new') || '[]').map(function(i){ return String(i.number)+'|'+String(i.wo||''); });
     var allExtraKeys = Array.from(new Set(serverKeys.concat(localKeys)));
@@ -4072,7 +4072,7 @@ function forceSyncToKV() {
 }
 
 function pullEditsFromKV(cb) {
-  fetch(KV_EDITS_API).then(function(r){ return r.json(); }).then(function(data) {
+  fetch(KV_EDITS_API, { cache: 'no-store' }).then(function(r){ return r.json(); }).then(function(data) {
     if (!data || typeof data !== 'object') { if(cb) cb(); return; }
 
     var serverEdits = data.edits   || {};
