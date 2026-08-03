@@ -3959,7 +3959,10 @@ function _syncHeaders() {
 function showPendingBanner(pendingCount) {
   var el = document.getElementById('sync-status');
   if (!el) return;
-  if (pendingCount > 0) {
+  if (pendingCount === 'error') {
+    el.textContent = '❌ Sin conexión al servidor de datos';
+    el.style.color = '#f87171';
+  } else if (pendingCount > 0) {
     el.textContent = '⚠️ Cambios sin subir — reintentando…';
     el.style.color = '#f87171';
   } else {
@@ -4128,7 +4131,7 @@ function pullEditsFromKV(cb) {
     showPendingBanner(pending ? 1 : 0);
 
     if (cb) cb();
-  }).catch(function(){ if(cb) cb(); });
+  }).catch(function(){ showPendingBanner('error'); if(cb) cb(); });
 }
 
 function pushSentToKV() {
