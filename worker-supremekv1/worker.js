@@ -110,6 +110,18 @@ export default {
           return json({ status: 'ok', wiped: true });
         }
 
+        // Surgical undelete: remove specific keys from deleted_keys without
+        // touching anything else (used to recover from an accidental bulk
+        // delete where the invoice data itself was already restored but its
+        // key was left behind in deleted_keys, hiding it from every client).
+        if (Array.isArray(body.undeleteKeys) && body.undeleteKeys.length) {
+          const stmts = body.undeleteKeys.map(key =>
+            env.SUPREME_DB.prepare('DELETE FROM deleted_keys WHERE key = ?1').bind(key)
+          );
+          await env.SUPREME_DB.batch(stmts);
+          return json({ status: 'ok', undeleted: body.undeleteKeys.length });
+        }
+
         const edits = body.edits || {};
         const deleted = Array.isArray(body.deleted) ? body.deleted : [];
         const newInvs = Array.isArray(body.newInvs) ? body.newInvs : [];
