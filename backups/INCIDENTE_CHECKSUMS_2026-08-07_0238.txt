@@ -1,0 +1,5 @@
+291c07c945ccbef802cdec5a6267b8deca136c57f0f5fde4824b364309f857a6  /home/user/Michka/backups/INCIDENTE_commit_desplegado_2026-08-07_0238.txt
+de05c9bbdac9e41c17379f9af00e0272d9d35afe284615a5944b0709c88448f3  /home/user/Michka/backups/INCIDENTE_d1_sent_snapshot_2026-08-07_0238.json
+824108db8545f45bc9b763093f45c7cd44cf0b57c122fefbcdf1a569b325b232  /home/user/Michka/backups/INCIDENTE_d1_snapshot_2026-08-07_0238.json
+69ded8e3aca63ec5465073ea15830603aa6e9154d65ef036b2759e0d4b9f5b53  /home/user/Michka/backups/INCIDENTE_index_html_2026-08-07_0238.html
+6ad99df65800f6a3b2cd0424b350c19fe189df5161bb7a3e5c1294d6e539d073  /home/user/Michka/backups/INCIDENTE_worker_js_2026-08-07_0238.js
