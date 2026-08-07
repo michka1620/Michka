@@ -1,0 +1,20 @@
+name: Deploy Frontend to Cloudflare Workers (STAGING)
+
+# Deploys ONLY on pushes to the dedicated staging branch, using the separate
+# wrangler.staging.toml (bold-mouse-3bc3-staging). Never touches main or the
+# production wrangler.toml. See docs/35_ORDEN_DESPLIEGUE_SEGURO.md.
+on:
+  push:
+    branches: [staging/access-auth]
+
+jobs:
+  deploy-staging:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy staging frontend to Cloudflare Workers
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: 62fb45b77a7da33a4614d06fab267b4b
+          command: deploy --config wrangler.staging.toml
