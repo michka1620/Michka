@@ -922,12 +922,9 @@ const getInvoices = function() {
       });
       return merged;
     });
-    // Add user-created invoices — exclude any that duplicate a HISTORICAL_DATA entry.
-    // QUARANTINED historical records never count as "already occupying" a WO/Order# —
-    // otherwise a bad placeholder record can keep hiding a real, complete one. (TEMPORAL — staging test, ver docs/08_CODE_CHANGE_PROPOSAL.md)
-    var activeHistForDupCheck = HISTORICAL_DATA.filter(function(i){ return i.dataIntegrity !== 'QUARANTINED'; });
-    var histNums = new Set(activeHistForDupCheck.map(function(i){ return String(i.number); }));
-    var histWOs  = new Set(activeHistForDupCheck.map(function(i){ return String(i.wo||''); }));
+    // Add user-created invoices — exclude any that duplicate a HISTORICAL_DATA entry
+    var histNums = new Set(HISTORICAL_DATA.map(function(i){ return String(i.number); }));
+    var histWOs  = new Set(HISTORICAL_DATA.map(function(i){ return String(i.wo||''); }));
     userNew = userNew.filter(function(inv){
       var n = String(inv.number||'');
       var w = String(inv.wo||'');
@@ -4085,11 +4082,9 @@ function pullEditsFromKV(cb) {
     var serverNew   = data.newInvs || [];
     var serverDel   = data.deleted || [];
 
-    // Filter out any entry whose number/wo matches HISTORICAL_DATA (prevents stale data from adding fake invoices).
-    // QUARANTINED historical records never count as "already occupying" a WO/Order#. (TEMPORAL — staging test, ver docs/08_CODE_CHANGE_PROPOSAL.md)
-    var activeHistForDupCheck = HISTORICAL_DATA.filter(function(i){ return i.dataIntegrity !== 'QUARANTINED'; });
-    var histNums = new Set(activeHistForDupCheck.map(function(i){ return String(i.number); }));
-    var histWOs  = new Set(activeHistForDupCheck.map(function(i){ return String(i.wo||''); }).filter(Boolean));
+    // Filter out any entry whose number/wo matches HISTORICAL_DATA (prevents stale data from adding fake invoices)
+    var histNums = new Set(HISTORICAL_DATA.map(function(i){ return String(i.number); }));
+    var histWOs  = new Set(HISTORICAL_DATA.map(function(i){ return String(i.wo||''); }).filter(Boolean));
     function isHistorical(i) {
       var n = String(i.number||''), w = String(i.wo||'');
       return histNums.has(n) || histNums.has(w) || (w && histWOs.has(w));
