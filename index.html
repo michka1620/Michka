@@ -3243,20 +3243,8 @@ function applyTirePatches() {
 
 // ===== INIT =====
 window.onload = () => {
-  // Clear local edits and KV if ?reset=1 in URL
-  if (location.search.indexOf('reset=1') >= 0) {
-    localStorage.removeItem('sup_edits');
-    localStorage.removeItem('sup_deleted');
-    localStorage.removeItem('sup_new');
-    localStorage.removeItem('sup_edits_prev');
-    localStorage.removeItem('sup_edit_ts');
-    localStorage.removeItem('sup_new_prev');
-    localStorage.removeItem('sup_new_ts');
-    localStorage.removeItem('sup_known_new_keys');
-    localStorage.removeItem('sup_sync_pending');
-    fetch('https://supremekv1.michka1620.workers.dev/edits', {method:'POST',headers:_syncHeaders(),body:JSON.stringify({wipeAll:true})}).catch(function(){});
-    history.replaceState(null,'',location.pathname);
-  }
+  // ?reset=1 (and the wipeAll it used to trigger) was removed entirely --
+  // see docs/34_CORRECCIONES_SEGURIDAD_V3.md. Use ?clearpending=1 below instead.
   // Safe, non-destructive fix for a device stuck re-pushing stale local data:
   // ?clearpending=1 drops only this browser's local edits/cache so the next
   // load takes the server's data as-is, without touching the server at all.
@@ -3946,13 +3934,17 @@ function getSentData() {
   return result;
 }
 
-var KV_API = 'https://supremekv1.michka1620.workers.dev/sent';
-var KV_EDITS_API = 'https://supremekv1.michka1620.workers.dev/edits';
-// Must match the SYNC_KEY secret configured on the supremekv1 Worker.
-var SYNC_KEY = 'NjqjcbvNyuhTSJHcqDJRJS4d4Jns8xpY';
+var KV_API = '/api/sent';
+var KV_EDITS_API = '/api/edits';
 
+// No shared secret lives in the browser anymore -- Cloudflare Access authenticates the
+// session, and the frontend Worker attaches identity for internal calls. See
+// docs/25_AUTORIDAD_UNICA_Y_UBICACION_ACCESS.md.
 function _syncHeaders() {
-  return { 'Content-Type': 'application/json', 'x-api-key': SYNC_KEY };
+  return { 'Content-Type': 'application/json' };
+}
+function _syncFetchOpts(extra) {
+  return Object.assign({ credentials: 'include' }, extra || {});
 }
 
 // Persistent (not auto-hiding) sync indicator — replaces the old "always says Ready" label.
@@ -3960,7 +3952,7 @@ function showPendingBanner(pendingCount) {
   var el = document.getElementById('sync-status');
   if (!el) return;
   if (pendingCount === 'error') {
-    el.textContent = '❌ Sin conexión al servidor de datos';
+    el.textContent = '🔧 Sincronización temporalmente deshabilitada por mantenimiento de seguridad. Los datos locales no se han eliminado.';
     el.style.color = '#f87171';
   } else if (pendingCount > 0) {
     el.textContent = '⚠️ Cambios sin subir — reintentando…';
@@ -4006,7 +3998,7 @@ function pushEditsToKV(edits, deleted, newInvs, silent) {
 
     var payload = { edits: wrappedEdits, deleted: fullDeleted, newInvs: wrappedNew };
 
-    fetch(KV_EDITS_API, { method:'POST', headers: _syncHeaders(), body: JSON.stringify(payload) })
+    fetch(KV_EDITS_API, _syncFetchOpts({ method:'POST', headers: _syncHeaders(), body: JSON.stringify(payload) }))
       .then(function(r){
         if (r.ok) {
           localStorage.setItem('sup_edits_prev', JSON.stringify(edits));
@@ -4054,13 +4046,13 @@ function limpiarExtras() {
   // The server only adds/updates now (it never wipes on an empty newInvs list), so
   // clearing extras means explicitly listing every extra invoice as "deleted" —
   // both the ones this device knows about AND whatever the server has from other devices.
-  fetch(KV_EDITS_API, { cache: 'no-store' }).then(function(r){ return r.json(); }).then(function(data) {
+  fetch(KV_EDITS_API, _syncFetchOpts({ cache: 'no-store' })).then(function(r){ return r.json(); }).then(function(data) {
     var serverKeys = (data.newInvs || []).map(function(i){ return String(i.number)+'|'+String(i.wo||''); });
     var localKeys  = JSON.parse(localStorage.getItem('sup_new') || '[]').map(function(i){ return String(i.number)+'|'+String(i.wo||''); });
     var allExtraKeys = Array.from(new Set(serverKeys.concat(localKeys)));
     localStorage.setItem('sup_new', '[]');
     localStorage.setItem('sup_known_new_keys', '[]');
-    return fetch(KV_EDITS_API, { method:'POST', headers: _syncHeaders(), body: JSON.stringify({ edits:{}, deleted: allExtraKeys, newInvs:[] }) });
+    return fetch(KV_EDITS_API, _syncFetchOpts({ method:'POST', headers: _syncHeaders(), body: JSON.stringify({ edits:{}, deleted: allExtraKeys, newInvs:[] }) }));
   })
   .then(function(r){ if(r.ok){ showToast('✅ Listo — recargando...'); setTimeout(function(){ location.reload(); }, 1200); } else showToast('⚠️ Error: ' + r.status, true); })
   .catch(function(){ showToast('⚠️ Sin conexión', true); });
@@ -4075,7 +4067,7 @@ function forceSyncToKV() {
 }
 
 function pullEditsFromKV(cb) {
-  fetch(KV_EDITS_API, { cache: 'no-store' }).then(function(r){ return r.json(); }).then(function(data) {
+  fetch(KV_EDITS_API, _syncFetchOpts({ cache: 'no-store' })).then(function(r){ return r.json(); }).then(function(data) {
     if (!data || typeof data !== 'object') { if(cb) cb(); return; }
 
     var serverEdits = data.edits   || {};
@@ -4144,12 +4136,12 @@ function pushSentToKV() {
         obj[k] = inv.sentState;
       }
     });
-    fetch(KV_API, { method:'POST', headers: _syncHeaders(), body: JSON.stringify(obj) }).catch(function(){});
+    fetch(KV_API, _syncFetchOpts({ method:'POST', headers: _syncHeaders(), body: JSON.stringify(obj) })).catch(function(){});
   } catch(e) {}
 }
 
 function pullSentFromKV(cb) {
-  fetch(KV_API).then(function(r){ return r.json(); }).then(function(obj) {
+  fetch(KV_API, _syncFetchOpts()).then(function(r){ return r.json(); }).then(function(obj) {
     if (!obj || typeof obj !== 'object') return;
     var all = getInvoices();
     var changed = false;

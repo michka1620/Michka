@@ -1,0 +1,14 @@
+# Configuracion de STAGING para el Worker frontal -- archivo separado a proposito de
+# wrangler.toml (produccion), para que un valor mal copiado sea visible de inmediato en
+# cualquier diff. Nunca se despliega con este archivo a "bold-mouse-3bc3" (produccion).
+name = "bold-mouse-3bc3-staging"
+compatibility_date = "2024-01-01"
+account_id = "62fb45b77a7da33a4614d06fab267b4b"
+main = "_worker.js"
+
+[assets]
+directory = "."
+
+[[services]]
+binding = "SUPREMEKV"
+service = "supremekv1-staging"

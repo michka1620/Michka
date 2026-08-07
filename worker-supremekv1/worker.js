@@ -1,11 +1,16 @@
-// Source for the "supremekv1" Cloudflare Worker (the invoice-sync backend).
-// Deployed manually via the Cloudflare dashboard (Workers & Pages -> supremekv1 ->
-// Edit code) — there is no CI pipeline for it, unlike the frontend Worker.
+// Source for the "supremekv1-staging" Cloudflare Worker (the invoice-sync backend).
+// STAGING ONLY -- reachable exclusively via the Service Binding "SUPREMEKV" from the
+// staging frontend Worker (bold-mouse-3bc3-staging). Its own workers.dev route must be
+// disabled once the binding is confirmed working (see docs/35_ORDEN_DESPLIEGUE_SEGURO.md).
 //
 // Bindings required (Settings -> Variables and Bindings):
-//   - D1 database bound as "SUPREME_DB" (run schema.sql on it once, see that file)
-//   - Environment variable/secret "SYNC_KEY" — must match the SYNC_KEY constant
-//     in index.html's client code.
+//   - D1 database bound as "SUPREME_DB" (staging database: supreme-autopro-staging)
+//
+// checkAuth() no longer compares against a shared SYNC_KEY. It only checks that the
+// request carries X-Verified-Email, a header that ONLY the staging frontend Worker sets,
+// itself only after cryptographically validating the caller's Cloudflare Access JWT. This
+// is safe precisely because this Worker has no public route -- see docs/25 for why that
+// invariant matters.
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -20,12 +25,15 @@ export default {
       return new Response(JSON.stringify(obj), { status: status || 200, headers: { ...cors, 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } });
     }
     function checkAuth() {
-      return request.headers.get('x-api-key') === env.SYNC_KEY;
+      return !!request.headers.get('X-Verified-Email');
+    }
+    function currentRole() {
+      return request.headers.get('X-Verified-Role') || 'tecnico';
     }
 
     if (url.pathname === '/debug-sync-key') {
-      const raw = env.SYNC_KEY || '';
-      return json({ present: !!env.SYNC_KEY, length: raw.length, trimmedLength: raw.trim().length, firstChar: raw[0] || null, lastChar: raw[raw.length-1] || null });
+      // Ya no aplica -- no hay SYNC_KEY que inspeccionar.
+      return json({ present: false, note: 'SYNC_KEY retired; auth is now via Cloudflare Access' });
     }
 
     // One-time recovery: read whatever is still sitting in the old KV store
@@ -84,6 +92,7 @@ export default {
 
     if (url.pathname === '/edits') {
       if (request.method === 'GET') {
+        if (!checkAuth()) return new Response('Unauthorized', { status: 401, headers: cors });
         const [editRows, delRows, newRows] = await Promise.all([
           env.SUPREME_DB.prepare('SELECT key, diff FROM edits').all(),
           env.SUPREME_DB.prepare('SELECT key FROM deleted_keys').all(),
@@ -101,13 +110,8 @@ export default {
         let body;
         try { body = JSON.parse(await request.text()); } catch(e) { return new Response('Bad JSON', { status: 400, headers: cors }); }
 
-        if (body.wipeAll === true) {
-          await env.SUPREME_DB.batch([
-            env.SUPREME_DB.prepare('DELETE FROM edits'),
-            env.SUPREME_DB.prepare('DELETE FROM deleted_keys'),
-            env.SUPREME_DB.prepare('DELETE FROM new_invoices'),
-          ]);
-          return json({ status: 'ok', wiped: true });
+        if ('wipeAll' in body) {
+          return new Response('wipeAll is no longer supported', { status: 400, headers: cors });
         }
 
         // Surgical undelete: remove specific keys from deleted_keys without
@@ -172,6 +176,7 @@ export default {
 
     if (url.pathname === '/sent') {
       if (request.method === 'GET') {
+        if (!checkAuth()) return new Response('Unauthorized', { status: 401, headers: cors });
         const rows = await env.SUPREME_DB.prepare('SELECT key, state FROM sent_states').all();
         const obj = {};
         for (const row of rows.results) obj[row.key] = row.state;
@@ -181,9 +186,8 @@ export default {
         if (!checkAuth()) return new Response('Unauthorized', { status: 401, headers: cors });
         let body;
         try { body = JSON.parse(await request.text()); } catch(e) { return new Response('Bad JSON', { status: 400, headers: cors }); }
-        if (body.wipeAll === true) {
-          await env.SUPREME_DB.prepare('DELETE FROM sent_states').run();
-          return json({ status: 'ok', wiped: true });
+        if ('wipeAll' in body) {
+          return new Response('wipeAll is no longer supported', { status: 400, headers: cors });
         }
         const now = Date.now();
         const stmts = Object.keys(body).map(key => env.SUPREME_DB.prepare(
@@ -197,6 +201,7 @@ export default {
     }
 
     if (url.pathname === '/vision' && request.method === 'POST') {
+      // Sin cambios -- usa la API key personal de Anthropic del navegador, no SYNC_KEY.
       const apiKey = request.headers.get('x-api-key');
       if (!apiKey) return new Response('Missing API key', { status: 401, headers: cors });
       const body = await request.text();
