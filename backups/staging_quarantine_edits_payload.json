@@ -1,0 +1,28 @@
+{
+  "edits": {
+    "4920134821|202609555": {
+      "dataIntegrity": "QUARANTINED",
+      "quarantine": {
+        "reason": "Creado sin cliente, sin fecha y sin tecnico; su Order# (202609555) colisiona con CRST EXPEDITED INC, factura real ya existente ($482.60, PAID). Sin evidencia de que sea un trabajo real de Supreme AutoPro.",
+        "flaggedAt": "2026-08-07",
+        "sourceCommit": "e3b386e"
+      }
+    },
+    "4920135137|202609556": {
+      "dataIntegrity": "QUARANTINED",
+      "quarantine": {
+        "reason": "Version en blanco (sin cliente/fecha/tecnico) del mismo WO 4920135137. Duplica una factura completa y real (SMYRNA READY MIX CONCRETE LLC, $372.50) que ya existe en D1. Su Order# (202609556) tambien colisiona con ORICA, factura real ya existente ($33.80, PAID).",
+        "flaggedAt": "2026-08-07",
+        "sourceCommit": "e3b386e"
+      }
+    },
+    "4920135629|202609557": {
+      "dataIntegrity": "QUARANTINED",
+      "quarantine": {
+        "reason": "Version en blanco (sin cliente/fecha/tecnico) del mismo WO 4920135629. Duplica una factura completa y real (New Bern Transport, $159.00) que ya existe en D1. Su Order# (202609557) tambien colisiona con SMYRNA READY MIX CONCRETE LLC (WO distinto, 4920134506), factura real ya existente ($215.00, PAID).",
+        "flaggedAt": "2026-08-07",
+        "sourceCommit": "e3b386e"
+      }
+    }
+  }
+}
