@@ -1,0 +1,4 @@
+de05c9bbdac9e41c17379f9af00e0272d9d35afe284615a5944b0709c88448f3  /home/user/Michka/backups/d1_sent_snapshot_2026-08-07_0128.json
+824108db8545f45bc9b763093f45c7cd44cf0b57c122fefbcdf1a569b325b232  /home/user/Michka/backups/d1_snapshot_2026-08-07_0128.json
+2ebf5b6fc814bcf94d676f1d1933c8b16f8443b891ba9478a93c62575f6a8e1c  /home/user/Michka/backups/historical_data_snapshot_2026-08-07_0128.json
+40d9be4fbdd6c23ef5cbafaaeb0371c30e2546f502181de1431b378b489384b2  /home/user/Michka/backups/index_html_snapshot_2026-08-07_0128.html

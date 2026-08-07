@@ -1,0 +1,12 @@
+{
+  "total_facturas": 632,
+  "total_facturado": 149692.99,
+  "total_cobrado": 129574.57,
+  "total_pendiente": 20118.42,
+  "clientes_unicos": 251,
+  "tecnicos_unicos": [
+    "John",
+    "Luis"
+  ],
+  "fotografias": 0
+}
