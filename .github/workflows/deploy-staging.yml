@@ -18,3 +18,7 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: 62fb45b77a7da33a4614d06fab267b4b
           command: deploy --config wrangler.staging.toml
+          # Pinned explicitly: the action's fallback install (3.90.0) predates
+          # `run_worker_first` support in [assets], which is required for Access
+          # to gate the static index.html and not just /api/*.
+          wranglerVersion: "4"
