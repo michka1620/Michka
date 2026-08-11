@@ -118,20 +118,6 @@ export default {
     const normalizedEmail = String(payload.email).trim().toLowerCase();
     const role = ROLES[normalizedEmail];
 
-    // TEMPORAL -- solo para diagnosticar el problema actual de ACCESS_ROLES_JSON.
-    // No expone correos de terceros: solo cuenta cuantas claves se parsearon y si
-    // el correo YA AUTENTICADO (el de quien hace esta peticion) hace match. Requiere
-    // JWT valido igual que todo lo demas (se ejecuta despues de esa verificacion).
-    // Quitar esta ruta una vez resuelto.
-    if (url.pathname === '/whoami-debug') {
-      return new Response(JSON.stringify({
-        emailFromJWT: normalizedEmail,
-        rolesParsedOk: typeof env.ACCESS_ROLES_JSON === 'string',
-        rolesKeyCount: Object.keys(ROLES).length,
-        matchFound: !!role,
-      }), { status: 200, headers: { 'Content-Type': 'application/json' } });
-    }
-
     if (!role) {
       return new Response('Forbidden', { status: 403 });
     }
