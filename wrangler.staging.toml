@@ -12,3 +12,12 @@ directory = "."
 [[services]]
 binding = "SUPREMEKV"
 service = "supremekv1-staging"
+
+# ACCESS_TEAM_DOMAIN y ACCESS_AUD no son secretos (Cloudflare los expone en el
+# propio dashboard de la Access Application), asi que se declaran aqui para que
+# sobrevivan cualquier despliegue futuro. ACCESS_ROLES_JSON SI contiene correos
+# reales y se agrega unicamente como Secret desde el dashboard -- nunca en este
+# archivo ni en el repositorio.
+[vars]
+ACCESS_TEAM_DOMAIN = "michka1620.cloudflareaccess.com"
+ACCESS_AUD = "7a6ee493f83e89cd915a87a3a363ae62744fba8565111670e6bf532461e5afcf"
