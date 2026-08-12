@@ -6,3 +6,7 @@ main = "_worker.js"
 [assets]
 directory = "."
 binding = "ASSETS"
+
+[vars]
+ACCESS_TEAM_DOMAIN = "michka1620.cloudflareaccess.com"
+ACCESS_AUD = "da266af71e91c84e1a206bb80d9dc343218b24fdb6485c4f9b3b5e970da6c5ab"
