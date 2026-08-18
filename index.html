@@ -918,7 +918,7 @@ const getInvoices = function() {
       var n = String(inv.number||'');
       var w = String(inv.wo||'');
       // Remove if number OR wo matches a historical number (catches swapped fields too)
-      if (histNums.has(n) || histNums.has(w)) return false;
+      if ((n && histNums.has(n)) || (w && histNums.has(w))) return false;
       // Remove if wo matches a historical wo
       if (w && histWOs.has(w)) return false;
       return true;
