@@ -951,10 +951,19 @@ const saveInvoices = function(all) {
     var k = String(orig.number)+'|'+String(orig.wo||'');
     if (!all.find(function(i){ return String(i.number)+'|'+String(i.wo||'') === k; })) deleted.push(k);
   });
+  // Preserve explicit deletions of non-historical (new) invoices recorded elsewhere
+  // (see delByIdx) -- this recomputation above only ever detects HISTORICAL_DATA
+  // deletions, so without this merge it would silently wipe out any new-invoice
+  // deletion the user just made.
+  var histKeys = new Set(HISTORICAL_DATA.map(function(i){ return String(i.number)+'|'+String(i.wo||''); }));
+  var prevDeleted = JSON.parse(localStorage.getItem('sup_deleted') || '[]');
+  var nonHistPrevDeleted = prevDeleted.filter(function(k){ return !histKeys.has(k); });
+  var deletedSet = new Set(deleted);
+  var mergedDeleted = deleted.concat(nonHistPrevDeleted.filter(function(k){ return !deletedSet.has(k); }));
   localStorage.setItem('sup_edits',   JSON.stringify(edits));
-  localStorage.setItem('sup_deleted', JSON.stringify(deleted));
+  localStorage.setItem('sup_deleted', JSON.stringify(mergedDeleted));
   localStorage.setItem('sup_new',     JSON.stringify(userNew));
-  pushEditsToKV(edits, deleted, userNew);
+  pushEditsToKV(edits, mergedDeleted, userNew);
 };
 
 // ===== NAV =====
@@ -2183,6 +2192,15 @@ function delByIdx(idx) {
   var filtered = all.filter(function(i) {
     return !(String(i.number||'') === num && String(i.wo||'') === wo);
   });
+  // If this is a new (non-historical) invoice, record the explicit deletion so
+  // pushEditsToKV can tell the server -- it no longer infers deletions on its own.
+  var delKey = num + '|' + wo;
+  var isHistDel = HISTORICAL_DATA.some(function(h){ return String(h.number)+'|'+String(h.wo||'') === delKey; });
+  if (!isHistDel) {
+    var sd = JSON.parse(localStorage.getItem('sup_deleted') || '[]');
+    if (sd.indexOf(delKey) === -1) sd.push(delKey);
+    localStorage.setItem('sup_deleted', JSON.stringify(sd));
+  }
   saveInvoices(filtered);
   renderHistory();
   showToast('🗑 Invoice deleted.');
@@ -3963,7 +3981,6 @@ function pushEditsToKV(edits, deleted, newInvs, silent) {
     var editTs    = JSON.parse(localStorage.getItem('sup_edit_ts')    || '{}');
     var prevNew   = JSON.parse(localStorage.getItem('sup_new_prev')   || '{}');
     var newTs     = JSON.parse(localStorage.getItem('sup_new_ts')     || '{}');
-    var knownNewKeys = JSON.parse(localStorage.getItem('sup_known_new_keys') || '[]');
     var now = Date.now();
 
     var wrappedEdits = {};
@@ -3979,13 +3996,12 @@ function pushEditsToKV(edits, deleted, newInvs, silent) {
       return Object.assign({}, inv, { _updatedAt: newTs[k] });
     });
 
-    // A new invoice that vanished locally (user deleted it) must be told to the
-    // server explicitly, since the server now only adds/updates — it never infers
-    // a deletion from an entry's mere absence in this device's payload.
-    var removedNewKeys = knownNewKeys.filter(function(k){ return currentNewKeys.indexOf(k) === -1; });
-    var fullDeleted = deleted.concat(removedNewKeys);
-
-    var payload = { edits: wrappedEdits, deleted: fullDeleted, newInvs: wrappedNew };
+    // Deletions are never inferred here from an invoice's mere absence in newInvs --
+    // the caller (e.g. delByIdx) must have already recorded any real deletion
+    // explicitly in the `deleted` array it passes in. This is what prevents a local
+    // reconstruction bug (getInvoices, deduplicateInvoices, etc.) from silently
+    // turning into a real DELETE against D1.
+    var payload = { edits: wrappedEdits, deleted: deleted, newInvs: wrappedNew };
 
     fetch(KV_EDITS_API, _syncFetchOpts({ method:'POST', headers: _syncHeaders(), body: JSON.stringify(payload) }))
       .then(function(r){
