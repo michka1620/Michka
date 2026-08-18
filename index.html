@@ -4068,7 +4068,7 @@ function pullEditsFromKV(cb) {
     var histWOs  = new Set(HISTORICAL_DATA.map(function(i){ return String(i.wo||''); }).filter(Boolean));
     function isHistorical(i) {
       var n = String(i.number||''), w = String(i.wo||'');
-      return histNums.has(n) || histNums.has(w) || (w && histWOs.has(w));
+      return (n && histNums.has(n)) || (w && histNums.has(w)) || (w && histWOs.has(w));
     }
     var cleanServerNew = serverNew.filter(function(i){ return !isHistorical(i); });
 
