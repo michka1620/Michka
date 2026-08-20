@@ -352,11 +352,113 @@
   .action-btn:focus-visible { outline: 2px solid var(--sa-silver); outline-offset: 1px; }
   .action-btn-delete:hover { background: var(--sa-danger-bg); color: var(--sa-danger-text); border-color: #fca5a5; }
 
+  /* ══════════════════ CEO DASHBOARD / OVERVIEW ══════════════════ */
+  .ov-header-actions { flex-wrap: wrap; }
+  .ov-period-select { display: inline-flex; border: 1px solid var(--sa-border); border-radius: var(--sa-radius-sm); overflow: hidden; }
+  .ov-period-btn {
+    border: none; background: #fff; color: var(--sa-muted); font-size: 12px; font-weight: 600;
+    padding: 0 var(--sa-space-3); height: 36px; cursor: pointer; border-right: 1px solid var(--sa-border);
+  }
+  .ov-period-btn:last-child { border-right: none; }
+  .ov-period-btn:hover { background: var(--sa-bg); }
+  .ov-period-btn.active { background: var(--sa-black); color: #fff; }
+  .ov-custom-range { display: flex; align-items: center; gap: 6px; color: var(--sa-muted); font-size: 12px; }
+  .ov-custom-range input {
+    background: #fff; border: 1px solid var(--sa-border); border-radius: var(--sa-radius-sm); color: var(--sa-black-soft);
+    padding: 0 8px; height: 36px; font-size: 12px; font-family: var(--sa-font);
+  }
+
+  .ov-kpi-grid { grid-template-columns: repeat(6, 1fr); }
+
+  .ov-section { margin-bottom: var(--sa-space-6); }
+  .ov-section-head { margin-bottom: var(--sa-space-3); }
+  .ov-section-head h2 {
+    font-size: 13px; font-weight: 700; color: var(--sa-black-soft); text-transform: none;
+    letter-spacing: 0; margin: 0; padding: 0; border: none; display: block;
+  }
+  .ov-section-head h2::before { content: none; }
+  .ov-subhead { font-size: 12px; font-weight: 600; color: var(--sa-muted); margin-bottom: var(--sa-space-2); }
+  .ov-subhead-note { font-weight: 400; text-transform: none; letter-spacing: 0; }
+
+  .ov-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sa-space-5); }
+  .ov-three-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sa-space-5); margin-bottom: var(--sa-space-6); }
+
+  .ov-mtd-row { display: grid; grid-template-columns: repeat(3, 1fr) 1.3fr; gap: var(--sa-space-4); }
+  .ov-mtd-card {
+    background: var(--sa-surface); border: 1px solid var(--sa-border); border-radius: var(--sa-radius-md);
+    padding: var(--sa-space-4);
+  }
+  .ov-mtd-card .lbl { font-size: 11px; color: var(--sa-muted); font-weight: 500; }
+  .ov-mtd-card .num { font-size: 20px; font-weight: 700; color: var(--sa-black-soft); margin-top: 6px; font-variant-numeric: tabular-nums; }
+  .ov-bar-track { display: flex; height: 10px; border-radius: 100px; overflow: hidden; background: var(--sa-bg); margin-top: 10px; }
+  .ov-bar-paid { background: var(--sa-success); height: 100%; }
+  .ov-bar-pending { background: var(--sa-warning); height: 100%; }
+  .ov-bar-legend { display: flex; justify-content: space-between; font-size: 11px; color: var(--sa-muted); margin-top: 6px; }
+  .ov-bar-legend .paid { color: var(--sa-success-text); font-weight: 600; }
+  .ov-bar-legend .pending { color: var(--sa-warning-text); font-weight: 600; }
+
+  .ov-list { display: flex; flex-direction: column; gap: 1px; }
+  .ov-list-row {
+    display: flex; justify-content: space-between; align-items: center; gap: var(--sa-space-3);
+    padding: 9px 0; border-bottom: 1px solid var(--sa-border); font-size: 13px;
+  }
+  .ov-list-row:last-child { border-bottom: none; }
+  .ov-list-main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .ov-list-title { font-weight: 600; color: var(--sa-black-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ov-list-meta { font-size: 11px; color: var(--sa-muted); }
+  .ov-list-amount { font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .ov-empty { color: var(--sa-muted); font-size: 13px; padding: var(--sa-space-3) 0; }
+
+  .ov-aging-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--sa-space-2); }
+  .ov-aging-cell {
+    background: var(--sa-surface); border: 1px solid var(--sa-border); border-radius: var(--sa-radius-sm);
+    padding: var(--sa-space-3); text-align: center;
+  }
+  .ov-aging-cell .lbl { font-size: 10px; color: var(--sa-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; }
+  .ov-aging-cell .num { font-size: 16px; font-weight: 700; color: var(--sa-black-soft); margin-top: 4px; font-variant-numeric: tabular-nums; }
+  .ov-aging-cell .sub { font-size: 11px; color: var(--sa-muted); margin-top: 2px; }
+  .ov-aging-cell.warn .num { color: var(--sa-warning-text); }
+  .ov-aging-cell.danger .num { color: var(--sa-danger-text); }
+
+  .ov-alerts-list { display: flex; flex-direction: column; gap: var(--sa-space-2); }
+  .ov-alert {
+    display: flex; align-items: center; gap: var(--sa-space-3); padding: var(--sa-space-3) var(--sa-space-4);
+    border-radius: var(--sa-radius-sm); border: 1px solid var(--sa-border); background: var(--sa-surface); font-size: 13px;
+  }
+  .ov-alert-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .ov-alert.warning .ov-alert-dot { background: var(--sa-warning); }
+  .ov-alert.warning { border-color: #fde68a; background: var(--sa-warning-bg); color: var(--sa-warning-text); }
+  .ov-alert.danger .ov-alert-dot { background: var(--sa-danger); }
+  .ov-alert.danger { border-color: #fecaca; background: var(--sa-danger-bg); color: var(--sa-danger-text); }
+  .ov-alert.info .ov-alert-dot { background: var(--sa-info); }
+  .ov-alert-text { flex: 1; }
+  .ov-alert-action { background: none; border: 1px solid currentColor; color: inherit; border-radius: var(--sa-radius-sm); padding: 4px 10px; font-size: 11px; font-weight: 600; cursor: pointer; opacity: 0.85; }
+  .ov-alert-action:hover { opacity: 1; }
+  .ov-alert-clean { color: var(--sa-muted); font-size: 13px; padding: var(--sa-space-2) 0; }
+
+  .ov-locked { opacity: 0.9; }
+  .ov-locked-body {
+    border: 1px dashed var(--sa-border); border-radius: var(--sa-radius-md); background: var(--sa-bg);
+    padding: var(--sa-space-5); display: flex; align-items: center; gap: var(--sa-space-4); flex-wrap: wrap;
+  }
+  .ov-locked-icon { font-size: 20px; }
+  .ov-locked-text { flex: 1; min-width: 220px; font-size: 13px; color: var(--sa-muted); }
+  .ov-locked-tag {
+    font-size: 11px; font-weight: 700; color: var(--sa-muted); background: #fff; border: 1px solid var(--sa-border);
+    border-radius: 100px; padding: 4px 12px; white-space: nowrap;
+  }
+
+  .ov-row-link { cursor: pointer; }
+  .ov-row-link:hover td { background: var(--sa-bg); }
+
   @media (max-width: 900px) {
     nav { padding: 0 var(--sa-space-4); gap: var(--sa-space-4); }
     .page { padding: var(--sa-space-4); }
     .stats-grid { grid-template-columns: repeat(2, 1fr); }
     .filter-row input, .filter-row select { flex: 1 1 140px; }
+    .ov-kpi-grid { grid-template-columns: repeat(3, 1fr); }
+    .ov-two-col, .ov-three-col { grid-template-columns: 1fr; }
+    .ov-mtd-row { grid-template-columns: repeat(2, 1fr); }
   }
   @media (max-width: 600px) {
     nav { padding: 0 var(--sa-space-3); gap: var(--sa-space-2); }
@@ -387,6 +489,13 @@
       content: attr(data-label); font-size: 11px; font-weight: 600; color: var(--sa-muted); text-align: left;
     }
     .data-table td:first-child { justify-content: flex-end; }
+
+    .ov-kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .ov-mtd-row { grid-template-columns: 1fr 1fr; }
+    .ov-header-actions { flex-direction: column; align-items: stretch; }
+    .ov-period-select { width: 100%; }
+    .ov-period-btn { flex: 1 1 auto; }
+    .ov-aging-grid { grid-template-columns: repeat(2, 1fr); }
   }
 
   /* MONTHLY */
@@ -442,6 +551,7 @@
     </div>
   </div>
   <div class="tabs">
+    <button class="tab" onclick="showPage('overview')">Overview</button>
     <button class="tab active" onclick="showPage('history')">History</button>
     <button class="tab" onclick="showPage('monthly')">Monthly</button>
     <button class="tab" onclick="showPage('sent')">Enviadas</button>
@@ -453,6 +563,115 @@
     <div id="sync-status">✅ Ready</div>
   </div>
 </nav>
+
+<!-- ===================== CEO DASHBOARD / OVERVIEW PAGE ===================== -->
+<div id="overview" class="page">
+  <div class="page-header">
+    <div>
+      <h1>CEO Dashboard</h1>
+      <div class="page-meta" id="ov-period-label">Month to date</div>
+    </div>
+    <div class="page-header-actions ov-header-actions">
+      <div class="ov-period-select" id="ov-period-select">
+        <button class="ov-period-btn" data-period="today" onclick="setOvPeriod('today')">Today</button>
+        <button class="ov-period-btn" data-period="week" onclick="setOvPeriod('week')">Week</button>
+        <button class="ov-period-btn active" data-period="mtd" onclick="setOvPeriod('mtd')">MTD</button>
+        <button class="ov-period-btn" data-period="all" onclick="setOvPeriod('all')">All time</button>
+        <button class="ov-period-btn" data-period="custom" onclick="setOvPeriod('custom')">Custom</button>
+      </div>
+      <div class="ov-custom-range" id="ov-custom-range" style="display:none;">
+        <input type="date" id="ov-custom-start" onchange="renderOverview()">
+        <span>–</span>
+        <input type="date" id="ov-custom-end" onchange="renderOverview()">
+      </div>
+      <button class="tool-btn tool-btn-secondary" onclick="showPage('history')">View History →</button>
+    </div>
+  </div>
+
+  <!-- ROW 1 — EXECUTIVE KPIs -->
+  <div class="stats-grid ov-kpi-grid" id="ov-kpis"></div>
+
+  <!-- ROW 2 — PERIOD PERFORMANCE (fixed, always Month to Date) -->
+  <div class="ov-section">
+    <div class="ov-section-head"><h2>Period Performance — Month to Date</h2></div>
+    <div class="ov-mtd-row" id="ov-mtd"></div>
+  </div>
+
+  <!-- ROW 3 — WHO IS DRIVING THE BUSINESS -->
+  <div class="ov-two-col">
+    <div class="ov-section">
+      <div class="ov-section-head"><h2>Top Customers</h2></div>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead><tr><th>Customer</th><th class="amount-col">Revenue</th><th style="text-align:center">Invoices</th><th class="amount-col">Outstanding</th></tr></thead>
+          <tbody id="ov-top-customers"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="ov-section">
+      <div class="ov-section-head"><h2>Top Technicians</h2></div>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead><tr><th>Technician</th><th class="amount-col">Revenue</th><th style="text-align:center">Invoices</th><th class="amount-col">Avg Invoice</th></tr></thead>
+          <tbody id="ov-top-technicians"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROW 4 — CASH / AR -->
+  <div class="ov-section">
+    <div class="ov-section-head"><h2>Cash / Accounts Receivable</h2></div>
+    <div class="stats-grid" id="ov-ar-kpis"></div>
+    <div class="ov-two-col">
+      <div>
+        <div class="ov-subhead">Outstanding by Customer</div>
+        <div class="table-scroll">
+          <table class="data-table">
+            <thead><tr><th>Customer</th><th class="amount-col">Outstanding</th><th style="text-align:center">Invoices</th></tr></thead>
+            <tbody id="ov-outstanding-by-customer"></tbody>
+          </table>
+        </div>
+      </div>
+      <div>
+        <div class="ov-subhead">Invoice Age <span class="ov-subhead-note">(no due-date field yet — this is age since service date, not contractual AR)</span></div>
+        <div id="ov-aging" class="ov-aging-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROW 5 — RECENT ACTIVITY -->
+  <div class="ov-three-col">
+    <div class="ov-section">
+      <div class="ov-section-head"><h2>Recent Invoices</h2></div>
+      <div id="ov-recent-invoices" class="ov-list"></div>
+    </div>
+    <div class="ov-section">
+      <div class="ov-section-head"><h2>Recent Paid</h2></div>
+      <div id="ov-recent-paid" class="ov-list"></div>
+    </div>
+    <div class="ov-section">
+      <div class="ov-section-head"><h2>Pending / Attention</h2></div>
+      <div id="ov-attention" class="ov-list"></div>
+    </div>
+  </div>
+
+  <!-- ALERTS -->
+  <div class="ov-section">
+    <div class="ov-section-head"><h2>Alerts</h2></div>
+    <div id="ov-alerts" class="ov-alerts-list"></div>
+  </div>
+
+  <!-- PROFITABILITY — PLACEHOLDER, NO SIMULATED NUMBERS -->
+  <div class="ov-section ov-locked">
+    <div class="ov-section-head"><h2>Profitability</h2></div>
+    <div class="ov-locked-body">
+      <div class="ov-locked-icon">🔒</div>
+      <div class="ov-locked-text">Operating Profit, Contribution Margin, Profit per Call and Profit per Technician need direct-cost and overhead data Supreme AutoPro doesn't capture yet. No simulated numbers are shown here.</div>
+      <div class="ov-locked-tag">Profitability Engine — Phase 6</div>
+    </div>
+  </div>
+</div>
 
 <!-- ===================== NEW INVOICE PAGE ===================== -->
 <div id="new-invoice" class="page active">
@@ -1292,11 +1511,252 @@ function showPage(id) {
       t.classList.add('active');
     }
   });
+  if (id === 'overview') renderOverview();
   if (id === 'history') renderHistory();
   if (id === 'monthly') renderMonthly();
   if (id === 'sent') renderSent();
   if (id === 'new-invoice') { if (!window._editingInvoice) { setTimeout(function(){ if(typeof fillNewInvoice==='function') fillNewInvoice(); }, 150); } window._editingInvoice = false; }
   if (id === 'deudas') { setTimeout(renderDeudas, 50); }
+}
+
+// ===== CEO DASHBOARD / OVERVIEW =====
+// Read-only view built entirely from getInvoices() (HISTORICAL_DATA + localStorage edits).
+// No new tables, no new endpoints, no changes to D1/backend/PAID-sync logic.
+var _ovPeriod = 'mtd';
+
+function ovEsc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function ovToday() {
+  var d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function ovDateNDaysAgo(n) {
+  var d = new Date();
+  d.setDate(d.getDate() - n);
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function ovMonthStart() {
+  var d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-01';
+}
+function ovGetRange() {
+  var today = ovToday();
+  if (_ovPeriod === 'today') return { start: today, end: today, label: 'Today' };
+  if (_ovPeriod === 'week') return { start: ovDateNDaysAgo(6), end: today, label: 'Last 7 days' };
+  if (_ovPeriod === 'all') return { start: null, end: null, label: 'All time' };
+  if (_ovPeriod === 'custom') {
+    var s = (document.getElementById('ov-custom-start')||{}).value || '';
+    var e = (document.getElementById('ov-custom-end')||{}).value || '';
+    return { start: s || null, end: e || null, label: (s && e) ? (s + ' → ' + e) : 'Custom — pick a range' };
+  }
+  return { start: ovMonthStart(), end: today, label: 'Month to date' };
+}
+function ovIsPaidLike(i) { return i.status === 'PAID' || i.sentState === 2; }
+function ovIsOutstanding(i) { return !ovIsPaidLike(i) && i.status !== 'CANCELLED'; }
+function ovFmt(n) { return '$' + (n||0).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}); }
+function ovCompany(i) { return (i.client && i.client.company) || ''; }
+function ovTech(i) { return (i.tech && i.tech.name) || ''; }
+function ovInRange(i, start, end) {
+  if (!start && !end) return true;
+  var d = i.date || '';
+  if (!d) return false;
+  if (start && d < start) return false;
+  if (end && d > end) return false;
+  return true;
+}
+function ovDaysSince(dateStr) {
+  if (!dateStr) return null;
+  var ms = new Date(ovToday()+'T12:00:00') - new Date(dateStr+'T12:00:00');
+  return Math.floor(ms / 86400000);
+}
+function ovGoHistory(overrides) {
+  overrides = overrides || {};
+  var si = document.getElementById('search-input'); if (si) si.value = overrides.search || '';
+  var fs = document.getElementById('filter-status'); if (fs) fs.value = overrides.status || '';
+  var fm = document.getElementById('filter-month'); if (fm) fm.value = overrides.month || '';
+  var fse = document.getElementById('filter-sent'); if (fse) fse.value = overrides.sent || '';
+  showPage('history');
+}
+
+function setOvPeriod(p) {
+  _ovPeriod = p;
+  document.querySelectorAll('.ov-period-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.period === p); });
+  var custom = document.getElementById('ov-custom-range');
+  if (custom) custom.style.display = (p === 'custom') ? 'flex' : 'none';
+  renderOverview();
+}
+
+function renderOverview() {
+  var all = getInvoices();
+  var range = ovGetRange();
+  var label = document.getElementById('ov-period-label');
+  if (label) label.textContent = range.label;
+
+  var period = all.filter(function(i){ return ovInRange(i, range.start, range.end); });
+
+  // ── ROW 1: EXECUTIVE KPIs (respect the period selector above) ──
+  var revenue = period.reduce(function(s,i){ return s + (parseFloat(i.total)||0); }, 0);
+  var collected = period.filter(ovIsPaidLike).reduce(function(s,i){ return s + (parseFloat(i.total)||0); }, 0);
+  var outstanding = period.filter(ovIsOutstanding).reduce(function(s,i){ return s + (parseFloat(i.total)||0); }, 0);
+  var collRate = revenue > 0 ? (collected/revenue*100).toFixed(1) : '0.0';
+  var avgInvoice = period.length ? (revenue/period.length) : 0;
+  document.getElementById('ov-kpis').innerHTML =
+      '<div class="stat-card ov-row-link" onclick="ovGoHistory({})"><div class="lbl">Total Invoices</div><div class="num">'+period.length+'</div></div>'
+    + '<div class="stat-card"><div class="lbl">Revenue</div><div class="num" style="font-size:20px;">'+ovFmt(revenue)+'</div></div>'
+    + '<div class="stat-card green"><div class="lbl">Collected</div><div class="num" style="font-size:20px;">'+ovFmt(collected)+'</div></div>'
+    + '<div class="stat-card yellow ov-row-link" onclick="ovGoHistory({status:\'PENDING\'})"><div class="lbl">Outstanding</div><div class="num" style="font-size:20px;">'+ovFmt(outstanding)+'</div></div>'
+    + '<div class="stat-card"><div class="lbl">Collection Rate</div><div class="num" style="font-size:20px;">'+collRate+'%</div></div>'
+    + '<div class="stat-card"><div class="lbl">Average Invoice</div><div class="num" style="font-size:20px;">'+ovFmt(avgInvoice)+'</div></div>';
+
+  // ── ROW 2: PERIOD PERFORMANCE — always Month to Date, independent of the selector above ──
+  var mtdStart = ovMonthStart(), today = ovToday();
+  var mtd = all.filter(function(i){ return ovInRange(i, mtdStart, today); });
+  var mtdRevenue = mtd.reduce(function(s,i){ return s+(parseFloat(i.total)||0); }, 0);
+  var mtdCollected = mtd.filter(ovIsPaidLike).reduce(function(s,i){ return s+(parseFloat(i.total)||0); }, 0);
+  var mtdOutstanding = mtd.filter(ovIsOutstanding).reduce(function(s,i){ return s+(parseFloat(i.total)||0); }, 0);
+  var mtdPaidCount = mtd.filter(ovIsPaidLike).length;
+  var mtdPendingCount = mtd.filter(ovIsOutstanding).length;
+  var mtdPaidPct = mtdRevenue > 0 ? (mtdCollected/mtdRevenue*100) : 0;
+  var mtdPendingPct = mtdRevenue > 0 ? (mtdOutstanding/mtdRevenue*100) : 0;
+  document.getElementById('ov-mtd').innerHTML =
+      '<div class="ov-mtd-card"><div class="lbl">Revenue MTD</div><div class="num">'+ovFmt(mtdRevenue)+'</div></div>'
+    + '<div class="ov-mtd-card"><div class="lbl">Collected MTD</div><div class="num">'+ovFmt(mtdCollected)+'</div></div>'
+    + '<div class="ov-mtd-card"><div class="lbl">Outstanding MTD</div><div class="num">'+ovFmt(mtdOutstanding)+'</div></div>'
+    + '<div class="ov-mtd-card"><div class="lbl">Paid vs Pending — '+mtd.length+' invoices this month</div>'
+      + '<div class="ov-bar-track"><div class="ov-bar-paid" style="width:'+mtdPaidPct.toFixed(1)+'%"></div><div class="ov-bar-pending" style="width:'+mtdPendingPct.toFixed(1)+'%"></div></div>'
+      + '<div class="ov-bar-legend"><span class="paid">'+mtdPaidCount+' paid</span><span class="pending">'+mtdPendingCount+' pending</span></div>'
+    + '</div>';
+
+  // ── ROW 3: WHO IS DRIVING THE BUSINESS (all-time) ──
+  var byCustomer = {};
+  all.forEach(function(i){
+    var c = ovCompany(i); if (!c) return;
+    if (!byCustomer[c]) byCustomer[c] = { revenue:0, count:0, outstanding:0 };
+    byCustomer[c].revenue += (parseFloat(i.total)||0);
+    byCustomer[c].count += 1;
+    if (ovIsOutstanding(i)) byCustomer[c].outstanding += (parseFloat(i.total)||0);
+  });
+  var topCustomers = Object.keys(byCustomer).map(function(c){ return Object.assign({name:c}, byCustomer[c]); })
+    .sort(function(a,b){ return b.revenue - a.revenue; }).slice(0, 6);
+  document.getElementById('ov-top-customers').innerHTML = topCustomers.length ? topCustomers.map(function(c){
+    return '<tr class="ov-row-link" data-name="'+ovEsc(c.name)+'" onclick="ovGoHistory({search:this.dataset.name})">'
+      + '<td class="client-cell" data-label="Customer">'+c.name+'</td>'
+      + '<td class="amount-cell" data-label="Revenue">'+ovFmt(c.revenue)+'</td>'
+      + '<td style="text-align:center" data-label="Invoices">'+c.count+'</td>'
+      + '<td class="amount-cell" data-label="Outstanding">'+ovFmt(c.outstanding)+'</td></tr>';
+  }).join('') : '<tr><td colspan="4" style="text-align:center;color:var(--sa-muted);padding:16px">No customer data yet</td></tr>';
+
+  var byTech = {};
+  all.forEach(function(i){
+    var t = ovTech(i); if (!t) return;
+    if (!byTech[t]) byTech[t] = { revenue:0, count:0 };
+    byTech[t].revenue += (parseFloat(i.total)||0);
+    byTech[t].count += 1;
+  });
+  var topTechs = Object.keys(byTech).map(function(t){ return Object.assign({name:t}, byTech[t]); })
+    .sort(function(a,b){ return b.revenue - a.revenue; }).slice(0, 6);
+  document.getElementById('ov-top-technicians').innerHTML = topTechs.length ? topTechs.map(function(t){
+    var avg = t.count ? (t.revenue/t.count) : 0;
+    return '<tr><td data-label="Technician">'+t.name+'</td>'
+      + '<td class="amount-cell" data-label="Revenue">'+ovFmt(t.revenue)+'</td>'
+      + '<td style="text-align:center" data-label="Invoices">'+t.count+'</td>'
+      + '<td class="amount-cell" data-label="Avg Invoice">'+ovFmt(avg)+'</td></tr>';
+  }).join('') : '<tr><td colspan="4" style="text-align:center;color:var(--sa-muted);padding:16px">No technician data yet</td></tr>';
+
+  // ── ROW 4: CASH / AR (all-time, all outstanding invoices) ──
+  var outstandingInvs = all.filter(ovIsOutstanding);
+  var totalOutstanding = outstandingInvs.reduce(function(s,i){ return s+(parseFloat(i.total)||0); }, 0);
+  var arKpiHtml =
+      '<div class="stat-card ov-row-link" onclick="showPage(\'deudas\')"><div class="lbl">Total Outstanding</div><div class="num" style="font-size:20px;">'+ovFmt(totalOutstanding)+'</div></div>'
+    + '<div class="stat-card ov-row-link" onclick="ovGoHistory({status:\'PENDING\'})"><div class="lbl">Pending Invoices</div><div class="num">'+outstandingInvs.length+'</div></div>';
+  var oldestPending = outstandingInvs.slice().sort(function(a,b){ return (a.date||'') > (b.date||'') ? 1 : -1; })[0];
+  if (oldestPending) {
+    var oldAge = ovDaysSince(oldestPending.date);
+    arKpiHtml += '<div class="stat-card"><div class="lbl">Oldest Pending</div><div class="num" style="font-size:16px;">'+(ovCompany(oldestPending)||'—')+'</div><div class="sub">'+(oldAge!==null?oldAge+' days':'—')+'</div></div>';
+  }
+  document.getElementById('ov-ar-kpis').innerHTML = arKpiHtml;
+
+  var outByCustomer = {};
+  outstandingInvs.forEach(function(i){
+    var c = ovCompany(i) || '(no customer)';
+    if (!outByCustomer[c]) outByCustomer[c] = { amount:0, count:0 };
+    outByCustomer[c].amount += (parseFloat(i.total)||0);
+    outByCustomer[c].count += 1;
+  });
+  var topOutstanding = Object.keys(outByCustomer).map(function(c){ return Object.assign({name:c}, outByCustomer[c]); })
+    .sort(function(a,b){ return b.amount - a.amount; }).slice(0, 8);
+  document.getElementById('ov-outstanding-by-customer').innerHTML = topOutstanding.length ? topOutstanding.map(function(c){
+    return '<tr class="ov-row-link" data-name="'+ovEsc(c.name)+'" onclick="ovGoHistory({search:this.dataset.name,status:\'PENDING\'})">'
+      + '<td class="client-cell" data-label="Customer">'+c.name+'</td>'
+      + '<td class="amount-cell" data-label="Outstanding">'+ovFmt(c.amount)+'</td>'
+      + '<td style="text-align:center" data-label="Invoices">'+c.count+'</td></tr>';
+  }).join('') : '<tr><td colspan="3" style="text-align:center;color:var(--sa-muted);padding:16px">Nothing outstanding</td></tr>';
+
+  var buckets = { b1:{count:0,amount:0}, b2:{count:0,amount:0}, b3:{count:0,amount:0}, b4:{count:0,amount:0} };
+  outstandingInvs.forEach(function(i){
+    var age = ovDaysSince(i.date);
+    if (age === null) return;
+    var amt = parseFloat(i.total)||0;
+    var b = age <= 30 ? buckets.b1 : age <= 60 ? buckets.b2 : age <= 90 ? buckets.b3 : buckets.b4;
+    b.count += 1; b.amount += amt;
+  });
+  document.getElementById('ov-aging').innerHTML =
+      '<div class="ov-aging-cell"><div class="lbl">0-30 days</div><div class="num">'+ovFmt(buckets.b1.amount)+'</div><div class="sub">'+buckets.b1.count+' invoices</div></div>'
+    + '<div class="ov-aging-cell warn"><div class="lbl">31-60 days</div><div class="num">'+ovFmt(buckets.b2.amount)+'</div><div class="sub">'+buckets.b2.count+' invoices</div></div>'
+    + '<div class="ov-aging-cell warn"><div class="lbl">61-90 days</div><div class="num">'+ovFmt(buckets.b3.amount)+'</div><div class="sub">'+buckets.b3.count+' invoices</div></div>'
+    + '<div class="ov-aging-cell danger"><div class="lbl">90+ days</div><div class="num">'+ovFmt(buckets.b4.amount)+'</div><div class="sub">'+buckets.b4.count+' invoices</div></div>';
+
+  // ── ROW 5: RECENT ACTIVITY ──
+  var byDateDesc = all.slice().sort(function(a,b){ return (b.date||'') > (a.date||'') ? 1 : (b.date||'') < (a.date||'') ? -1 : 0; });
+  var recentInvoices = byDateDesc.slice(0, 8);
+  document.getElementById('ov-recent-invoices').innerHTML = recentInvoices.length ? recentInvoices.map(function(i){
+    return '<div class="ov-list-row ov-row-link" data-num="'+ovEsc(String(i.number))+'" onclick="viewInv(this.dataset.num)">'
+      + '<div class="ov-list-main"><div class="ov-list-title">'+(ovCompany(i)||'—')+'</div><div class="ov-list-meta">'+(i.date||'—')+' · WO '+(i.wo||'—')+'</div></div>'
+      + '<div class="ov-list-amount">'+ovFmt(parseFloat(i.total)||0)+'</div></div>';
+  }).join('') : '<div class="ov-empty">No invoices yet</div>';
+
+  var recentPaid = byDateDesc.filter(ovIsPaidLike).slice(0, 8);
+  document.getElementById('ov-recent-paid').innerHTML = recentPaid.length ? recentPaid.map(function(i){
+    return '<div class="ov-list-row ov-row-link" data-num="'+ovEsc(String(i.number))+'" onclick="viewInv(this.dataset.num)">'
+      + '<div class="ov-list-main"><div class="ov-list-title">'+(ovCompany(i)||'—')+'</div><div class="ov-list-meta">'+(i.date||'—')+' · WO '+(i.wo||'—')+'</div></div>'
+      + '<div class="ov-list-amount" style="color:var(--sa-success-text)">'+ovFmt(parseFloat(i.total)||0)+'</div></div>';
+  }).join('') : '<div class="ov-empty">Nothing collected yet</div>';
+
+  var oldestFirst = outstandingInvs.slice().sort(function(a,b){ return (a.date||'') > (b.date||'') ? 1 : -1; }).slice(0, 8);
+  document.getElementById('ov-attention').innerHTML = oldestFirst.length ? oldestFirst.map(function(i){
+    var age = ovDaysSince(i.date);
+    return '<div class="ov-list-row ov-row-link" data-num="'+ovEsc(String(i.number))+'" onclick="viewInv(this.dataset.num)">'
+      + '<div class="ov-list-main"><div class="ov-list-title">'+(ovCompany(i)||'—')+'</div><div class="ov-list-meta">'+(i.date||'—')+(age!==null?' · '+age+'d old':'')+'</div></div>'
+      + '<div class="ov-list-amount" style="color:var(--sa-warning-text)">'+ovFmt(parseFloat(i.total)||0)+'</div></div>';
+  }).join('') : '<div class="ov-empty">No pending invoices</div>';
+
+  // ── ALERTS — derived only from data that already exists ──
+  var alerts = [];
+  var oldPending = outstandingInvs.filter(function(i){ var a = ovDaysSince(i.date); return a !== null && a > 30; });
+  if (oldPending.length) alerts.push({ level:'warning', text: oldPending.length+' pending invoice(s) older than 30 days.', action:function(){ ovGoHistory({status:'PENDING'}); } });
+
+  var highOutstandingCustomers = topOutstanding.filter(function(c){ return c.amount > 1000; });
+  if (highOutstandingCustomers.length) alerts.push({ level:'warning', text: highOutstandingCustomers.length+' customer(s) with outstanding over $1,000.' });
+
+  var noTech = all.filter(function(i){ return !ovTech(i); });
+  if (noTech.length) alerts.push({ level:'info', text: noTech.length+' invoice(s) with no technician on file.' });
+
+  var noWo = all.filter(function(i){ return !i.wo; });
+  if (noWo.length) alerts.push({ level:'info', text: noWo.length+' invoice(s) with no WO#.' });
+
+  var mismatch = all.filter(function(i){ return i.sentState === 2 && i.status !== 'PAID'; });
+  if (mismatch.length) alerts.push({ level:'danger', text: mismatch.length+' invoice(s) marked Cobrada but status is not PAID.' });
+
+  var woCounts = {};
+  all.forEach(function(i){ if (i.wo) woCounts[i.wo] = (woCounts[i.wo]||0) + 1; });
+  var dupWo = Object.keys(woCounts).filter(function(k){ return woCounts[k] > 1; });
+  if (dupWo.length) alerts.push({ level:'danger', text: dupWo.length+' WO#(s) appear on more than one invoice — possible duplicate.' });
+
+  document.getElementById('ov-alerts').innerHTML = alerts.length ? alerts.map(function(a, idx){
+    return '<div class="ov-alert '+a.level+'"><span class="ov-alert-dot"></span><span class="ov-alert-text">'+a.text+'</span>'
+      + (a.action ? '<button class="ov-alert-action" onclick="window._ovAlertActions['+idx+']()">Review</button>' : '')
+      + '</div>';
+  }).join('') : '<div class="ov-alert-clean">No alerts — everything looks clean.</div>';
+  window._ovAlertActions = alerts.map(function(a){ return a.action || function(){}; });
 }
 
 // ===== INVOICE NUMBER =====
