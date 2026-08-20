@@ -22,19 +22,54 @@
     --green: #16a34a;
     --yellow: #b45309;
     --btn-metal: linear-gradient(135deg, #334155 0%, #475569 50%, #334155 100%);
+
+    /* ── Supreme AutoPro design tokens (corporate identity) ── */
+    --sa-bg: #F5F6F7;
+    --sa-surface: #FFFFFF;
+    --sa-black: #0B0B0C;
+    --sa-black-soft: #15171A;
+    --sa-graphite: #24272B;
+    --sa-muted: #6B7280;
+    --sa-border: #E5E7EB;
+    --sa-silver: #B8BEC6;
+
+    --sa-success: #16a34a;
+    --sa-success-bg: #dcfce7;
+    --sa-success-text: #15803d;
+    --sa-warning: #b45309;
+    --sa-warning-bg: #fef3c7;
+    --sa-warning-text: #92400e;
+    --sa-danger: #dc2626;
+    --sa-danger-bg: #fee2e2;
+    --sa-danger-text: #991b1b;
+    --sa-info: #2563eb;
+
+    --sa-radius-sm: 6px;
+    --sa-radius-md: 10px;
+    --sa-radius-lg: 14px;
+
+    --sa-space-1: 4px;
+    --sa-space-2: 8px;
+    --sa-space-3: 12px;
+    --sa-space-4: 16px;
+    --sa-space-6: 24px;
+    --sa-space-8: 32px;
+
+    --sa-shadow-sm: 0 1px 2px rgba(11,11,12,0.08);
+    --sa-shadow-md: 0 2px 8px rgba(11,11,12,0.12);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 
   /* NAV */
   nav {
-    background: #000;
+    background: var(--sa-black);
     border-bottom: 1px solid #2a2a2a;
-    padding: 0 24px;
-    display: flex; align-items: center; gap: 16px;
+    padding: 0 var(--sa-space-6);
+    display: flex; align-items: center; gap: var(--sa-space-4);
     position: sticky; top: 0; z-index: 100; flex-wrap: wrap;
-    height: 56px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.8);
+    min-height: 56px;
+    box-shadow: var(--sa-shadow-md);
   }
   nav::after {
     content: '';
@@ -45,19 +80,37 @@
   .nav-logo-img { height: 36px; width: auto; object-fit: contain; }
   nav .logo { font-size: 17px; font-weight: 900; color: #fff; letter-spacing: 2px; text-transform: uppercase; }
   nav .logo span { background: var(--metal); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-  nav .tabs { display: flex; gap: 6px; margin-left: auto; flex-wrap: wrap; }
+  nav .tabs { display: flex; align-items: center; gap: var(--sa-space-1); margin-left: auto; flex-wrap: wrap; }
   nav .tab {
-    padding: 7px 16px; border-radius: 5px; cursor: pointer; font-size: 13px; font-weight: 600;
-    border: 1px solid transparent; transition: all 0.2s; letter-spacing: 0.3px;
+    padding: 7px 16px; border-radius: var(--sa-radius-sm); cursor: pointer; font-size: 13px; font-weight: 600;
+    border: 1px solid transparent; transition: background 0.15s, color 0.15s, border-color 0.15s; letter-spacing: 0.3px;
   }
   nav .tab.active {
-    background: var(--btn-metal);
+    background: var(--sa-graphite);
     color: #fff;
-    border-color: #555;
-    box-shadow: 0 0 8px rgba(180,180,180,0.15), inset 0 1px 0 rgba(255,255,255,0.1);
+    border-color: var(--sa-silver);
+    box-shadow: inset 0 0 0 1px rgba(184,190,198,0.25);
   }
-  nav .tab:not(.active) { background: #1a1a1a; color: #888; border-color: #2a2a2a; }
-  nav .tab:not(.active):hover { background: #222; color: #ccc; border-color: #444; }
+  nav .tab:not(.active) { background: var(--sa-black-soft); color: #9aa0a8; border-color: #2a2a2a; }
+  nav .tab:not(.active):hover { background: var(--sa-graphite); color: #e5e7eb; border-color: #444; }
+
+  /* NAV utility tools (Fix All / Dedup / Export / Reload / Import) — visually grouped, neutral */
+  .nav-divider { width: 1px; align-self: stretch; margin: 10px 4px; background: #2a2a2a; }
+  .nav-tools { display: flex; align-items: center; gap: var(--sa-space-1); flex-wrap: wrap; }
+  .tool-btn {
+    padding: 7px 14px; border-radius: var(--sa-radius-sm); cursor: pointer; font-size: 12px; font-weight: 700;
+    letter-spacing: 0.3px; transition: background 0.15s, color 0.15s, border-color 0.15s; white-space: nowrap;
+    min-height: 32px; display: inline-flex; align-items: center; gap: 6px;
+  }
+  .tool-btn-primary { background: var(--sa-graphite); color: #fff; border: 1px solid var(--sa-silver); }
+  .tool-btn-primary:hover { background: var(--sa-black-soft); }
+  .tool-btn-secondary { background: #fff; color: var(--sa-black-soft); border: 1px solid var(--sa-border); }
+  .tool-btn-secondary:hover { background: var(--sa-bg); }
+  .tool-btn-utility { background: var(--sa-black-soft); color: #b8bec6; border: 1px solid #2a2a2a; }
+  .tool-btn-utility:hover { background: var(--sa-graphite); color: #fff; }
+  .tool-btn-danger { background: var(--sa-danger-bg); color: var(--sa-danger-text); border: 1px solid #fca5a5; }
+  .tool-btn-danger:hover { background: #fecaca; }
+  .toolbar-row { display: flex; gap: var(--sa-space-2); margin-bottom: var(--sa-space-3); flex-wrap: wrap; align-items: center; }
 
   /* PAGES */
   .page { display: none; padding: 20px; max-width: 1200px; margin: 0 auto; }
@@ -218,26 +271,52 @@
   /* HISTORY */
   .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 14px; }
   .stat-card {
-    background: var(--surface); border: 1px solid var(--border); border-radius: 9px; padding: 14px; text-align: center;
-    border-top: 2px solid #1e293b;
+    background: var(--sa-surface); border: 1px solid var(--sa-border); border-radius: var(--sa-radius-md); padding: var(--sa-space-4); text-align: left;
+    border-top: 3px solid var(--sa-graphite);
   }
-  .stat-card .num { font-size: 22px; font-weight: 900; color: #1e293b; }
-  .stat-card .lbl { font-size: 10px; color: var(--text-muted); text-transform: uppercase; margin-top: 3px; letter-spacing: 0.5px; }
-  .stat-card.yellow .num { color: var(--gold); }
+  .stat-card .num { font-size: 24px; font-weight: 900; color: var(--sa-black-soft); }
+  .stat-card .lbl { font-size: 10px; color: var(--sa-muted); text-transform: uppercase; margin-top: 4px; letter-spacing: 0.6px; }
+  .stat-card.yellow { border-top-color: var(--sa-warning); }
+  .stat-card.yellow .num { color: var(--sa-black-soft); }
+  .stat-card.green { border-top-color: var(--sa-success); }
   .stat-card.blue .num { color: var(--accent); }
 
   .data-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-  .data-table th { background: #1e293b; color: #e2e8f0; padding: 9px 10px; text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border); }
-  .data-table td { padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
-  .data-table tr:hover td { background: #f1f5f9; }
+  .data-table th { background: var(--sa-graphite); color: #fff; padding: 10px 10px; text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border); position: sticky; top: 56px; z-index: 5; }
+  .data-table td { padding: 9px 10px; border-bottom: 1px solid var(--sa-border); vertical-align: middle; }
+  .data-table tbody tr:nth-child(even) td { background: var(--sa-bg); }
+  .data-table tr:hover td { background: #eef0f2; }
+  .data-table td.amount-cell { text-align: right; }
   .badge { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
-  .badge-paid { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
-  .badge-pending { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
-  .badge-cancel { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+  .badge-paid { background: var(--sa-success-bg); color: var(--sa-success-text); border: 1px solid #86efac; }
+  .badge-pending { background: var(--sa-warning-bg); color: var(--sa-warning-text); border: 1px solid #fcd34d; }
+  .badge-cancel { background: var(--sa-danger-bg); color: var(--sa-danger-text); border: 1px solid #fca5a5; }
 
-  .filter-row { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
-  .filter-row input, .filter-row select { background: #ffffff; border: 1px solid var(--border); border-radius: 5px; color: var(--text); padding: 7px 10px; font-size: 13px; }
-  .filter-row input:focus, .filter-row select:focus { outline: none; border-color: var(--metal-flat); }
+  .filter-row { display: flex; gap: var(--sa-space-2); margin-bottom: var(--sa-space-3); flex-wrap: wrap; align-items: center; }
+  .filter-row input, .filter-row select { background: #ffffff; border: 1px solid var(--sa-border); border-radius: var(--sa-radius-sm); color: var(--text); padding: 8px 10px; font-size: 13px; min-height: 36px; }
+  .filter-row input:focus, .filter-row select:focus { outline: 2px solid var(--sa-silver); outline-offset: 1px; border-color: var(--sa-muted); }
+  .action-btn {
+    border: none; padding: 4px 9px; border-radius: var(--sa-radius-sm); cursor: pointer; font-size: 12px;
+    min-width: 30px; min-height: 30px; display: inline-flex; align-items: center; justify-content: center;
+  }
+  .action-btn:focus-visible { outline: 2px solid var(--sa-silver); outline-offset: 1px; }
+  .action-btn-view { background: var(--sa-bg); color: var(--sa-graphite); border: 1px solid var(--sa-border); }
+  .action-btn-edit { background: var(--sa-bg); color: var(--sa-graphite); border: 1px solid var(--sa-border); margin: 0 4px; }
+  .action-btn-delete { background: var(--sa-danger-bg); color: var(--sa-danger-text); border: 1px solid #fca5a5; }
+
+  @media (max-width: 900px) {
+    nav { padding: 0 var(--sa-space-3); gap: var(--sa-space-2); }
+    nav .tabs { gap: 4px; }
+    .toolbar-row, .filter-row { gap: 6px; }
+    .filter-row input, .filter-row select { flex: 1 1 140px; }
+  }
+  @media (max-width: 600px) {
+    nav { height: auto; padding: var(--sa-space-2) var(--sa-space-3); }
+    nav .tabs, .nav-tools { width: 100%; justify-content: flex-start; }
+    .nav-divider { display: none; }
+    .toolbar-row .tool-btn, .filter-row input, .filter-row select { flex: 1 1 auto; min-width: 0; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  }
 
   /* MONTHLY */
   .month-table { width: 100%; border-collapse: collapse; font-size: 13px; }
@@ -295,13 +374,16 @@
     <button class="tab active" onclick="showPage('history')">📋 History</button>
     <button class="tab" onclick="showPage('monthly')">📊 Monthly</button>
     <button class="tab" onclick="showPage('sent')">📤 Enviadas</button>
-    <button class="tab" onclick="showPage('photos')" style="background:#1a1a2a;color:#c084fc;border:1px solid #7c3aed;">📸 Fotos</button>
-    <button class="tab" onclick="showPage('deudas')" style="background:#0a1a0a;color:#4ade80;border:1px solid #166534;">💰 Deudas</button>
-    <button class="tab" onclick="cleanAllSaved()" style="background:#1a0a1a;color:#f0abfc;border:1px solid #86198f;">🧹 Fix All</button>
-    <button class="tab" onclick="deduplicateInvoices()" style="background:#1a1a0a;color:#fbbf24;border:1px solid #92400e;">🔁 Dedup</button>
-    <button class="tab" onclick="exportData()" style="background:#1a3a2a;color:#4ade80;border:1px solid #166534;">⬇ Export</button>
-    <button class="tab" onclick="if(confirm('Recargar datos frescos?')){localStorage.clear();location.reload();}" style="background:#1a0a0a;color:#f87171;border:1px solid #991b1b;font-weight:700;">🔄 Reload</button>
-    <button class="tab" onclick="document.getElementById('import-file').click()" style="background:#1a1a3a;color:#a5b4fc;border:1px solid #3730a3;">⬆ Import</button>
+    <button class="tab" onclick="showPage('photos')">📸 Fotos</button>
+    <button class="tab" onclick="showPage('deudas')">💰 Deudas</button>
+  </div>
+  <div class="nav-divider"></div>
+  <div class="nav-tools">
+    <button class="tool-btn tool-btn-utility" onclick="cleanAllSaved()" title="Corregir automáticamente inconsistencias comunes" aria-label="Fix All">🧹 Fix All</button>
+    <button class="tool-btn tool-btn-utility" onclick="deduplicateInvoices()" title="Eliminar facturas duplicadas" aria-label="Dedup">🔁 Dedup</button>
+    <button class="tool-btn tool-btn-secondary" onclick="exportData()" title="Exportar todas las facturas" aria-label="Export">⬇ Export</button>
+    <button class="tool-btn tool-btn-secondary" onclick="if(confirm('Recargar datos frescos?')){localStorage.clear();location.reload();}" title="Recargar datos frescos" aria-label="Reload">🔄 Reload</button>
+    <button class="tool-btn tool-btn-secondary" onclick="document.getElementById('import-file').click()" title="Importar facturas desde archivo" aria-label="Import">⬆ Import</button>
 
     <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(this)">
   </div>
@@ -549,10 +631,12 @@
   <div class="stats-grid" id="stats-grid"></div>
   <div class="card">
     <h2>📋 Invoice History</h2>
+    <div class="toolbar-row">
+      <button class="tool-btn tool-btn-primary" onclick="addNewInvoiceRow()" title="Crear una factura nueva" aria-label="New Invoice">➕ New Invoice</button>
+      <button class="tool-btn tool-btn-primary" onclick="forceSyncToKV()" title="Sincronizar con servidor" aria-label="Sync">☁️ Sync</button>
+      <button class="tool-btn tool-btn-danger" onclick="limpiarExtras()" title="Borrar facturas extras del servidor" aria-label="Limpiar extras">🗑️ Limpiar extras</button>
+    </div>
     <div class="filter-row">
-      <button onclick="addNewInvoiceRow()" style="background:linear-gradient(135deg,#2d6a4f,#40916c);border:none;color:#fff;padding:8px 16px;border-radius:6px;cursor:pointer;font-weight:700;font-size:13px;white-space:nowrap;">➕ New Invoice</button>
-      <button onclick="forceSyncToKV()" title="Sincronizar con servidor" style="background:#1a365d;border:1px solid #2b6cb0;color:#63b3ed;padding:8px 14px;border-radius:6px;cursor:pointer;font-weight:700;font-size:13px;white-space:nowrap;">☁️ Sync</button>
-      <button onclick="limpiarExtras()" title="Borrar facturas extras del servidor" style="background:#4a1a1a;border:1px solid #c53030;color:#fc8181;padding:8px 14px;border-radius:6px;cursor:pointer;font-weight:700;font-size:13px;white-space:nowrap;">🗑️ Limpiar extras</button>
       <input type="text" id="search-input" placeholder="🔍 Search client, WO#, Order#..." oninput="renderHistory()" style="flex:1;min-width:200px;">
       <select id="filter-status" onchange="renderHistory()">
         <option value="">All Status</option>
@@ -563,7 +647,7 @@
       <select id="filter-month" onchange="renderHistory()">
         <option value="">All Months</option>
       </select>
-      <select id="filter-sent" onchange="renderHistory()" style="border:1px solid #ea580c;color:#ea580c;background:#1a1a1a;">
+      <select id="filter-sent" onchange="renderHistory()">
         <option value="">Todas</option>
         <option value="notsent">○ No Enviadas</option>
         <option value="sent">📤 Enviadas</option>
@@ -588,11 +672,11 @@
             <th>WO #</th>
             <th>Client</th>
             <th>Tech</th>
-            <th>Hours</th>
-            <th>Total</th>
+            <th style="text-align:center">Hours</th>
+            <th style="text-align:right">Total</th>
             <th>Status</th>
             <th>Payment</th>
-            <th style="color:#4ade80;">Enviada</th>
+            <th>Enviada</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -1917,9 +2001,9 @@ function renderHistory() {
   const fmt = n => '$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
   document.getElementById('stats-grid').innerHTML = `
     <div class="stat-card"><div class="num">${invs.length}</div><div class="lbl">Total Facturas</div></div>
-    <div class="stat-card" style="border-left:4px solid #6366f1;"><div class="num" style="color:#4338ca;font-size:19px;">${fmt(totalGen)}</div><div class="lbl">Total Generado</div></div>
-    <div class="stat-card" style="border-left:4px solid #16a34a;"><div class="num" style="color:#15803d;font-size:19px;">${fmt(cobrado)}</div><div class="lbl">Cobrado</div></div>
-    <div class="stat-card yellow"><div class="num">${fmt(pend)}</div><div class="lbl">Pendiente</div></div>
+    <div class="stat-card"><div class="num" style="font-size:19px;">${fmt(totalGen)}</div><div class="lbl">Total Generado</div></div>
+    <div class="stat-card green"><div class="num" style="font-size:19px;">${fmt(cobrado)}</div><div class="lbl">Cobrado</div></div>
+    <div class="stat-card yellow"><div class="num" style="font-size:19px;">${fmt(pend)}</div><div class="lbl">Pendiente</div></div>
   `;
 
 
@@ -2006,16 +2090,16 @@ function renderHistory() {
       + '<td class="editable-cell" style="font-weight:600" onclick="inlineEdit(this,\'' + uid + '\',\'client\')">' + (co||'—') + '</td>'
       + '<td class="editable-cell" onclick="inlineEdit(this,\'' + uid + '\',\'tech\')">' + (tn||'—') + '</td>'
       + '<td class="editable-cell" style="text-align:center" onclick="inlineEdit(this,\'' + uid + '\',\'hours\')">' + (th||'—') + '</td>'
-      + '<td class="editable-cell" style="font-weight:700;color:#68d391" onclick="inlineEdit(this,\'' + uid + '\',\'total\')">' + tot + '</td>'
+      + '<td class="editable-cell amount-cell" style="font-weight:700;color:var(--sa-black-soft)" onclick="inlineEdit(this,\'' + uid + '\',\'total\')">' + tot + '</td>'
       + '<td class="editable-cell" onclick="inlineEdit(this,\'' + uid + '\',\'status\')"><span class="badge ' + badge + '">' + st + '</span></td>'
       + '<td class="editable-cell" onclick="inlineEdit(this,\'' + uid + '\',\'payment\')">' + (py||'—') + '</td>'
       + '<td style="text-align:center">'
       + '<button onclick="toggleSent(\'' + num + '\',\'' + wo + '\',this)" title="Clic para cambiar estado" style="background:'+(isPaidState?'#052e16':sentState===1?'#7c2d12':'#111')+';border:1px solid '+(isPaidState?'#16a34a':sentState===1?'#ea580c':'#374151')+';color:'+(isPaidState?'#4ade80':sentState===1?'#fb923c':'#6b7280')+';padding:3px 8px;border-radius:10px;cursor:pointer;font-size:11px;font-weight:700;white-space:nowrap;">'+(isPaidState?'✅ Cobrada':sentState===1?'📤 Enviada':'○ Pendiente')+'</button>'
       + '</td>'
       + '<td style="white-space:nowrap">'
-      + '<button data-idx="' + i + '" onclick="viewInv(window._histList[this.dataset.idx].number)" style="background:#1a365d;border:none;color:#63b3ed;padding:3px 9px;border-radius:4px;cursor:pointer;font-size:11px;">👁</button> '
-      + '<button data-idx="' + i + '" onclick="editInvFull(window._histList[this.dataset.idx].number,window._histList[this.dataset.idx].wo)" style="background:#44337a;border:none;color:#d6bcfa;padding:3px 9px;border-radius:4px;cursor:pointer;font-size:11px;margin:0 4px;" title="Edit">✏</button>'
-      + '<button data-idx="' + i + '" onclick="delByIdx(parseInt(this.dataset.idx))" style="background:#742a2a;border:none;color:#fc8181;padding:3px 9px;border-radius:4px;cursor:pointer;font-size:11px;">🗑</button>'
+      + '<button class="action-btn action-btn-view" data-idx="' + i + '" onclick="viewInv(window._histList[this.dataset.idx].number)" title="Ver factura" aria-label="Ver factura">👁</button> '
+      + '<button class="action-btn action-btn-edit" data-idx="' + i + '" onclick="editInvFull(window._histList[this.dataset.idx].number,window._histList[this.dataset.idx].wo)" title="Editar factura" aria-label="Editar factura">✏</button>'
+      + '<button class="action-btn action-btn-delete" data-idx="' + i + '" onclick="delByIdx(parseInt(this.dataset.idx))" title="Eliminar factura" aria-label="Eliminar factura">🗑</button>'
       + '</td></tr>';
   }
   tbody.innerHTML = rows;
