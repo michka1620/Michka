@@ -1555,6 +1555,21 @@ function ovIsOutstanding(i) { return !ovIsPaidLike(i) && i.status !== 'CANCELLED
 function ovFmt(n) { return '$' + (n||0).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}); }
 function ovCompany(i) { return (i.client && i.client.company) || ''; }
 function ovTech(i) { return (i.tech && i.tech.name) || ''; }
+
+// Technician name normalization — dashboard aggregation/presentation only.
+// Never modifies invoice data (HISTORICAL_DATA/localStorage/D1) — used only
+// when grouping for Top Technicians and dashboard alerts.
+var TECH_NAME_ALIASES = {
+  'jhon': 'John',
+  'jonh': 'John'
+};
+function normalizeTechnicianName(raw) {
+  var trimmed = String(raw || '').trim();
+  if (!trimmed) return '';
+  var key = trimmed.toLowerCase();
+  if (TECH_NAME_ALIASES[key]) return TECH_NAME_ALIASES[key];
+  return key.split(/\s+/).map(function(w){ return w.charAt(0).toUpperCase() + w.slice(1); }).join(' ');
+}
 function ovInRange(i, start, end) {
   if (!start && !end) return true;
   var d = i.date || '';
@@ -1626,9 +1641,9 @@ function renderOverview() {
       + '<div class="ov-bar-legend"><span class="paid">'+mtdPaidCount+' paid</span><span class="pending">'+mtdPendingCount+' pending</span></div>'
     + '</div>';
 
-  // ── ROW 3: WHO IS DRIVING THE BUSINESS (all-time) ──
+  // ── ROW 3: WHO IS DRIVING THE BUSINESS (respects the period selector above) ──
   var byCustomer = {};
-  all.forEach(function(i){
+  period.forEach(function(i){
     var c = ovCompany(i); if (!c) return;
     if (!byCustomer[c]) byCustomer[c] = { revenue:0, count:0, outstanding:0 };
     byCustomer[c].revenue += (parseFloat(i.total)||0);
@@ -1646,8 +1661,8 @@ function renderOverview() {
   }).join('') : '<tr><td colspan="4" style="text-align:center;color:var(--sa-muted);padding:16px">No customer data yet</td></tr>';
 
   var byTech = {};
-  all.forEach(function(i){
-    var t = ovTech(i); if (!t) return;
+  period.forEach(function(i){
+    var t = normalizeTechnicianName(ovTech(i)); if (!t) return;
     if (!byTech[t]) byTech[t] = { revenue:0, count:0 };
     byTech[t].revenue += (parseFloat(i.total)||0);
     byTech[t].count += 1;
@@ -1742,6 +1757,17 @@ function renderOverview() {
 
   var noWo = all.filter(function(i){ return !i.wo; });
   if (noWo.length) alerts.push({ level:'info', text: noWo.length+' invoice(s) with no WO#.' });
+
+  // Flag normalized technician groups with very few invoices next to a much larger group —
+  // could be a typo not yet in TECH_NAME_ALIASES, or a real new hire. Never auto-merged.
+  var techGroupCounts = {};
+  all.forEach(function(i){
+    var t = normalizeTechnicianName(ovTech(i)); if (!t) return;
+    techGroupCounts[t] = (techGroupCounts[t]||0) + 1;
+  });
+  var maxTechGroupCount = Object.keys(techGroupCounts).reduce(function(m,k){ return Math.max(m, techGroupCounts[k]); }, 0);
+  var smallTechGroups = Object.keys(techGroupCounts).filter(function(k){ return techGroupCounts[k] <= 2 && techGroupCounts[k] < maxTechGroupCount; });
+  if (smallTechGroups.length) alerts.push({ level:'info', text: smallTechGroups.length+' technician name(s) with very few invoices — possible typo or new hire, review: '+smallTechGroups.join(', ')+'.' });
 
   var mismatch = all.filter(function(i){ return i.sentState === 2 && i.status !== 'PAID'; });
   if (mismatch.length) alerts.push({ level:'danger', text: mismatch.length+' invoice(s) marked Cobrada but status is not PAID.' });
