@@ -4654,10 +4654,8 @@ function pushSentToKV() {
     var all = getInvoices();
     var obj = {};
     all.forEach(function(inv) {
-      if (inv.sentState) {
-        var k = String(inv.number)+'|'+String(inv.wo||'');
-        obj[k] = inv.sentState;
-      }
+      var k = String(inv.number)+'|'+String(inv.wo||'');
+      obj[k] = inv.sentState || 0;
     });
     fetch(KV_API, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(obj) }).catch(function(){});
   } catch(e) {}
@@ -4689,7 +4687,7 @@ function setSentState(num, wo, state) {
     inv.status = 'PAID';
   }
   else if (inv.status === 'PAID') {
-    /* PAID is protected: never downgrade automatically */
+    inv.status = 'PENDING';
   }
   saveInvoices(all);
   pushSentToKV();
