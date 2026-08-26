@@ -3909,7 +3909,7 @@ window.onload = () => {
     showPage('history');
     setTimeout(function() { fillNewInvoice(); }, 200);
     setTimeout(function() { loadApiKey(); }, 100);
-    pullSentFromKV(function() { renderHistory(); });
+    renderHistory();
   });
 };
 
@@ -4556,7 +4556,6 @@ function getSentData() {
   return result;
 }
 
-var KV_API = '/api/sent';
 var KV_EDITS_API = '/api/edits';
 
 function pushEditsToKV(edits, deleted, newInvs, silent) {
@@ -4649,35 +4648,6 @@ function pullEditsFromKV(cb) {
   }).catch(function(){ if(cb) cb(); });
 }
 
-function pushSentToKV() {
-  try {
-    var all = getInvoices();
-    var obj = {};
-    all.forEach(function(inv) {
-      var k = String(inv.number)+'|'+String(inv.wo||'');
-      obj[k] = inv.sentState || 0;
-    });
-    fetch(KV_API, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(obj) }).catch(function(){});
-  } catch(e) {}
-}
-
-function pullSentFromKV(cb) {
-  fetch(KV_API).then(function(r){ return r.json(); }).then(function(obj) {
-    if (!obj || typeof obj !== 'object') return;
-    var all = getInvoices();
-    var changed = false;
-    all.forEach(function(inv) {
-      var k = String(inv.number)+'|'+String(inv.wo||'');
-      if (obj[k] !== undefined && obj[k] !== inv.sentState) {
-        inv.sentState = obj[k];
-        changed = true;
-      }
-    });
-    if (changed) saveInvoices(all);
-    if (cb) cb();
-  }).catch(function(){});
-}
-
 function setSentState(num, wo, state) {
   var all = getInvoices();
   var inv = all.find(function(i){ return String(i.number)===String(num) && String(i.wo||'')===String(wo||''); });
@@ -4690,7 +4660,6 @@ function setSentState(num, wo, state) {
     inv.status = 'PENDING';
   }
   saveInvoices(all);
-  pushSentToKV();
   var m = document.getElementById('sent-menu');
   if (m) m.remove();
   renderHistory();
