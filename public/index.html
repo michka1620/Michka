@@ -622,10 +622,10 @@
   <!-- ROW 3B — TIRES & PAY BY TECHNICIAN -->
   <div class="ov-section">
     <div class="ov-section-head"><h2>Tires &amp; Pay by Technician</h2></div>
-    <div style="font-size:12px;color:var(--sa-muted);margin:-4px 0 10px;">Regular $25/hr &middot; Overtime 1.5x ($37.50/hr) after 40 hrs/week &middot; Bonus not configured yet</div>
+    <div style="font-size:12px;color:var(--sa-muted);margin:-4px 0 10px;">Regular $25/hr &middot; Overtime 1.5x ($37.50/hr) after 40 hrs/week &middot; Bonus = manually recorded bonus payments in the selected period</div>
     <div class="table-scroll">
       <table class="data-table">
-        <thead><tr><th>Technician</th><th style="text-align:center">Tires</th><th class="amount-col">Hours</th><th class="amount-col">Reg. Pay</th><th class="amount-col">OT Pay</th><th class="amount-col">Total Pay</th><th class="amount-col">Revenue</th></tr></thead>
+        <thead><tr><th>Technician</th><th style="text-align:center">Tires</th><th class="amount-col">Hours</th><th class="amount-col">Reg. Pay</th><th class="amount-col">OT Pay</th><th class="amount-col">Bonus</th><th class="amount-col">Total Pay</th><th class="amount-col">Revenue</th></tr></thead>
         <tbody id="ov-tech-pay"></tbody>
       </table>
     </div>
@@ -1705,6 +1705,14 @@ function renderOverview() {
   }).join('') : '<tr><td colspan="4" style="text-align:center;color:var(--sa-muted);padding:16px">No technician data yet</td></tr>';
 
   // ── TIRES & PAY BY TECHNICIAN ──
+  // Manually-recorded bonus payments (not an auto-calculated formula — add
+  // one entry per real bonus given). "date" is used only to decide whether
+  // the bonus falls inside the currently selected dashboard period.
+  var OV_BONUSES = [
+    { tech: 'John', date: '2026-07-11', amount: 1000.00, note: 'Employee Bonus Letter, paid via Zelle, July 11 2026' },
+    { tech: 'John', date: '2026-08-13', amount: 1422.00, note: 'Gusto Bonus Payroll, paid Aug 13 2026' },
+    { tech: 'John', date: '2026-08-31', amount: 310.00, note: '$5/tire bonus, 62 tires, period 8/14-8/31/2026' }
+  ];
   var REG_RATE = 25, OT_RATE = 37.50, OT_THRESHOLD = 40;
   var TIRE_POS_RE = /\b(LFI|LFO|LRI|LRO|RFI|RFO|RRI|RRO|LF|RF|LR|RR|LS|RS|SL)\b/gi;
   function ovMondayKey(dateStr) {
@@ -1752,18 +1760,22 @@ function renderOverview() {
       regPay += reg * REG_RATE;
       otPay += ot * OT_RATE;
     });
-    return Object.assign({name:t}, techAgg[t], { regPay:regPay, otPay:otPay, totalPay: regPay+otPay });
+    var bonus = OV_BONUSES.filter(function(b){ return b.tech === t && ovInRange({date:b.date}, range.start, range.end); })
+      .reduce(function(s,b){ return s + b.amount; }, 0);
+    return Object.assign({name:t}, techAgg[t], { regPay:regPay, otPay:otPay, bonus:bonus, totalPay: regPay+otPay+bonus });
   }).sort(function(a,b){ return b.totalPay - a.totalPay; });
   document.getElementById('ov-tech-pay').innerHTML = techPayRows.length ? techPayRows.map(function(t){
     var isOwner = OV_OWNER_TECHS.indexOf(t.name) !== -1;
+    var bonusNotes = OV_BONUSES.filter(function(b){ return b.tech === t.name && ovInRange({date:b.date}, range.start, range.end); }).map(function(b){ return b.note; }).join('; ');
     return '<tr><td data-label="Technician">'+ovEsc(t.name)+(isOwner?' <span style="color:var(--sa-muted);font-size:11px;">(Owner)</span>':'')+'</td>'
       + '<td style="text-align:center" data-label="Tires">'+t.tires+'</td>'
       + '<td class="amount-cell" data-label="Hours">'+t.hours.toFixed(2)+'</td>'
       + '<td class="amount-cell" data-label="Reg. Pay">'+(isOwner?'—':ovFmt(t.regPay))+'</td>'
       + '<td class="amount-cell" data-label="OT Pay">'+(isOwner?'—':ovFmt(t.otPay))+'</td>'
+      + '<td class="amount-cell" data-label="Bonus"'+(bonusNotes?' title="'+ovEsc(bonusNotes)+'"':'')+'>'+(t.bonus?ovFmt(t.bonus):'—')+'</td>'
       + '<td class="amount-cell" data-label="Total Pay">'+(isOwner?'—':ovFmt(t.totalPay))+'</td>'
       + '<td class="amount-cell" data-label="Revenue">'+ovFmt(t.revenue)+'</td></tr>';
-  }).join('') : '<tr><td colspan="7" style="text-align:center;color:var(--sa-muted);padding:16px">No technician data yet</td></tr>';
+  }).join('') : '<tr><td colspan="8" style="text-align:center;color:var(--sa-muted);padding:16px">No technician data yet</td></tr>';
 
   // ── WEEKLY BREAKDOWN BY TECHNICIAN (tires + revenue + pay per week) ──
   var weeklyRows = [];
