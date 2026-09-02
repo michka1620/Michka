@@ -619,6 +619,18 @@
     </div>
   </div>
 
+  <!-- ROW 3B — TIRES & PAY BY TECHNICIAN -->
+  <div class="ov-section">
+    <div class="ov-section-head"><h2>Tires &amp; Pay by Technician</h2></div>
+    <div style="font-size:12px;color:var(--sa-muted);margin:-4px 0 10px;">Regular $25/hr &middot; Overtime 1.5x ($37.50/hr) after 40 hrs/week &middot; Bonus not configured yet</div>
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead><tr><th>Technician</th><th style="text-align:center">Tires</th><th class="amount-col">Hours</th><th class="amount-col">Reg. Pay</th><th class="amount-col">OT Pay</th><th class="amount-col">Total Pay</th><th class="amount-col">Revenue</th></tr></thead>
+        <tbody id="ov-tech-pay"></tbody>
+      </table>
+    </div>
+  </div>
+
   <!-- ROW 4 — CASH / AR -->
   <div class="ov-section">
     <div class="ov-section-head"><h2>Cash / Accounts Receivable</h2></div>
@@ -1561,7 +1573,10 @@ function ovTech(i) { return (i.tech && i.tech.name) || ''; }
 // when grouping for Top Technicians and dashboard alerts.
 var TECH_NAME_ALIASES = {
   'jhon': 'John',
-  'jonh': 'John'
+  'jonh': 'John',
+  'shan': 'Shawn',
+  'shwan': 'Shawn',
+  'shonw': 'Shawn'
 };
 function normalizeTechnicianName(raw) {
   var trimmed = String(raw || '').trim();
@@ -1676,6 +1691,59 @@ function renderOverview() {
       + '<td style="text-align:center" data-label="Invoices">'+t.count+'</td>'
       + '<td class="amount-cell" data-label="Avg Invoice">'+ovFmt(avg)+'</td></tr>';
   }).join('') : '<tr><td colspan="4" style="text-align:center;color:var(--sa-muted);padding:16px">No technician data yet</td></tr>';
+
+  // ── TIRES & PAY BY TECHNICIAN ──
+  var REG_RATE = 25, OT_RATE = 37.50, OT_THRESHOLD = 40;
+  var TIRE_POS_RE = /\b(LFI|LFO|LRI|LRO|RFI|RFO|RRI|RRO|LF|RF|LR|RR|LS|RS|SL)\b/gi;
+  function ovMondayKey(dateStr) {
+    if (!dateStr) return 'unknown';
+    var d = new Date(dateStr+'T12:00:00');
+    if (isNaN(d)) return 'unknown';
+    var day = d.getDay(); // 0=Sun..6=Sat
+    var diffToMonday = (day === 0) ? -6 : (1 - day);
+    d.setDate(d.getDate() + diffToMonday);
+    return d.toISOString().slice(0,10);
+  }
+  function ovCountTires(inv) {
+    var text = (inv.notes||'') + ' ' + (inv.partsGeneral||'');
+    var m = text.match(TIRE_POS_RE);
+    return m ? m.length : 0;
+  }
+  var techWeekly = {}; // { tech: { weekKey: hoursSum } }
+  var techAgg = {}; // { tech: { tires, revenue, count } }
+  period.forEach(function(i){
+    var t = normalizeTechnicianName(ovTech(i)); if (!t) return;
+    var hrs = parseFloat(i.tech && i.tech.hours) || 0;
+    var wk = ovMondayKey(i.date);
+    if (!techWeekly[t]) techWeekly[t] = {};
+    techWeekly[t][wk] = (techWeekly[t][wk] || 0) + hrs;
+    if (!techAgg[t]) techAgg[t] = { tires:0, revenue:0, count:0, hours:0 };
+    techAgg[t].tires += ovCountTires(i);
+    techAgg[t].revenue += (parseFloat(i.total)||0);
+    techAgg[t].count += 1;
+    techAgg[t].hours += hrs;
+  });
+  var techPayRows = Object.keys(techAgg).map(function(t){
+    var weeks = techWeekly[t] || {};
+    var regPay = 0, otPay = 0;
+    Object.keys(weeks).forEach(function(wk){
+      var h = weeks[wk];
+      var reg = Math.min(h, OT_THRESHOLD);
+      var ot = Math.max(0, h - OT_THRESHOLD);
+      regPay += reg * REG_RATE;
+      otPay += ot * OT_RATE;
+    });
+    return Object.assign({name:t}, techAgg[t], { regPay:regPay, otPay:otPay, totalPay: regPay+otPay });
+  }).sort(function(a,b){ return b.totalPay - a.totalPay; });
+  document.getElementById('ov-tech-pay').innerHTML = techPayRows.length ? techPayRows.map(function(t){
+    return '<tr><td data-label="Technician">'+ovEsc(t.name)+'</td>'
+      + '<td style="text-align:center" data-label="Tires">'+t.tires+'</td>'
+      + '<td class="amount-cell" data-label="Hours">'+t.hours.toFixed(2)+'</td>'
+      + '<td class="amount-cell" data-label="Reg. Pay">'+ovFmt(t.regPay)+'</td>'
+      + '<td class="amount-cell" data-label="OT Pay">'+ovFmt(t.otPay)+'</td>'
+      + '<td class="amount-cell" data-label="Total Pay">'+ovFmt(t.totalPay)+'</td>'
+      + '<td class="amount-cell" data-label="Revenue">'+ovFmt(t.revenue)+'</td></tr>';
+  }).join('') : '<tr><td colspan="7" style="text-align:center;color:var(--sa-muted);padding:16px">No technician data yet</td></tr>';
 
   // ── ROW 4: CASH / AR (all-time, all outstanding invoices) ──
   var outstandingInvs = all.filter(ovIsOutstanding);
