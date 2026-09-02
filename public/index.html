@@ -631,6 +631,18 @@
     </div>
   </div>
 
+  <!-- ROW 3C — WEEKLY BREAKDOWN BY TECHNICIAN -->
+  <div class="ov-section">
+    <div class="ov-section-head"><h2>Weekly Breakdown by Technician</h2></div>
+    <div style="font-size:12px;color:var(--sa-muted);margin:-4px 0 10px;">Weeks grouped Monday–Sunday by service date &middot; sorted most recent first</div>
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead><tr><th>Week Of</th><th>Technician</th><th style="text-align:center">Tires</th><th style="text-align:center">Invoices</th><th class="amount-col">Hours</th><th class="amount-col">Pay</th><th class="amount-col">Revenue</th></tr></thead>
+        <tbody id="ov-tech-weekly"></tbody>
+      </table>
+    </div>
+  </div>
+
   <!-- ROW 4 — CASH / AR -->
   <div class="ov-section">
     <div class="ov-section-head"><h2>Cash / Accounts Receivable</h2></div>
@@ -1709,17 +1721,24 @@ function renderOverview() {
     var m = text.match(TIRE_POS_RE);
     return m ? m.length : 0;
   }
-  var techWeekly = {}; // { tech: { weekKey: hoursSum } }
+  var OV_OWNER_TECHS = ['Luis']; // owners: no hourly payroll, tires/revenue still tracked
+  var techWeekly = {}; // { tech: { weekKey: { hours, tires, revenue, count } } }
   var techAgg = {}; // { tech: { tires, revenue, count } }
   period.forEach(function(i){
     var t = normalizeTechnicianName(ovTech(i)); if (!t) return;
     var hrs = parseFloat(i.tech && i.tech.hours) || 0;
+    var tires = ovCountTires(i);
+    var rev = parseFloat(i.total) || 0;
     var wk = ovMondayKey(i.date);
     if (!techWeekly[t]) techWeekly[t] = {};
-    techWeekly[t][wk] = (techWeekly[t][wk] || 0) + hrs;
+    if (!techWeekly[t][wk]) techWeekly[t][wk] = { hours:0, tires:0, revenue:0, count:0 };
+    techWeekly[t][wk].hours += hrs;
+    techWeekly[t][wk].tires += tires;
+    techWeekly[t][wk].revenue += rev;
+    techWeekly[t][wk].count += 1;
     if (!techAgg[t]) techAgg[t] = { tires:0, revenue:0, count:0, hours:0 };
-    techAgg[t].tires += ovCountTires(i);
-    techAgg[t].revenue += (parseFloat(i.total)||0);
+    techAgg[t].tires += tires;
+    techAgg[t].revenue += rev;
     techAgg[t].count += 1;
     techAgg[t].hours += hrs;
   });
@@ -1727,7 +1746,7 @@ function renderOverview() {
     var weeks = techWeekly[t] || {};
     var regPay = 0, otPay = 0;
     Object.keys(weeks).forEach(function(wk){
-      var h = weeks[wk];
+      var h = weeks[wk].hours;
       var reg = Math.min(h, OT_THRESHOLD);
       var ot = Math.max(0, h - OT_THRESHOLD);
       regPay += reg * REG_RATE;
@@ -1735,7 +1754,6 @@ function renderOverview() {
     });
     return Object.assign({name:t}, techAgg[t], { regPay:regPay, otPay:otPay, totalPay: regPay+otPay });
   }).sort(function(a,b){ return b.totalPay - a.totalPay; });
-  var OV_OWNER_TECHS = ['Luis']; // owners: no hourly payroll, tires/revenue still tracked
   document.getElementById('ov-tech-pay').innerHTML = techPayRows.length ? techPayRows.map(function(t){
     var isOwner = OV_OWNER_TECHS.indexOf(t.name) !== -1;
     return '<tr><td data-label="Technician">'+ovEsc(t.name)+(isOwner?' <span style="color:var(--sa-muted);font-size:11px;">(Owner)</span>':'')+'</td>'
@@ -1746,6 +1764,40 @@ function renderOverview() {
       + '<td class="amount-cell" data-label="Total Pay">'+(isOwner?'—':ovFmt(t.totalPay))+'</td>'
       + '<td class="amount-cell" data-label="Revenue">'+ovFmt(t.revenue)+'</td></tr>';
   }).join('') : '<tr><td colspan="7" style="text-align:center;color:var(--sa-muted);padding:16px">No technician data yet</td></tr>';
+
+  // ── WEEKLY BREAKDOWN BY TECHNICIAN (tires + revenue + pay per week) ──
+  var weeklyRows = [];
+  Object.keys(techWeekly).forEach(function(t){
+    var weeks = techWeekly[t];
+    Object.keys(weeks).forEach(function(wk){
+      var w = weeks[wk];
+      var reg = Math.min(w.hours, OT_THRESHOLD);
+      var ot = Math.max(0, w.hours - OT_THRESHOLD);
+      var regPay = reg * REG_RATE, otPay = ot * OT_RATE;
+      weeklyRows.push({ tech:t, week:wk, tires:w.tires, revenue:w.revenue, hours:w.hours, invoices:w.count, regPay:regPay, otPay:otPay, totalPay:regPay+otPay });
+    });
+  });
+  weeklyRows.sort(function(a,b){ return a.week < b.week ? 1 : (a.week > b.week ? -1 : a.tech.localeCompare(b.tech)); });
+  function ovWeekLabel(mondayKey) {
+    if (mondayKey === 'unknown') return 'Unknown date';
+    var d = new Date(mondayKey+'T12:00:00');
+    var end = new Date(d); end.setDate(end.getDate()+6);
+    var opts = { month:'short', day:'numeric' };
+    return d.toLocaleDateString('en-US', opts) + ' – ' + end.toLocaleDateString('en-US', opts);
+  }
+  var weeklyEl = document.getElementById('ov-tech-weekly');
+  if (weeklyEl) {
+    weeklyEl.innerHTML = weeklyRows.length ? weeklyRows.map(function(r){
+      var isOwner = OV_OWNER_TECHS.indexOf(r.tech) !== -1;
+      return '<tr><td data-label="Week Of">'+ovWeekLabel(r.week)+'</td>'
+        + '<td data-label="Technician">'+ovEsc(r.tech)+(isOwner?' <span style="color:var(--sa-muted);font-size:11px;">(Owner)</span>':'')+'</td>'
+        + '<td style="text-align:center" data-label="Tires">'+r.tires+'</td>'
+        + '<td style="text-align:center" data-label="Invoices">'+r.invoices+'</td>'
+        + '<td class="amount-cell" data-label="Hours">'+r.hours.toFixed(2)+'</td>'
+        + '<td class="amount-cell" data-label="Pay">'+(isOwner?'—':ovFmt(r.totalPay))+'</td>'
+        + '<td class="amount-cell" data-label="Revenue">'+ovFmt(r.revenue)+'</td></tr>';
+    }).join('') : '<tr><td colspan="7" style="text-align:center;color:var(--sa-muted);padding:16px">No weekly data yet</td></tr>';
+  }
 
   // ── ROW 4: CASH / AR (all-time, all outstanding invoices) ──
   var outstandingInvs = all.filter(ovIsOutstanding);
