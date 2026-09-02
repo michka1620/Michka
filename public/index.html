@@ -1735,13 +1735,15 @@ function renderOverview() {
     });
     return Object.assign({name:t}, techAgg[t], { regPay:regPay, otPay:otPay, totalPay: regPay+otPay });
   }).sort(function(a,b){ return b.totalPay - a.totalPay; });
+  var OV_OWNER_TECHS = ['Luis']; // owners: no hourly payroll, tires/revenue still tracked
   document.getElementById('ov-tech-pay').innerHTML = techPayRows.length ? techPayRows.map(function(t){
-    return '<tr><td data-label="Technician">'+ovEsc(t.name)+'</td>'
+    var isOwner = OV_OWNER_TECHS.indexOf(t.name) !== -1;
+    return '<tr><td data-label="Technician">'+ovEsc(t.name)+(isOwner?' <span style="color:var(--sa-muted);font-size:11px;">(Owner)</span>':'')+'</td>'
       + '<td style="text-align:center" data-label="Tires">'+t.tires+'</td>'
-      + '<td class="amount-cell" data-label="Hours">'+t.hours.toFixed(2)+'</td>'
-      + '<td class="amount-cell" data-label="Reg. Pay">'+ovFmt(t.regPay)+'</td>'
-      + '<td class="amount-cell" data-label="OT Pay">'+ovFmt(t.otPay)+'</td>'
-      + '<td class="amount-cell" data-label="Total Pay">'+ovFmt(t.totalPay)+'</td>'
+      + '<td class="amount-cell" data-label="Hours">'+(isOwner?'—':t.hours.toFixed(2))+'</td>'
+      + '<td class="amount-cell" data-label="Reg. Pay">'+(isOwner?'—':ovFmt(t.regPay))+'</td>'
+      + '<td class="amount-cell" data-label="OT Pay">'+(isOwner?'—':ovFmt(t.otPay))+'</td>'
+      + '<td class="amount-cell" data-label="Total Pay">'+(isOwner?'—':ovFmt(t.totalPay))+'</td>'
       + '<td class="amount-cell" data-label="Revenue">'+ovFmt(t.revenue)+'</td></tr>';
   }).join('') : '<tr><td colspan="7" style="text-align:center;color:var(--sa-muted);padding:16px">No technician data yet</td></tr>';
 
