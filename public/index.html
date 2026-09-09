@@ -1352,8 +1352,8 @@ const getInvoices = function() {
 };
 const saveInvoices = function(all) {
   var histNums = new Set(HISTORICAL_DATA.map(function(i){ return String(i.number)+'|'+String(i.wo||''); }));
-  var histNumsOnly = new Set(HISTORICAL_DATA.map(function(i){ return String(i.number); }));
-  var userNew  = all.filter(function(i){ return !histNums.has(String(i.number)+'|'+String(i.wo||'')) && !histNumsOnly.has(String(i.number)); });
+  var histNumsOnly = new Set(HISTORICAL_DATA.map(function(i){ return String(i.number); }).filter(Boolean));
+  var userNew  = all.filter(function(i){ return !histNums.has(String(i.number)+'|'+String(i.wo||'')) && !(i.number && histNumsOnly.has(String(i.number))); });
   var edits    = {};
   var fields   = ['wo','number','date','status','payment','total','totalLabor','notes','partsGeneral','client','tech','vehicle','tirePositions','expenses','sentState','prevNumber'];
   HISTORICAL_DATA.forEach(function(orig){
@@ -4745,11 +4745,11 @@ function pullEditsFromKV(cb) {
 
     // Merge new invoices: KV base, local additions win (by number|wo key)
     // Filter out any entry whose number/wo matches HISTORICAL_DATA (prevents stale KV from adding fake invoices)
-    var histNums = new Set(HISTORICAL_DATA.map(function(i){ return String(i.number); }));
+    var histNums = new Set(HISTORICAL_DATA.map(function(i){ return String(i.number); }).filter(Boolean));
     var histWOs  = new Set(HISTORICAL_DATA.map(function(i){ return String(i.wo||''); }).filter(Boolean));
     function isHistorical(i) {
       var n = String(i.number||''), w = String(i.wo||'');
-      return histNums.has(n) || histNums.has(w) || (w && histWOs.has(w));
+      return (n && histNums.has(n)) || (w && histNums.has(w)) || (w && histWOs.has(w));
     }
     var mergedNewMap = {};
     kvNew.forEach(function(i){ if (!isHistorical(i)) mergedNewMap[String(i.number)+'|'+String(i.wo||'')] = i; });
