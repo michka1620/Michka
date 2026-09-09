@@ -4378,6 +4378,9 @@ function buildPrintableInvoice(d) {
   var fmtDate = d.date ? new Date(d.date+'T12:00:00').toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}) : '—';
   var fmt = function(n){ return '$'+parseFloat(n||0).toFixed(2); };
   var esc = function(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); };
+  var __isWo = function(v){ return /^4920/.test(String(v||'')); };
+  var __orderVal = __isWo(d.number) ? (d.wo||'') : (d.number||'');
+  var __woVal = __isWo(d.number) ? (d.number||'') : (d.wo||'');
   
   // Tire rows
   var tireHTML = '';
@@ -4480,18 +4483,18 @@ function buildPrintableInvoice(d) {
     + '</div>'
     // Invoice number box
     + '<div style="background:#111;color:#fff;text-align:center;padding:14px 20px;margin:10px 0;border-radius:4px;display:flex;justify-content:center;gap:40px;align-items:center;">'
-      + '<div><div style="font-size:9px;opacity:.7;letter-spacing:2px;">INVOICE SUPREME #</div>'
-        + '<div style="font-size:20px;font-weight:900;letter-spacing:2px;">'+esc(d.number)+'</div></div>'
-      + '<div style="width:1px;background:#444;height:40px;"></div>'
       + '<div><div style="font-size:9px;opacity:.7;letter-spacing:2px;">ORDER #</div>'
-        + '<div style="font-size:20px;font-weight:900;letter-spacing:2px;">'+esc(d.wo)+'</div></div>'
+        + '<div style="font-size:20px;font-weight:900;letter-spacing:2px;">'+esc(__orderVal)+'</div></div>'
+      + '<div style="width:1px;background:#444;height:40px;"></div>'
+      + '<div><div style="font-size:9px;opacity:.7;letter-spacing:2px;">WO #</div>'
+        + '<div style="font-size:20px;font-weight:900;letter-spacing:2px;">'+esc(__woVal)+'</div></div>'
     + '</div>'
     // Service Details
     + '<div style="background:#222;color:#fff;padding:5px 10px;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:1px;margin:10px 0 0;">Service Details</div>'
     + '<div style="display:grid;grid-template-columns:1fr 1fr;border:1px solid #ddd;border-top:none;margin-bottom:8px;">'
       + cell('Customer', esc(c.company))
       + cell('Service Date', fmtDate)
-      + cell('WO #', esc(d.wo))
+      + cell('WO #', esc(__woVal))
       + cell('Hours Billed', esc(t.hours))
       + cell('Roll Time', esc(t.rolltime))
       + cell('Time of Arrival', esc(t.arrival))
