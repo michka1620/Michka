@@ -4749,8 +4749,15 @@ function pullEditsFromKV(cb) {
     var kvNew    = data.newInvs || [];
     var kvDel    = data.deleted || [];
 
-    // Merge edits: KV base, local overwrites
-    var mergedEdits = Object.assign({}, kvEdits, localEdits);
+    // Merge edits: per-field merge (not whole-object) so a stale device that only
+    // knows about some fields of an invoice (e.g. payment/sentState from an older
+    // script) never wipes out fields another device already saved to the server
+    // (e.g. a price fix). Server field wins as base, local field overlays on top.
+    var mergedEdits = {};
+    Object.keys(kvEdits).concat(Object.keys(localEdits)).forEach(function(k){
+      if (mergedEdits.hasOwnProperty(k)) return;
+      mergedEdits[k] = Object.assign({}, kvEdits[k] || {}, localEdits[k] || {});
+    });
 
     // Merge new invoices: KV base, local additions win (by number|wo key)
     // Filter out any entry whose number/wo matches HISTORICAL_DATA (prevents stale KV from adding fake invoices)
