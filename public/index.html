@@ -4365,7 +4365,15 @@ function pullEditsFromKV(cb) {
       mergedEdits[k] = Object.assign({}, kvEdits[k] || {}, localEdits[k] || {});
     });
 
-    // Merge new invoices: KV base, local additions win (by number|wo key)
+    // Merge new invoices: KV base, local additions win, merged per FIELD (not
+    // per whole record). Keyed by "number" alone (falling back to "wo" only
+    // for the rare record whose number is still blank) -- "number" is set at
+    // creation and never changes, while "wo" often starts blank and gets
+    // filled in later. Keying by "number+wo" together meant that the exact
+    // moment "wo" got filled in on one device, a stale device that still had
+    // the old blank-wo copy in its own localStorage would produce a
+    // DIFFERENT key and both copies would survive as "different" invoices --
+    // this is what duplicated dozens of August and September invoices.
     // Filter out any entry whose number/wo matches HISTORICAL_DATA (prevents stale KV from adding fake invoices)
     var histNums = new Set(HISTORICAL_DATA.map(function(i){ return String(i.number); }).filter(Boolean));
     var histWOs  = new Set(HISTORICAL_DATA.map(function(i){ return String(i.wo||''); }).filter(Boolean));
@@ -4373,21 +4381,28 @@ function pullEditsFromKV(cb) {
       var n = String(i.number||''), w = String(i.wo||'');
       return (n && histNums.has(n)) || (w && histNums.has(w)) || (w && histWOs.has(w));
     }
-    var mergedNewMap = {};
-    kvNew.forEach(function(i){ if (!isHistorical(i)) mergedNewMap[String(i.number)+'|'+String(i.wo||'')] = i; });
-    localNew.forEach(function(i){
-      if (!isHistorical(i)) {
-        var k = String(i.number)+'|'+String(i.wo||'');
-        var remote = mergedNewMap[k];
-        if (
-          remote &&
-          String(remote.status).toUpperCase() === 'PAID' &&
-          String(i.status).toUpperCase() !== 'PAID'
-        ) {
+    function newInvKey(i) { return String(i.number || '') || String(i.wo || ''); }
+    function mergeNewInvRecord(remote, local) {
+      var merged = Object.assign({}, remote);
+      Object.keys(local).forEach(function(f){
+        var lv = local[f];
+        if (f === 'status') {
+          if (String(remote.status).toUpperCase() === 'PAID' && String(lv).toUpperCase() !== 'PAID') return;
+          merged[f] = lv;
           return;
         }
-        mergedNewMap[k] = i;
-      }
+        if (lv === null || lv === undefined || lv === '') return; // never let an empty local field wipe a filled remote one
+        merged[f] = lv;
+      });
+      return merged;
+    }
+    var mergedNewMap = {};
+    kvNew.forEach(function(i){ if (!isHistorical(i)) mergedNewMap[newInvKey(i)] = i; });
+    localNew.forEach(function(i){
+      if (isHistorical(i)) return;
+      var k = newInvKey(i);
+      var remote = mergedNewMap[k];
+      mergedNewMap[k] = remote ? mergeNewInvRecord(remote, i) : i;
     });
     var mergedNew = Object.values(mergedNewMap);
 
