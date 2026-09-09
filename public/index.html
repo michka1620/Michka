@@ -991,8 +991,8 @@
           <tr>
             <th style="width:30px;text-align:center"><input type="checkbox" id="select-all-chk" onclick="toggleSelectAll(this)" title="Select All"></th>
             <th>Date</th>
-            <th>WO #</th>
             <th>Order #</th>
+            <th>WO #</th>
             <th>Client</th>
             <th>Tech</th>
             <th style="text-align:center">Hours</th>
@@ -1137,8 +1137,8 @@
         <thead>
           <tr style="background:#0d1117;color:#94a3b8;font-size:11px;letter-spacing:1px;text-transform:uppercase;">
             <th style="padding:10px 12px;text-align:left;border-bottom:1px solid #1e293b;">ENVIADA</th>
-            <th style="padding:10px 12px;text-align:left;border-bottom:1px solid #1e293b;">WO #</th>
             <th style="padding:10px 12px;text-align:left;border-bottom:1px solid #1e293b;">ORDER #</th>
+            <th style="padding:10px 12px;text-align:left;border-bottom:1px solid #1e293b;">WO #</th>
             <th style="padding:10px 12px;text-align:left;border-bottom:1px solid #1e293b;">FECHA</th>
             <th style="padding:10px 12px;text-align:left;border-bottom:1px solid #1e293b;">CLIENTE</th>
             <th style="padding:10px 12px;text-align:right;border-bottom:1px solid #1e293b;">TOTAL</th>
@@ -2813,8 +2813,8 @@ function renderHistory() {
     rows += '<tr>'
       + '<td data-label=""><input type="checkbox" class="inv-chk" data-idx="' + i + '" onchange="updateBulkBar()"></td>'
       + '<td class="editable-cell" data-label="Date" onclick="inlineEdit(this,\'' + uid + '\',\'date\')">' + fd + '</td>'
-      + '<td class="editable-cell id-mono" data-label="WO #" onclick="inlineEdit(this,\'' + uid + '\',\'' + woField + '\')">' + (woVal||'—') + '</td>'
-      + '<td class="editable-cell id-mono" data-label="Order #" style="font-weight:700;color:#2563eb" onclick="inlineEdit(this,\'' + uid + '\',\'' + orderField + '\')">' + (orderVal||'—') + (inv.prevNumber && inv.prevNumber.length ? '<br><span style="font-size:9px;color:#a0aec0;">' + inv.prevNumber.join(', ') + '</span>' : '') + '</td>'
+      + '<td class="editable-cell id-mono" data-label="Order #" onclick="inlineEdit(this,\'' + uid + '\',\'' + orderField + '\')">' + (orderVal||'—') + (inv.prevNumber && inv.prevNumber.length ? '<br><span style="font-size:9px;color:#a0aec0;">' + inv.prevNumber.join(', ') + '</span>' : '') + '</td>'
+      + '<td class="editable-cell id-mono" data-label="WO #" style="font-weight:700;color:#2563eb" onclick="inlineEdit(this,\'' + uid + '\',\'' + woField + '\')">' + (woVal||'—') + '</td>'
       + '<td class="editable-cell client-cell" data-label="Client" onclick="inlineEdit(this,\'' + uid + '\',\'client\')">' + (co||'—') + '</td>'
       + '<td class="editable-cell" data-label="Tech" onclick="inlineEdit(this,\'' + uid + '\',\'tech\')">' + (tn||'—') + '</td>'
       + '<td class="editable-cell" data-label="Hours" onclick="inlineEdit(this,\'' + uid + '\',\'hours\')">' + (th||'—') + '</td>'
@@ -4896,8 +4896,8 @@ function renderSent() {
       +   '<button onclick="toggleSent(\''+inv.number+'\',\''+String(inv.wo||'')+'\''+')" style="background:'+(isPaid?'#166534':isSent?'#7c2d12':'#1e293b')+';border:1px solid '+(isPaid?'#4ade80':isSent?'#ea580c':'#334155')+';color:'+(isPaid?'#4ade80':isSent?'#fb923c':'#94a3b8')+';padding:5px 12px;border-radius:20px;cursor:pointer;font-size:12px;font-weight:700;white-space:nowrap;">'
       +   (isPaid ? '✅ Cobrada' : isSent ? '📤 Enviada' : '○ No enviada')
       +   '</button></td>'
-      + '<td style="padding:10px 12px;color:#e2e8f0;font-weight:700;">'+(woDisp||'—')+'</td>'
       + '<td style="padding:10px 12px;color:#94a3b8;">'+(orderDisp||'—')+'</td>'
+      + '<td style="padding:10px 12px;color:#e2e8f0;font-weight:700;">'+(woDisp||'—')+'</td>'
       + '<td style="padding:10px 12px;color:#94a3b8;">'+String(inv.date||'—')+'</td>'
       + '<td style="padding:10px 12px;color:#e2e8f0;">'+String(inv.client?.company||'—')+'</td>'
       + '<td style="padding:10px 12px;text-align:right;color:#68d391;font-weight:700;">$'+parseFloat(inv.total||0).toFixed(2)+'</td>'
