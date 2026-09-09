@@ -991,8 +991,8 @@
           <tr>
             <th style="width:30px;text-align:center"><input type="checkbox" id="select-all-chk" onclick="toggleSelectAll(this)" title="Select All"></th>
             <th>Date</th>
-            <th>Order #</th>
             <th>WO #</th>
+            <th>Order #</th>
             <th>Client</th>
             <th>Tech</th>
             <th style="text-align:center">Hours</th>
@@ -1018,9 +1018,9 @@
       <button onclick="closeQE()" style="background:#374151;border:none;color:#9ca3af;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:16px;">✕</button>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-      <div><label style="color:#94a3b8;font-size:11px;font-weight:700;letter-spacing:1px;">WO #</label><input id="qe-number" style="width:100%;background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:8px 10px;border-radius:6px;margin-top:4px;box-sizing:border-box;"></div>
+      <div><label style="color:#94a3b8;font-size:11px;font-weight:700;letter-spacing:1px;">ORDER #</label><input id="qe-number" style="width:100%;background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:8px 10px;border-radius:6px;margin-top:4px;box-sizing:border-box;"></div>
       <div><label style="color:#94a3b8;font-size:11px;font-weight:700;letter-spacing:1px;">DATE</label><input id="qe-date" type="date" style="width:100%;background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:8px 10px;border-radius:6px;margin-top:4px;box-sizing:border-box;"></div>
-      <div><label style="color:#94a3b8;font-size:11px;font-weight:700;letter-spacing:1px;">ORDER #</label><input id="qe-wo" style="width:100%;background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:8px 10px;border-radius:6px;margin-top:4px;box-sizing:border-box;"></div>
+      <div><label style="color:#94a3b8;font-size:11px;font-weight:700;letter-spacing:1px;">WO #</label><input id="qe-wo" style="width:100%;background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:8px 10px;border-radius:6px;margin-top:4px;box-sizing:border-box;"></div>
       <div><label style="color:#94a3b8;font-size:11px;font-weight:700;letter-spacing:1px;">TOTAL ($)</label><input id="qe-total" type="number" step="0.01" style="width:100%;background:#1e293b;border:1px solid #334155;color:#68d391;padding:8px 10px;border-radius:6px;margin-top:4px;box-sizing:border-box;font-weight:700;"></div>
       <div><label style="color:#94a3b8;font-size:11px;font-weight:700;letter-spacing:1px;">STATUS</label>
         <select id="qe-status" style="width:100%;background:#1e293b;border:1px solid #334155;color:#e2e8f0;padding:8px 10px;border-radius:6px;margin-top:4px;box-sizing:border-box;">
@@ -2306,13 +2306,13 @@ function buildInvoiceHTML(d) {
   <div class="inv-number">
     <div style="display:flex;justify-content:center;gap:50px;flex-wrap:wrap;align-items:center;">
       <div style="text-align:center;">
-        <div style="font-size:10px;opacity:.65;letter-spacing:2px;font-weight:400;margin-bottom:3px;">WO #</div>
-        <div style="font-size:22px;letter-spacing:1px;font-weight:900;">${String(d.number).replace(/\.0$/,"")}</div>
+        <div style="font-size:10px;opacity:.65;letter-spacing:2px;font-weight:400;margin-bottom:3px;">ORDER #</div>
+        <div style="font-size:22px;letter-spacing:1px;font-weight:900;">${(/^4920/.test(String(d.number||'')) ? String(d.wo||'—') : String(d.number).replace(/\.0$/,"")) }</div>
       </div>
       <div style="width:1px;height:40px;background:#444;"></div>
       <div style="text-align:center;">
-        <div style="font-size:10px;opacity:.65;letter-spacing:2px;font-weight:400;margin-bottom:3px;">ORDER #</div>
-        <div style="font-size:22px;letter-spacing:1px;font-weight:900;">${d.wo||'—'}</div>
+        <div style="font-size:10px;opacity:.65;letter-spacing:2px;font-weight:400;margin-bottom:3px;">WO #</div>
+        <div style="font-size:22px;letter-spacing:1px;font-weight:900;">${(/^4920/.test(String(d.number||'')) ? String(d.number).replace(/\.0$/,"") : String(d.wo||'—')) }</div>
       </div>
     </div>
   </div>
@@ -2321,7 +2321,7 @@ function buildInvoiceHTML(d) {
   <div class="inv-grid-2">
     <div class="inv-cell"><div class="lbl">Customer</div><div class="val">${d.client.company||'—'}</div></div>
     <div class="inv-cell"><div class="lbl">Service Date</div><div class="val">${fmtDate}</div></div>
-    <div class="inv-cell"><div class="lbl">WO #</div><div class="val">${d.wo||'—'}</div></div>
+    <div class="inv-cell"><div class="lbl">WO #</div><div class="val">${(/^4920/.test(String(d.number||'')) ? String(d.number).replace(/\.0$/,"") : String(d.wo||'—')) }</div></div>
     <div class="inv-cell"><div class="lbl">Hours Billed</div><div class="val">${d.tech.hours||'—'}</div></div>
     <div class="inv-cell"><div class="lbl">Roll Time</div><div class="val">${d.tech.rolltime||'—'}</div></div>
     <div class="inv-cell"><div class="lbl">Time of Arrival</div><div class="val">${d.tech.arrival||'—'}</div></div>
@@ -2797,6 +2797,15 @@ function renderHistory() {
     var st  = inv.status||'PENDING';
     var py  = String(inv.payment||'');
     var uid = escQ(num) + '||' + escQ(wo);
+    var isWoPattern = function(v){ return /^4920/.test(v); };
+    var woVal, orderVal, woField, orderField;
+    if (isWoPattern(wo) && !isWoPattern(num)) {
+      woVal = wo; woField = 'wo'; orderVal = num; orderField = 'number';
+    } else if (isWoPattern(num) && !isWoPattern(wo)) {
+      woVal = num; woField = 'number'; orderVal = wo; orderField = 'wo';
+    } else {
+      woVal = wo; woField = 'wo'; orderVal = num; orderField = 'number';
+    }
     var sentState = inv.sentState || 0;
     var isPaidState = (st==='PAID' || sentState===2);
     var pillClass = isPaidState ? 'status-pill-paid' : sentState===1 ? 'status-pill-sent' : 'status-pill-pending';
@@ -2804,8 +2813,8 @@ function renderHistory() {
     rows += '<tr>'
       + '<td data-label=""><input type="checkbox" class="inv-chk" data-idx="' + i + '" onchange="updateBulkBar()"></td>'
       + '<td class="editable-cell" data-label="Date" onclick="inlineEdit(this,\'' + uid + '\',\'date\')">' + fd + '</td>'
-      + '<td class="editable-cell id-mono" data-label="Order #" onclick="inlineEdit(this,\'' + uid + '\',\'wo\')">' + (wo||'—') + '</td>'
-      + '<td class="editable-cell id-mono" data-label="WO #" style="font-weight:700;color:#2563eb" onclick="inlineEdit(this,\'' + uid + '\',\'number\')">' + num + (inv.prevNumber && inv.prevNumber.length ? '<br><span style="font-size:9px;color:#a0aec0;">' + inv.prevNumber.join(', ') + '</span>' : '') + '</td>'
+      + '<td class="editable-cell id-mono" data-label="WO #" onclick="inlineEdit(this,\'' + uid + '\',\'' + woField + '\')">' + (woVal||'—') + '</td>'
+      + '<td class="editable-cell id-mono" data-label="Order #" style="font-weight:700;color:#2563eb" onclick="inlineEdit(this,\'' + uid + '\',\'' + orderField + '\')">' + (orderVal||'—') + (inv.prevNumber && inv.prevNumber.length ? '<br><span style="font-size:9px;color:#a0aec0;">' + inv.prevNumber.join(', ') + '</span>' : '') + '</td>'
       + '<td class="editable-cell client-cell" data-label="Client" onclick="inlineEdit(this,\'' + uid + '\',\'client\')">' + (co||'—') + '</td>'
       + '<td class="editable-cell" data-label="Tech" onclick="inlineEdit(this,\'' + uid + '\',\'tech\')">' + (tn||'—') + '</td>'
       + '<td class="editable-cell" data-label="Hours" onclick="inlineEdit(this,\'' + uid + '\',\'hours\')">' + (th||'—') + '</td>'
@@ -4869,13 +4878,19 @@ function renderSent() {
     var isPaid = String(inv.status).toUpperCase() === 'PAID';
     var statusColor = inv.status==='PAID' ? '#4ade80' : inv.status==='CANCELLED' ? '#f87171' : '#f59e0b';
     var flagStyle = inv.flagged ? 'background:#3b0000;border-left:4px solid #ef4444;' : '';
+    var _num = String(inv.number||''), _wo = String(inv.wo||'');
+    var _isWo = function(v){ return /^4920/.test(v); };
+    var woDisp, orderDisp;
+    if (_isWo(_wo) && !_isWo(_num)) { woDisp = _wo; orderDisp = _num; }
+    else if (_isWo(_num) && !_isWo(_wo)) { woDisp = _num; orderDisp = _wo; }
+    else { woDisp = _wo; orderDisp = _num; }
     return '<tr style="border-bottom:1px solid #1e293b;'+flagStyle+(isSent?'opacity:0.65;':'')+'">'
       + '<td style="padding:10px 12px;">'
       +   '<button onclick="toggleSent(\''+inv.number+'\',\''+String(inv.wo||'')+'\''+')" style="background:'+(isPaid?'#166534':isSent?'#7c2d12':'#1e293b')+';border:1px solid '+(isPaid?'#4ade80':isSent?'#ea580c':'#334155')+';color:'+(isPaid?'#4ade80':isSent?'#fb923c':'#94a3b8')+';padding:5px 12px;border-radius:20px;cursor:pointer;font-size:12px;font-weight:700;white-space:nowrap;">'
       +   (isPaid ? '✅ Cobrada' : isSent ? '📤 Enviada' : '○ No enviada')
       +   '</button></td>'
-      + '<td style="padding:10px 12px;color:#e2e8f0;font-weight:700;">'+String(inv.number||'—')+'</td>'
-      + '<td style="padding:10px 12px;color:#94a3b8;">'+String(inv.wo||'—')+'</td>'
+      + '<td style="padding:10px 12px;color:#e2e8f0;font-weight:700;">'+(woDisp||'—')+'</td>'
+      + '<td style="padding:10px 12px;color:#94a3b8;">'+(orderDisp||'—')+'</td>'
       + '<td style="padding:10px 12px;color:#94a3b8;">'+String(inv.date||'—')+'</td>'
       + '<td style="padding:10px 12px;color:#e2e8f0;">'+String(inv.client?.company||'—')+'</td>'
       + '<td style="padding:10px 12px;text-align:right;color:#68d391;font-weight:700;">$'+parseFloat(inv.total||0).toFixed(2)+'</td>'
