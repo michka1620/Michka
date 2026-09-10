@@ -1329,9 +1329,12 @@ const getInvoices = function() {
       });
       return merged;
     });
-    // Add user-created invoices — exclude any that duplicate a HISTORICAL_DATA entry
-    var histNums = new Set(HISTORICAL_DATA.map(function(i){ return String(i.number); }));
-    var histWOs  = new Set(HISTORICAL_DATA.map(function(i){ return String(i.wo||''); }));
+    // Add user-created invoices — exclude any that duplicate a HISTORICAL_DATA entry.
+    // Built from `base` (already deleted[]-filtered), not the raw HISTORICAL_DATA array,
+    // so a deleted historical ghost no longer "reserves" its number/wo against a real
+    // newInvs record sharing that same identifier.
+    var histNums = new Set(base.map(function(i){ return String(i.number); }));
+    var histWOs  = new Set(base.map(function(i){ return String(i.wo||''); }));
     userNew = userNew.filter(function(inv){
       var n = String(inv.number||'');
       var w = String(inv.wo||'');
