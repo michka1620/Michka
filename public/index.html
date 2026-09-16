@@ -2902,6 +2902,16 @@ function renderMonthly() {
   document.getElementById('top-clients').innerHTML = cliHtml;
 }
 
+function canonicalTechName(raw) {
+  var s = String(raw || '').trim();
+  if (!s) return '(sin tecnico)';
+  var low = s.toLowerCase();
+  if (low === 'luis') return 'Luis';
+  if (low === 'john' || low === 'jhon') return 'John';
+  if (low === 'danny') return 'Danny';
+  if (low === 'shawn') return 'Shawn';
+  return s;
+}
 function renderTires() {
   var invs = getInvoices();
   function mondayOf(dateStr) {
@@ -2933,7 +2943,7 @@ function renderTires() {
     if (!weeks[wk]) weeks[wk] = { facturas: 0, llantas: 0, porTecnico: {} };
     weeks[wk].facturas++;
     weeks[wk].llantas += n;
-    var tech = (inv.tech && inv.tech.name) ? String(inv.tech.name).trim() : '(sin tecnico)';
+    var tech = canonicalTechName(inv.tech && inv.tech.name);
     weeks[wk].porTecnico[tech] = (weeks[wk].porTecnico[tech] || 0) + n;
   });
   var weekKeys = Object.keys(weeks).sort(function (a, b) { return b < a ? -1 : b > a ? 1 : 0; });
