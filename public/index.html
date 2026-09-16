@@ -3149,23 +3149,13 @@ function selectTech(btn, tech) {
   else custom.style.display='none';
 }
 
+// Deprecated: the Anthropic key now lives server-side (Cloudflare secret,
+// used by /api/vision) and is never entered into or stored by the browser.
+// Kept as no-ops so any leftover UI wiring doesn't error out.
 function saveApiKey() {
-  var key = document.getElementById('photo-api-key').value.trim();
-  if (!key) { showToast('Ingresa la API key'); return; }
-  localStorage.setItem('anthropic_api_key', key);
-  document.getElementById('api-key-status').textContent = '✅ Key guardada';
-  document.getElementById('api-key-status').style.color = '#4ade80';
-  showToast('API Key guardada');
+  showToast('Ya no hace falta una API key aqui: la extraccion de fotos usa el servidor.');
 }
-
-function loadApiKey() {
-  var saved = localStorage.getItem('anthropic_api_key');
-  if (saved) {
-    document.getElementById('photo-api-key').value = saved;
-    document.getElementById('api-key-status').textContent = '✅ Key cargada';
-    document.getElementById('api-key-status').style.color = '#4ade80';
-  }
-}
+function loadApiKey() {}
 
 function handlePhotoDrop(e) {
   e.preventDefault();
@@ -3219,8 +3209,6 @@ function fileToBase64(file) {
 }
 
 async function processAllPhotos() {
-  var apiKey = localStorage.getItem('anthropic_api_key');
-  if (!apiKey) { showToast('Primero guarda tu API Key'); return; }
   if (_photoFiles.length === 0) { showToast('No hay fotos seleccionadas'); return; }
 
   var techName = _selectedTech;
@@ -3240,7 +3228,7 @@ async function processAllPhotos() {
     document.getElementById('photo-progress-text').textContent = 'Paso 1/2 — Foto ' + (i+1) + ' de ' + _photoFiles.length + ': ' + _photoFiles[i].name;
     try {
       var b64 = await fileToBase64(_photoFiles[i]);
-      var result = await callClaudeVisionSingle(apiKey, b64, _photoFiles[i].type || 'image/jpeg', _photoFiles[i].name, techName);
+      var result = await callClaudeVisionSingle(null, b64, _photoFiles[i].type || 'image/jpeg', _photoFiles[i].name, techName);
       result._photoName = _photoFiles[i].name;
       rawResults.push(result);
     } catch(e) {
@@ -3255,7 +3243,7 @@ async function processAllPhotos() {
   var goodResults = rawResults.filter(function(r){ return !r._error; });
   var grouped = [];
   try {
-    grouped = await callClaudeGrouping(apiKey, goodResults, techName);
+    grouped = await callClaudeGrouping(null, goodResults, techName);
   } catch(e) {
     // Fallback: use raw results merged by WO#
     _extractedData = rawResults;
@@ -3316,9 +3304,9 @@ ${dataStr}
 
 Responde SOLO con el JSON array. Sin texto adicional.`;
 
-  var response = await fetch('https://supremekv1.michka1620.workers.dev/vision', {
+  var response = await fetch('/api/vision', {
     method: 'POST',
-    headers: { 'x-api-key': apiKey, 'content-type': 'application/json' },
+    headers: { 'content-type': 'application/json' },
     body: JSON.stringify({
       model: 'claude-opus-4-8',
       max_tokens: 4000,
@@ -3359,9 +3347,9 @@ Campos vacíos: usa "". No incluyas texto fuera del JSON.`;
   });
   content.push({ type: 'text', text: prompt });
 
-  var response = await fetch('https://supremekv1.michka1620.workers.dev/vision', {
+  var response = await fetch('/api/vision', {
     method: 'POST',
-    headers: { 'x-api-key': apiKey, 'content-type': 'application/json' },
+    headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ model: 'claude-opus-4-8', max_tokens: 2000, messages: [{ role: 'user', content: content }] })
   });
 
@@ -3420,9 +3408,9 @@ async function callClaudeVisionSingle(apiKey, b64, mediaType, fileName, techOver
     + '"tirePositions":[{"position":"LF/RF/LR/RR/LRI/LRO/RRI/RRO etc","brand":"tire brand","size":"tire size","model":"tire model","causeOfFailure":"cause","workAccomplished":"work done","whoHasPart":"who has part","treadDepth":"tread depth","dotOn":"DOT on","dotOff":"DOT off"}],'
     + '"total":0,"status":"PENDING"}\nEmpty fields: use "". Only JSON, no other text.';
 
-  var response = await fetch('https://supremekv1.michka1620.workers.dev/vision', {
+  var response = await fetch('/api/vision', {
     method: 'POST',
-    headers: { 'x-api-key': apiKey, 'content-type': 'application/json' },
+    headers: { 'content-type': 'application/json' },
     body: JSON.stringify({
       model: 'claude-opus-4-8',
       max_tokens: 1500,
@@ -3484,10 +3472,9 @@ Extrae TODOS los datos que puedas ver. Responde SOLO con un JSON válido con est
 }
 Si un campo no está visible, usa "" o 0. No incluyas texto fuera del JSON.`;
 
-  var response = await fetch('https://supremekv1.michka1620.workers.dev/vision', {
+  var response = await fetch('/api/vision', {
     method: 'POST',
     headers: {
-      'x-api-key': apiKey,
       'content-type': 'application/json',
     },
     body: JSON.stringify({
@@ -3738,8 +3725,6 @@ async function processAddTirePhotos() {
   if (!wo) { showToast('⚠️ Ingresa el WO# primero'); return; }
   var inv = getInvoices().find(function(i){ return normalizeWO(i.wo) === wo; });
   if (!inv) { showToast('❌ WO# ' + wo + ' no encontrado'); return; }
-  var apiKey = localStorage.getItem('supreme_api_key') || document.getElementById('photo-api-key').value.trim();
-  if (!apiKey) { showToast('⚠️ Ingresa tu API Key'); return; }
   if (!_addTireFiles.length) { showToast('⚠️ Sube al menos una foto'); return; }
 
   document.getElementById('add-tire-progress').style.display = 'block';
@@ -3753,7 +3738,7 @@ async function processAddTirePhotos() {
     document.getElementById('add-tire-progress-text').textContent = 'Foto ' + (i+1) + ' de ' + _addTireFiles.length + ': ' + _addTireFiles[i].name;
     try {
       var b64 = await fileToBase64(_addTireFiles[i]);
-      var res = await callClaudeTireSingle(apiKey, b64, _addTireFiles[i].type || 'image/jpeg');
+      var res = await callClaudeTireSingle(null, b64, _addTireFiles[i].type || 'image/jpeg');
       if (res && res.position) _addTireData.push(res);
     } catch(e) { console.error('Tire scan error:', e); }
   }
@@ -3769,9 +3754,9 @@ async function callClaudeTireSingle(apiKey, b64, mediaType) {
     + 'Respond ONLY with valid JSON:\n'
     + '{"position":"tire position code e.g. LFI/LFO/RFI/RFO/LRI/LRO/RRI/RRO/LF/RF/LR/RR","brand":"tire brand","size":"tire size","model":"tire model","causeOfFailure":"cause of failure","workAccomplished":"work accomplished","whoHasPart":"who has part","treadDepth":"tread depth","ply":"ply rating","valve":"valve","dotOn":"DOT On number","dotOff":"DOT Off number"}\n'
     + 'Empty fields: use "". Only JSON, no other text.';
-  var response = await fetch('https://supremekv1.michka1620.workers.dev/vision', {
+  var response = await fetch('/api/vision', {
     method: 'POST',
-    headers: { 'x-api-key': apiKey, 'content-type': 'application/json' },
+    headers: { 'content-type': 'application/json' },
     body: JSON.stringify({
       model: 'claude-opus-4-8', max_tokens: 600,
       messages: [{ role: 'user', content: [
