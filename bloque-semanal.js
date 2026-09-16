@@ -24,6 +24,12 @@ function toChicagoParts(date) {
     day: parseInt(parts.day, 10),
     hour,
     minute: parseInt(parts.minute, 10),
+    // Seconds come from the same Chicago-local formatter; milliseconds are
+    // timezone-invariant (IANA offsets are always whole minutes), so they
+    // can be read directly off the instant. Both are needed so the noon
+    // cutoff below can tell 12:00:00.000 apart from 12:00:00.001.
+    second: parseInt(parts.second, 10),
+    millisecond: date.getUTCMilliseconds(),
     weekday: parts.weekday, // "Thu", "Wed", etc.
   };
 }
@@ -56,9 +62,15 @@ function computeBloque(chicagoParts) {
   let closeDate = addDaysToDateOnly(chicagoParts.year, chicagoParts.month, chicagoParts.day, daysUntilWednesday);
 
   // If today IS the closing Wednesday and it's already STRICTLY past
-  // 12:00:00 (the cutoff itself is inclusive -- exactly noon still
-  // belongs to the closing block), this moment rolls to NEXT week's block.
-  const pastCutoff = chicagoParts.hour > 12 || (chicagoParts.hour === 12 && chicagoParts.minute > 0);
+  // 12:00:00.000 (the cutoff itself is inclusive -- exactly noon still
+  // belongs to the closing block; 12:00:00.001 onward rolls over), this
+  // moment rolls to NEXT week's block. Must compare down to the
+  // millisecond -- comparing only hour/minute would wrongly keep the
+  // whole 12:00:00.000-12:00:59.999 window in the closing block.
+  const pastCutoff =
+    chicagoParts.hour > 12 ||
+    (chicagoParts.hour === 12 &&
+      (chicagoParts.minute > 0 || chicagoParts.second > 0 || chicagoParts.millisecond > 0));
   if (daysUntilWednesday === 0 && pastCutoff) {
     closeDate = addDaysToDateOnly(closeDate.year, closeDate.month, closeDate.day, 7);
   }
