@@ -996,6 +996,7 @@
             <th>Client</th>
             <th>Tech</th>
             <th style="text-align:center">Hours</th>
+            <th style="text-align:center">Llantas</th>
             <th class="amount-col">Total</th>
             <th>Status</th>
             <th>Payment</th>
@@ -2584,6 +2585,7 @@ function renderHistory() {
       + '<td class="editable-cell client-cell" data-label="Client" onclick="inlineEdit(this,\'' + uid + '\',\'client\')">' + (co||'—') + '</td>'
       + '<td class="editable-cell" data-label="Tech" onclick="inlineEdit(this,\'' + uid + '\',\'tech\')">' + (tn||'—') + '</td>'
       + '<td class="editable-cell" data-label="Hours" onclick="inlineEdit(this,\'' + uid + '\',\'hours\')">' + (th||'—') + '</td>'
+      + '<td data-label="Llantas" style="text-align:center">' + (Array.isArray(inv.tirePositions) && inv.tirePositions.length ? inv.tirePositions.length : '—') + '</td>'
       + '<td class="editable-cell amount-cell" data-label="Total" onclick="inlineEdit(this,\'' + uid + '\',\'total\')">' + tot + '</td>'
       + '<td class="editable-cell" data-label="Status" onclick="inlineEdit(this,\'' + uid + '\',\'status\')"><span class="badge ' + badge + '">' + st + '</span></td>'
       + '<td class="editable-cell" data-label="Payment" onclick="inlineEdit(this,\'' + uid + '\',\'payment\')">' + (py||'—') + '</td>'
