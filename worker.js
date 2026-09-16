@@ -111,10 +111,16 @@ async function proxyToSupremekv(request, env, email, role) {
   innerHeaders.set("Content-Type", request.headers.get("Content-Type") || "application/json");
   innerHeaders.set("X-Verified-Email", email);
   innerHeaders.set("X-Verified-Role", role);
+  // GET/HEAD never carry a body; anything else might (a stream, or none at
+  // all e.g. a bodyless DELETE). Passing a stream body to Request without
+  // duplex:"half" throws -- but duplex is only valid/needed when a body is
+  // actually present, so it must be set conditionally, not unconditionally.
+  const hasBody = request.method !== "GET" && request.method !== "HEAD" && request.body != null;
   const innerRequest = new Request(innerUrl.toString(), {
     method: request.method,
     headers: innerHeaders,
-    body: request.method === "GET" || request.method === "HEAD" ? void 0 : request.body,
+    body: hasBody ? request.body : void 0,
+    ...(hasBody ? { duplex: "half" } : {}),
   });
   return env.SUPREMEKV.fetch(innerRequest);
 }
@@ -142,7 +148,9 @@ var worker_default = {
     const url = new URL(request.url);
 
     if (url.pathname === "/favicon.ico") {
-      return new Response("", { status: 204 });
+      // A 204 is a null-body status; constructing a Response with any
+      // non-null body (even "") throws "Invalid response status code 204".
+      return new Response(null, { status: 204 });
     }
 
     const auth = await authenticate(request, env);

@@ -1,3 +1,4 @@
 ﻿.wrangler/
 *.sql
+!sql/*.sql
 /index.html
