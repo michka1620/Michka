@@ -1423,10 +1423,52 @@ const getInvoices = function() {
     return out;
   } catch(e) { return base; }
 };
+// Collapses accidental duplicates that share a Work Order#: if one copy has
+// an Order Number and the rest are still blank placeholders (e.g. a
+// technician's initial entry before the office assigns the Order#, followed
+// by a second row added for the same WO instead of editing the first),
+// keep the one with the Order Number and fold in any fields it's missing
+// from the placeholder(s). Two or more copies that already have a
+// (different) real Order Number are left untouched -- that's a genuine
+// conflict, not a placeholder, and needs a person to resolve it rather than
+// being silently collapsed.
+function dedupeByWo(list) {
+  var groups = {};
+  var out = [];
+  list.forEach(function(inv) {
+    var wo = String(inv.wo || '').trim();
+    if (!wo) { out.push(inv); return; }
+    if (!groups[wo]) groups[wo] = [];
+    groups[wo].push(inv);
+  });
+  Object.keys(groups).forEach(function(wo) {
+    var group = groups[wo];
+    if (group.length === 1) { out.push(group[0]); return; }
+    var withNumber = group.filter(function(i){ return i.number && String(i.number).trim() !== ''; });
+    var blank = group.filter(function(i){ return !i.number || String(i.number).trim() === ''; });
+    if (withNumber.length === 1 && blank.length === group.length - 1) {
+      var keeper = withNumber[0];
+      blank.forEach(function(ghost) {
+        Object.keys(ghost).forEach(function(f) {
+          var gv = ghost[f];
+          if (gv === null || gv === undefined || gv === '') return;
+          var kv = keeper[f];
+          if (kv === null || kv === undefined || kv === '') keeper[f] = gv;
+        });
+      });
+      out.push(keeper);
+    } else {
+      group.forEach(function(i){ out.push(i); });
+    }
+  });
+  return out;
+}
+
 const saveInvoices = function(all) {
   var histNums = new Set(HISTORICAL_DATA.map(function(i){ return String(i.number)+'|'+String(i.wo||''); }));
   var histNumsOnly = new Set(HISTORICAL_DATA.map(function(i){ return String(i.number); }).filter(Boolean));
   var userNew  = all.filter(function(i){ return !histNums.has(String(i.number)+'|'+String(i.wo||'')) && !(i.number && histNumsOnly.has(String(i.number))); });
+  userNew = dedupeByWo(userNew);
   var edits    = {};
   var fields   = ['wo','number','date','status','payment','total','totalLabor','notes','partsGeneral','client','tech','vehicle','tirePositions','expenses','sentState','prevNumber'];
   HISTORICAL_DATA.forEach(function(orig){
