@@ -1,0 +1,4 @@
+# Copiar a .dev.vars (ignorado por git, mismo directorio) y reemplazar el
+# valor por un token generado localmente. NUNCA poner la clave real aca ni
+# en ningun wrangler*.toml.
+SCRATCH_TEST_TOKEN=REPLACE_WITH_A_LOCALLY_GENERATED_RANDOM_TOKEN

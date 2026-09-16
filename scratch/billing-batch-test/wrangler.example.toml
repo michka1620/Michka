@@ -1,0 +1,22 @@
+# Config AISLADA solo para probar BILLING_DB.batch() con datos ficticios.
+# Completamente separada del wrangler.toml real (raiz del repo) -- este
+# archivo no se referencia desde ahi ni viceversa. No tiene ASSETS, no
+# tiene SUPREMEKV, no tiene ninguna variable/secreto real.
+#
+# Este es el TEMPLATE versionado -- no tiene database_id real ni el token
+# de prueba. Para usarlo de verdad, copialo a wrangler.local.toml (ignorado
+# por git) y completa el database_id ahi despues de crear la D1
+# "tmp-billing-batch-scratch". El token SCRATCH_TEST_TOKEN nunca va en
+# ningun wrangler.toml -- vive solo en .dev.vars (tambien ignorado).
+
+name = "tmp-billing-batch-scratch-worker"
+main = "worker.js"
+compatibility_date = "2026-08-18"
+
+[dev]
+ip = "127.0.0.1"
+
+[[d1_databases]]
+binding = "BILLING_DB"
+database_name = "tmp-billing-batch-scratch"
+database_id = "PENDING_FILL_IN_AFTER_D1_CREATION"

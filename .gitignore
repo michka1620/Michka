@@ -2,3 +2,6 @@
 *.sql
 !sql/*.sql
 /index.html
+/scratch/billing-batch-test/wrangler.local.toml
+/scratch/billing-batch-test/.dev.vars
+/scratch/billing-batch-test/results/
