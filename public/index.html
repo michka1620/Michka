@@ -4510,7 +4510,7 @@ function forceSyncToKV() {
 }
 
 function pullEditsFromKV(cb) {
-  fetch(KV_EDITS_API).then(function(r){ return r.json(); }).then(function(data) {
+  fetch(KV_EDITS_API + '?_=' + Date.now(), { cache: 'no-store' }).then(function(r){ return r.json(); }).then(function(data) {
     if (!data || typeof data !== 'object') { if(cb) cb(); return; }
 
     // MERGE KV data with local data — local wins for conflicts (local is more recent)
