@@ -1154,6 +1154,30 @@
     </div>
   </div>
 
+  <div style="background:#fff;border:1px solid #e2e8f0;border-radius:14px;overflow:hidden;margin-bottom:24px;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+    <div style="padding:16px 22px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;justify-content:space-between;background:#fff;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size:18px;">📆</span>
+        <span style="font-weight:900;font-size:15px;letter-spacing:1px;color:#1e293b;">LLANTAS POR MES</span>
+      </div>
+      <div style="font-size:11px;color:#94a3b8;">Solo cuenta facturas con dato exacto (tirePositions)</div>
+    </div>
+    <div style="overflow-x:auto;">
+      <table style="width:100%;border-collapse:collapse;">
+        <thead>
+          <tr style="background:#f8fafc;">
+            <th style="text-align:left;padding:13px 22px;font-size:11px;color:#64748b;letter-spacing:2px;text-transform:uppercase;font-weight:700;border-bottom:2px solid #e2e8f0;">MES</th>
+            <th style="text-align:center;padding:13px 14px;font-size:11px;color:#64748b;letter-spacing:2px;text-transform:uppercase;font-weight:700;border-bottom:2px solid #e2e8f0;">FACTURAS</th>
+            <th style="text-align:center;padding:13px 14px;font-size:11px;color:#4338ca;letter-spacing:2px;text-transform:uppercase;font-weight:700;border-bottom:2px solid #e2e8f0;">LLANTAS</th>
+            <th style="text-align:left;padding:13px 22px;font-size:11px;color:#15803d;letter-spacing:2px;text-transform:uppercase;font-weight:700;border-bottom:2px solid #e2e8f0;">🏆 LÍDER DEL MES</th>
+            <th style="text-align:left;padding:13px 22px;font-size:11px;color:#64748b;letter-spacing:2px;text-transform:uppercase;font-weight:700;border-bottom:2px solid #e2e8f0;">POR TÉCNICO</th>
+          </tr>
+        </thead>
+        <tbody id="tires-monthly-body"></tbody>
+      </table>
+    </div>
+  </div>
+
 </div>
 
 <!-- ===================== SENT PAGE ===================== -->
@@ -2932,43 +2956,64 @@ function renderTires() {
     var d = new Date(s + 'T12:00:00');
     return d.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' });
   }
-  var weeks = {}; // mondayStr -> { facturas:0, llantas:0, porTecnico:{} }
+  var MN = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  function fmtMonth(k) {
+    var parts = k.split('-');
+    return MN[parseInt(parts[1], 10) - 1] + ' ' + parts[0];
+  }
+  var weeks = {};  // mondayStr -> { facturas:0, llantas:0, porTecnico:{} }
+  var months = {}; // "YYYY-MM" -> { facturas:0, llantas:0, porTecnico:{} }
   var facturasConDato = 0, llantasTotal = 0, facturasSinDato = 0;
   invs.forEach(function (inv) {
     var n = Array.isArray(inv.tirePositions) ? inv.tirePositions.length : 0;
     if (!n) { facturasSinDato++; return; }
     var wk = mondayOf(inv.date);
-    if (!wk) { facturasSinDato++; return; }
+    var mo = inv.date ? inv.date.slice(0, 7) : null;
+    if (!wk || !mo) { facturasSinDato++; return; }
     facturasConDato++; llantasTotal += n;
+    var tech = canonicalTechName(inv.tech && inv.tech.name);
     if (!weeks[wk]) weeks[wk] = { facturas: 0, llantas: 0, porTecnico: {} };
     weeks[wk].facturas++;
     weeks[wk].llantas += n;
-    var tech = canonicalTechName(inv.tech && inv.tech.name);
     weeks[wk].porTecnico[tech] = (weeks[wk].porTecnico[tech] || 0) + n;
+    if (!months[mo]) months[mo] = { facturas: 0, llantas: 0, porTecnico: {} };
+    months[mo].facturas++;
+    months[mo].llantas += n;
+    months[mo].porTecnico[tech] = (months[mo].porTecnico[tech] || 0) + n;
   });
-  var weekKeys = Object.keys(weeks).sort(function (a, b) { return b < a ? -1 : b > a ? 1 : 0; });
-  var rows = '';
-  weekKeys.forEach(function (wk, i) {
-    var d = weeks[wk];
-    var techsSorted = Object.keys(d.porTecnico).sort(function (a, b) { return d.porTecnico[b] - d.porTecnico[a]; });
-    var techStr = techsSorted.map(function (t) { return t + ': ' + d.porTecnico[t]; }).join(' · ');
-    var lider = techsSorted[0];
-    var liderHtml = lider
-      ? '<span style="background:#dcfce7;color:#15803d;font-weight:900;font-size:12.5px;padding:4px 10px;border-radius:20px;border:1px solid #bbf7d0;">' + lider + ' — ' + d.porTecnico[lider] + '</span>'
-      : '—';
-    var rowBg = i % 2 === 0 ? '#ffffff' : '#f8fafc';
-    rows += '<tr style="background:' + rowBg + ';border-bottom:1px solid #e2e8f0;">'
-      + '<td style="padding:13px 22px;font-weight:700;font-size:13px;color:#1e293b;">' + fmtDate(wk) + ' – ' + fmtDate(sundayOf(wk)) + '</td>'
-      + '<td style="text-align:center;padding:13px 14px;color:#64748b;font-weight:700;font-size:13px;">' + d.facturas + '</td>'
-      + '<td style="text-align:center;padding:13px 14px;color:#4338ca;font-weight:900;font-size:15px;">' + d.llantas + '</td>'
-      + '<td style="padding:13px 22px;">' + liderHtml + '</td>'
-      + '<td style="padding:13px 22px;font-size:12.5px;color:#475569;">' + techStr + '</td>'
-      + '</tr>';
-  });
-  if (!weekKeys.length) {
-    rows = '<tr><td colspan="5" style="padding:20px 22px;color:#94a3b8;text-align:center;">No hay facturas con dato exacto de llantas.</td></tr>';
+
+  function buildRows(groups, keys, labelFn) {
+    var out = '';
+    keys.forEach(function (k, i) {
+      var d = groups[k];
+      var techsSorted = Object.keys(d.porTecnico).sort(function (a, b) { return d.porTecnico[b] - d.porTecnico[a]; });
+      var techStr = techsSorted.map(function (t) { return t + ': ' + d.porTecnico[t]; }).join(' · ');
+      var lider = techsSorted[0];
+      var liderHtml = lider
+        ? '<span style="background:#dcfce7;color:#15803d;font-weight:900;font-size:12.5px;padding:4px 10px;border-radius:20px;border:1px solid #bbf7d0;">' + lider + ' — ' + d.porTecnico[lider] + '</span>'
+        : '—';
+      var rowBg = i % 2 === 0 ? '#ffffff' : '#f8fafc';
+      out += '<tr style="background:' + rowBg + ';border-bottom:1px solid #e2e8f0;">'
+        + '<td style="padding:13px 22px;font-weight:700;font-size:13px;color:#1e293b;">' + labelFn(k) + '</td>'
+        + '<td style="text-align:center;padding:13px 14px;color:#64748b;font-weight:700;font-size:13px;">' + d.facturas + '</td>'
+        + '<td style="text-align:center;padding:13px 14px;color:#4338ca;font-weight:900;font-size:15px;">' + d.llantas + '</td>'
+        + '<td style="padding:13px 22px;">' + liderHtml + '</td>'
+        + '<td style="padding:13px 22px;font-size:12.5px;color:#475569;">' + techStr + '</td>'
+        + '</tr>';
+    });
+    return out;
   }
+
+  var weekKeys = Object.keys(weeks).sort(function (a, b) { return b < a ? -1 : b > a ? 1 : 0; });
+  var rows = buildRows(weeks, weekKeys, function (wk) { return fmtDate(wk) + ' – ' + fmtDate(sundayOf(wk)); });
+  if (!weekKeys.length) rows = '<tr><td colspan="5" style="padding:20px 22px;color:#94a3b8;text-align:center;">No hay facturas con dato exacto de llantas.</td></tr>';
   document.getElementById('tires-body').innerHTML = rows;
+
+  var monthKeys = Object.keys(months).sort(function (a, b) { return b < a ? -1 : b > a ? 1 : 0; });
+  var monthRows = buildRows(months, monthKeys, fmtMonth);
+  if (!monthKeys.length) monthRows = '<tr><td colspan="5" style="padding:20px 22px;color:#94a3b8;text-align:center;">No hay facturas con dato exacto de llantas.</td></tr>';
+  document.getElementById('tires-monthly-body').innerHTML = monthRows;
+
   document.getElementById('tf-count').textContent = facturasConDato;
   document.getElementById('tf-tires').textContent = llantasTotal;
   document.getElementById('tf-nodata').textContent = facturasSinDato;
