@@ -1424,22 +1424,50 @@ const getInvoices = function() {
   } catch(e) { return base; }
 };
 const saveInvoices = function(all) {
-  var histNums = new Set(HISTORICAL_DATA.map(function(i){ return String(i.number)+'|'+String(i.wo||''); }));
-  var histNumsOnly = new Set(HISTORICAL_DATA.map(function(i){ return String(i.number); }).filter(Boolean));
-  var userNew  = all.filter(function(i){ return !histNums.has(String(i.number)+'|'+String(i.wo||'')) && !(i.number && histNumsOnly.has(String(i.number))); });
-  var edits    = {};
   var fields   = ['wo','number','date','status','payment','total','totalLabor','notes','partsGeneral','client','tech','vehicle','tirePositions','expenses','sentState','prevNumber'];
+  var edits    = {};
+  // "Claimed" = this item in `all` IS the current representation of some
+  // HISTORICAL_DATA record (matched by exact number|wo pair, or by number
+  // alone to cover a since-edited wo field) -- so it must never also be
+  // treated as a brand-new invoice. Every other item in `all` is genuinely
+  // new. This replaces the old blanket "any number matching ANY historical
+  // number" exclusion, which silently dropped brand-new invoices whenever
+  // their number happened to coincide with an unrelated historical record.
+  var claimed = new Set();
   HISTORICAL_DATA.forEach(function(orig){
     var k = String(orig.number)+'|'+String(orig.wo||'');
-    // search by number|wo first, then by number alone (covers edited wo field)
     var edited = all.find(function(i){ return String(i.number)+'|'+String(i.wo||'') === k; })
               || all.find(function(i){ return String(i.number) === String(orig.number); });
     if (edited) {
+      claimed.add(edited);
       var diff = {};
       fields.forEach(function(f){ if (JSON.stringify(edited[f]) !== JSON.stringify(orig[f])) diff[f]=edited[f]; });
       if (Object.keys(diff).length) edits[k] = diff;
     }
   });
+
+  // Among the unclaimed (genuinely new) candidates, a real duplicate is one
+  // that shares a non-empty WO# with a historical record or with another new
+  // invoice in this same save -- WO# is the real-world job identifier, so
+  // that's the only meaningful duplicate signal left once `number` can no
+  // longer collide by construction (see generateInvoiceNumber()). A true
+  // duplicate is blocked from being pushed as new and reported with a clear
+  // toast instead of vanishing silently.
+  var histWos = new Set(HISTORICAL_DATA.map(function(i){ return String(i.wo||''); }).filter(Boolean));
+  var seenWo = {};
+  var userNew = [];
+  var blocked = [];
+  all.forEach(function(i){
+    if (claimed.has(i)) return;
+    var wo = String(i.wo||'');
+    if (wo && (histWos.has(wo) || seenWo[wo])) { blocked.push(i); return; }
+    if (wo) seenWo[wo] = true;
+    userNew.push(i);
+  });
+  if (blocked.length && typeof showToast === 'function') {
+    showToast('⚠️ ' + blocked.length + ' factura(s) NO se guardaron por WO# duplicado: ' + blocked.map(function(b){ return b.wo || b.number; }).join(', '), true);
+  }
+
   var deleted = [];
   HISTORICAL_DATA.forEach(function(orig){
     var k = String(orig.number)+'|'+String(orig.wo||'');
@@ -1997,12 +2025,23 @@ function renderOverview() {
 }
 
 // ===== INVOICE NUMBER =====
+// Generates the shop's own sequential Order# (202xxxxxx range) for a brand-new
+// invoice's "number" field. This range is structurally disjoint from the WO#
+// range (49xxxxxxxx, 10 digits) that dispatch assigns -- a generated Order#
+// can never collide with a historical or current WO#, which is what let a
+// freshly-created invoice get silently dropped as a "duplicate" of an
+// unrelated historical record before this fix.
 function generateInvoiceNumber() {
-  const inv = getInvoices();
-  if (!inv.length) return '';
-  const nums = inv.map(i => parseInt(i.number) || 0).filter(n => n > 4900000000 && n < 5000000000);
-  if (!nums.length) return '';
-  return String(Math.max(...nums) + 1);
+  const used = new Set();
+  getInvoices().forEach(i => { const n = parseInt(i.number); if (n) used.add(n); });
+  HISTORICAL_DATA.forEach(i => {
+    const n = parseInt(i.number); if (n) used.add(n);
+    const w = parseInt(i.wo); if (w) used.add(w);
+  });
+  const inRange = Array.from(used).filter(n => n > 202600000 && n < 210000000);
+  let next = inRange.length ? Math.max(...inRange) + 1 : 202600001;
+  while (used.has(next)) next++;
+  return String(next);
 }
 
 function getNextOrderNum() {
@@ -4548,12 +4587,16 @@ function pullEditsFromKV(cb) {
     // Fix: match records by EITHER field non-empty match (indexed by both
     // "number" and "wo"), so a match survives regardless of which field was
     // blank-then-filled and which stayed constant.
-    // Filter out any entry whose number/wo matches HISTORICAL_DATA (prevents stale KV from adding fake invoices)
-    var histNums = new Set(HISTORICAL_DATA.map(function(i){ return String(i.number); }).filter(Boolean));
-    var histWOs  = new Set(HISTORICAL_DATA.map(function(i){ return String(i.wo||''); }).filter(Boolean));
+    // Filter out any entry that IS a historical record (prevents stale KV from
+    // adding fake invoices) -- matched by the exact number|wo pair only. The
+    // old version also matched on EITHER field alone (including wo against
+    // historical `number`), which hid a legitimate brand-new invoice from
+    // every viewer the moment its number or wo happened to coincide with an
+    // unrelated historical record's number. histKeys is the same exact-pair
+    // set used below to filter `deleted`, computed once here so both stay in sync.
+    var histKeys = new Set(HISTORICAL_DATA.map(function(i){ return String(i.number)+'|'+String(i.wo||''); }));
     function isHistorical(i) {
-      var n = String(i.number||''), w = String(i.wo||'');
-      return (n && histNums.has(n)) || (w && histNums.has(w)) || (w && histWOs.has(w));
+      return histKeys.has(String(i.number||'')+'|'+String(i.wo||''));
     }
     function mergeNewInvRecord(remote, local) {
       var merged = Object.assign({}, remote);
@@ -4604,8 +4647,7 @@ function pullEditsFromKV(cb) {
     });
     var mergedNew = Object.values(mergedNewMap);
 
-    // Merge deleted: union, but filter out historical entries
-    var histKeys = new Set(HISTORICAL_DATA.map(function(i){ return String(i.number)+'|'+String(i.wo||''); }));
+    // Merge deleted: union, but filter out historical entries (histKeys computed above)
     var delSet = new Set(kvDel.concat(localDel).filter(function(k){ return !histKeys.has(k); }));
     var mergedDel = Array.from(delSet);
 
