@@ -334,6 +334,41 @@
   .status-pill-sent { background: var(--sa-warning-bg); color: var(--sa-warning-text); }
   .status-pill-pending { background: var(--sa-bg); color: var(--sa-muted); }
 
+  /* ══════════════════ WEEKLY CLOSEOUT (CIERRE SEMANAL POR TÉCNICO) ══════════════════ */
+  .tech-luis  { --tech-soft: #eff6ff; --tech-accent: #3b82f6; --tech-text: #1d4ed8; }
+  .tech-danny { --tech-soft: #f0fdf4; --tech-accent: #22c55e; --tech-text: #15803d; }
+  .tech-shawn { --tech-soft: #fffbeb; --tech-accent: #d97706; --tech-text: #b45309; }
+
+  .weekly-closeout { margin-bottom: var(--sa-space-4); }
+  .weekly-closeout-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+  .weekly-closeout-title { font-size: 12px; font-weight: 800; letter-spacing: 1.5px; color: var(--sa-muted); text-transform: uppercase; }
+  .weekly-closeout-week-select {
+    background: #fff; border: 1px solid var(--sa-border); border-radius: var(--sa-radius-sm); color: var(--sa-black-soft);
+    padding: 0 10px; height: 32px; font-size: 12px; font-family: var(--sa-font);
+  }
+  .weekly-closeout-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+  .weekly-closeout-card {
+    background: var(--tech-soft); border: 1px solid var(--tech-accent); border-left-width: 4px;
+    border-radius: var(--sa-radius-sm); padding: 12px 14px;
+  }
+  .weekly-closeout-card .wc-tech { font-size: 12px; font-weight: 800; color: var(--tech-text); letter-spacing: 0.5px; margin-bottom: 6px; }
+  .weekly-closeout-card .wc-empty { font-size: 12px; color: var(--sa-muted); font-style: italic; }
+  .weekly-closeout-card .wc-row { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--sa-black-soft); padding: 2px 0; }
+  .weekly-closeout-card .wc-row .wc-lbl { color: var(--sa-muted); }
+  .weekly-closeout-card .wc-row .wc-val { font-weight: 600; text-align: right; }
+
+  .wc-badge {
+    display: inline-block; font-size: 9px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase;
+    padding: 2px 7px; border-radius: 100px; margin-left: 6px; white-space: nowrap;
+    background: var(--tech-accent); color: #fff;
+  }
+  tr.wc-row-luis  { background: var(--tech-soft, #eff6ff); }
+  tr.wc-row-danny { background: var(--tech-soft, #f0fdf4); }
+  tr.wc-row-shawn { background: var(--tech-soft, #fffbeb); }
+  tr.wc-row-luis  td { box-shadow: inset 3px 0 0 0 #3b82f6; }
+  tr.wc-row-danny td { box-shadow: inset 3px 0 0 0 #22c55e; }
+  tr.wc-row-shawn td { box-shadow: inset 3px 0 0 0 #d97706; }
+
   /* ══════════════════ FILTER BAR ══════════════════ */
   .filter-row { display: flex; gap: var(--sa-space-2); margin-bottom: var(--sa-space-4); flex-wrap: wrap; align-items: center; }
   .filter-row input, .filter-row select {
@@ -959,6 +994,13 @@
     </div>
   </div>
   <div class="stats-grid" id="stats-grid"></div>
+  <div class="weekly-closeout" id="weekly-closeout">
+    <div class="weekly-closeout-head">
+      <div class="weekly-closeout-title">🔔 Cierre Semanal por Técnico</div>
+      <select class="weekly-closeout-week-select" id="wc-week-select" onchange="renderWeeklyCloseout()"></select>
+    </div>
+    <div class="weekly-closeout-grid" id="weekly-closeout-grid"></div>
+  </div>
   <div>
     <div class="filter-row">
       <input type="text" id="search-input" placeholder="Search invoices..." oninput="renderHistory()">
@@ -2569,8 +2611,105 @@ function saveNewInvoiceRow() {
   showToast('✅ Invoice saved!');
 }
 
+// ══════════════════ WEEKLY CLOSEOUT HELPERS (CIERRE SEMANAL POR TÉCNICO) ══════════════════
+// Accounting week runs Thursday -> Wednesday.
+function getAccountingWeekStart(dateStr) {
+  if (!dateStr) return null;
+  var d = new Date(dateStr + 'T12:00:00');
+  if (isNaN(d.getTime())) return null;
+  var day = d.getDay(); // 0=Sun..6=Sat, Thu=4
+  var offset = (day - 4 + 7) % 7;
+  d.setDate(d.getDate() - offset);
+  return d.toISOString().slice(0,10);
+}
+function formatWeekLabel(weekStartStr) {
+  var s = new Date(weekStartStr + 'T12:00:00');
+  var e = new Date(weekStartStr + 'T12:00:00'); e.setDate(e.getDate()+6);
+  var fmt = function(d){ return d.toLocaleDateString('en-US',{month:'short',day:'numeric'}); };
+  return fmt(s) + ' – ' + fmt(e) + ', ' + e.getFullYear();
+}
+function matchWeeklyTech(name) {
+  var n = String(name||'').trim().toUpperCase();
+  if (!n) return null;
+  if (n.indexOf('LUIS') === 0) return 'luis';
+  if (n.indexOf('DANNY') === 0) return 'danny';
+  if (n.indexOf('SHAWN') === 0) return 'shawn';
+  return null;
+}
+function resolveWoOrder(inv) {
+  var wo = String(inv.wo||''); var num = String(inv.number||'');
+  var isWoPattern = function(v){ return /^4920/.test(v); };
+  if (isWoPattern(wo) && !isWoPattern(num)) return { wo: wo, order: num };
+  if (isWoPattern(num) && !isWoPattern(wo)) return { wo: num, order: wo };
+  return { wo: wo, order: num };
+}
+// Returns map of "weekStart|tech" -> the chronologically last invoice of that tech in that accounting week.
+function computeWeeklyLastMap(invs) {
+  var map = {};
+  invs.forEach(function(inv){
+    var tech = matchWeeklyTech(inv.tech && inv.tech.name);
+    if (!tech) return;
+    var wk = getAccountingWeekStart(inv.date);
+    if (!wk) return;
+    var key = wk + '|' + tech;
+    var cur = map[key];
+    var curNum = cur ? (parseInt(String(cur.number||'').replace(/\D/g,''))||0) : -1;
+    var invNum = parseInt(String(inv.number||'').replace(/\D/g,''))||0;
+    if (!cur || (inv.date||'') > (cur.date||'') || ((inv.date||'')===(cur.date||'') && invNum > curNum)) {
+      map[key] = inv;
+    }
+  });
+  return map;
+}
+function renderWeeklyCloseout() {
+  var sel = document.getElementById('wc-week-select');
+  var grid = document.getElementById('weekly-closeout-grid');
+  if (!sel || !grid) return;
+  var invs = getInvoices();
+  var wcLastMap = computeWeeklyLastMap(invs);
+  var weeksSet = {};
+  invs.forEach(function(inv){
+    var wk = getAccountingWeekStart(inv.date);
+    if (wk) weeksSet[wk] = true;
+  });
+  var weeks = Object.keys(weeksSet).sort().reverse();
+
+  var prevVal = sel.value;
+  sel.innerHTML = weeks.map(function(w){ return '<option value="'+w+'">'+formatWeekLabel(w)+'</option>'; }).join('');
+  var chosen = (prevVal && weeks.indexOf(prevVal)!==-1) ? prevVal : (weeks[0]||'');
+  sel.value = chosen;
+
+  var techs = [
+    {key:'luis', label:'LUIS', cls:'tech-luis'},
+    {key:'danny', label:'DANNY', cls:'tech-danny'},
+    {key:'shawn', label:'SHAWN', cls:'tech-shawn'}
+  ];
+  grid.innerHTML = techs.map(function(t){
+    var inv = chosen ? wcLastMap[chosen+'|'+t.key] : null;
+    if (!inv) {
+      return '<div class="weekly-closeout-card '+t.cls+'"><div class="wc-tech">'+t.label+'</div><div class="wc-empty">Sin facturas esta semana</div></div>';
+    }
+    var fd = inv.date ? new Date(inv.date+'T12:00:00').toLocaleDateString('en-US') : '—';
+    var ids = resolveWoOrder(inv);
+    var co = (inv.client && inv.client.company) || '—';
+    var tot = '$' + parseFloat(inv.total||0).toFixed(2);
+    var st = inv.status || 'PENDING';
+    return '<div class="weekly-closeout-card '+t.cls+'">'
+      + '<div class="wc-tech">'+t.label+' <span class="wc-badge">CIERRE SEMANAL</span></div>'
+      + '<div class="wc-row"><span class="wc-lbl">Fecha</span><span class="wc-val">'+fd+'</span></div>'
+      + '<div class="wc-row"><span class="wc-lbl">Factura #</span><span class="wc-val">'+(inv.number||'—')+'</span></div>'
+      + '<div class="wc-row"><span class="wc-lbl">WO #</span><span class="wc-val">'+(ids.wo||'—')+'</span></div>'
+      + '<div class="wc-row"><span class="wc-lbl">Order #</span><span class="wc-val">'+(ids.order||'—')+'</span></div>'
+      + '<div class="wc-row"><span class="wc-lbl">Cliente</span><span class="wc-val">'+co+'</span></div>'
+      + '<div class="wc-row"><span class="wc-lbl">Total</span><span class="wc-val">'+tot+'</span></div>'
+      + '<div class="wc-row"><span class="wc-lbl">Status</span><span class="wc-val">'+st+'</span></div>'
+      + '</div>';
+  }).join('');
+}
+
 function renderHistory() {
   const invs = getInvoices();
+  const wcLastMap = computeWeeklyLastMap(invs);
   const search = (document.getElementById('search-input').value||'').toLowerCase();
   const stF = document.getElementById('filter-status').value;
   const mF = document.getElementById('filter-month').value;
@@ -2686,13 +2825,19 @@ function renderHistory() {
     var isPaidState = (st==='PAID' || sentState===2);
     var pillClass = isPaidState ? 'status-pill-paid' : sentState===1 ? 'status-pill-sent' : 'status-pill-pending';
     var pillLabel = isPaidState ? '✅ Cobrada' : sentState===1 ? '📤 Enviada' : '○ Pendiente';
-    rows += '<tr>'
+    var wcTech = matchWeeklyTech(tn);
+    var wcWeek = wcTech ? getAccountingWeekStart(inv.date) : null;
+    var wcEntry = wcWeek ? wcLastMap[wcWeek + '|' + wcTech] : null;
+    var isWeeklyLast = !!(wcEntry && String(wcEntry.number) === String(inv.number) && String(wcEntry.wo||'') === String(inv.wo||''));
+    var wcRowClass = isWeeklyLast ? ' class="wc-row-' + wcTech + '"' : '';
+    var wcBadgeHtml = isWeeklyLast ? '<span class="wc-badge">CIERRE SEMANAL</span>' : '';
+    rows += '<tr' + wcRowClass + '>'
       + '<td data-label=""><input type="checkbox" class="inv-chk" data-idx="' + i + '" onchange="updateBulkBar()"></td>'
       + '<td class="editable-cell" data-label="Date" onclick="inlineEdit(this,\'' + uid + '\',\'date\')">' + fd + '</td>'
       + '<td class="editable-cell id-mono" data-label="Order #" onclick="inlineEdit(this,\'' + uid + '\',\'' + orderField + '\')">' + (orderVal||'—') + (inv.prevNumber && inv.prevNumber.length ? '<br><span style="font-size:9px;color:#a0aec0;">' + inv.prevNumber.join(', ') + '</span>' : '') + '</td>'
       + '<td class="editable-cell id-mono" data-label="WO #" style="font-weight:700;color:#2563eb" onclick="inlineEdit(this,\'' + uid + '\',\'' + woField + '\')">' + (woVal||'—') + '</td>'
       + '<td class="editable-cell client-cell" data-label="Client" onclick="inlineEdit(this,\'' + uid + '\',\'client\')">' + (co||'—') + '</td>'
-      + '<td class="editable-cell" data-label="Tech" onclick="inlineEdit(this,\'' + uid + '\',\'tech\')">' + (tn||'—') + '</td>'
+      + '<td class="editable-cell" data-label="Tech" onclick="inlineEdit(this,\'' + uid + '\',\'tech\')">' + (tn||'—') + wcBadgeHtml + '</td>'
       + '<td class="editable-cell" data-label="Hours" onclick="inlineEdit(this,\'' + uid + '\',\'hours\')">' + (th||'—') + '</td>'
       + '<td data-label="Llantas" style="text-align:center">' + (Array.isArray(inv.tirePositions) && inv.tirePositions.length ? inv.tirePositions.length : '—') + '</td>'
       + '<td class="editable-cell amount-cell" data-label="Total" onclick="inlineEdit(this,\'' + uid + '\',\'total\')">' + tot + '</td>'
@@ -2710,6 +2855,7 @@ function renderHistory() {
   tbody.innerHTML = rows;
   var hc = document.getElementById('history-count');
   if (hc) hc.textContent = list.length;
+  renderWeeklyCloseout();
 }
 
 function viewInv(num) {
