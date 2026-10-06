@@ -352,10 +352,12 @@
     border-radius: var(--sa-radius-sm); padding: 12px 14px;
   }
   .weekly-closeout-card .wc-tech { font-size: 12px; font-weight: 800; color: var(--tech-text); letter-spacing: 0.5px; margin-bottom: 6px; }
-  .weekly-closeout-card .wc-empty { font-size: 12px; color: var(--sa-muted); font-style: italic; }
+  .weekly-closeout-card .wc-empty { font-size: 13px; font-weight: 800; letter-spacing: 0.5px; color: var(--tech-text); text-transform: uppercase; }
   .weekly-closeout-card .wc-row { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--sa-black-soft); padding: 2px 0; }
   .weekly-closeout-card .wc-row .wc-lbl { color: var(--sa-muted); }
   .weekly-closeout-card .wc-row .wc-val { font-weight: 600; text-align: right; }
+  .weekly-closeout-card .wc-row .wc-val.wc-key { font-size: 15px; font-weight: 800; color: var(--sa-black-soft); }
+  .weekly-closeout-card .wc-row .wc-val.wc-key .badge { font-size: 12px; }
 
   .wc-badge {
     display: inline-block; font-size: 9px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase;
@@ -997,7 +999,7 @@
   <div class="weekly-closeout" id="weekly-closeout">
     <div class="weekly-closeout-head">
       <div class="weekly-closeout-title">🔔 Cierre Semanal por Técnico</div>
-      <select class="weekly-closeout-week-select" id="wc-week-select" onchange="renderWeeklyCloseout()"></select>
+      <select class="weekly-closeout-week-select" id="wc-week-select" onchange="renderHistory()"></select>
     </div>
     <div class="weekly-closeout-grid" id="weekly-closeout-grid"></div>
   </div>
@@ -2661,22 +2663,31 @@ function computeWeeklyLastMap(invs) {
   });
   return map;
 }
+// All distinct accounting weeks present in the data, newest first.
+function getAllAccountingWeeks(invs) {
+  var weeksSet = {};
+  invs.forEach(function(inv){
+    var wk = getAccountingWeekStart(inv.date);
+    if (wk) weeksSet[wk] = true;
+  });
+  return Object.keys(weeksSet).sort().reverse();
+}
+// The week currently chosen in the dropdown, falling back to the most recent week present in the data.
+function resolveChosenWeek(allWeeks) {
+  var sel = document.getElementById('wc-week-select');
+  var cur = sel ? sel.value : '';
+  return (cur && allWeeks.indexOf(cur) !== -1) ? cur : (allWeeks[0] || '');
+}
 function renderWeeklyCloseout() {
   var sel = document.getElementById('wc-week-select');
   var grid = document.getElementById('weekly-closeout-grid');
   if (!sel || !grid) return;
   var invs = getInvoices();
   var wcLastMap = computeWeeklyLastMap(invs);
-  var weeksSet = {};
-  invs.forEach(function(inv){
-    var wk = getAccountingWeekStart(inv.date);
-    if (wk) weeksSet[wk] = true;
-  });
-  var weeks = Object.keys(weeksSet).sort().reverse();
+  var weeks = getAllAccountingWeeks(invs);
 
-  var prevVal = sel.value;
-  sel.innerHTML = weeks.map(function(w){ return '<option value="'+w+'">'+formatWeekLabel(w)+'</option>'; }).join('');
-  var chosen = (prevVal && weeks.indexOf(prevVal)!==-1) ? prevVal : (weeks[0]||'');
+  var chosen = resolveChosenWeek(weeks);
+  sel.innerHTML = weeks.map(function(w){ return '<option value="'+w+'"'+(w===chosen?' selected':'')+'>'+formatWeekLabel(w)+'</option>'; }).join('');
   sel.value = chosen;
 
   var techs = [
@@ -2687,22 +2698,23 @@ function renderWeeklyCloseout() {
   grid.innerHTML = techs.map(function(t){
     var inv = chosen ? wcLastMap[chosen+'|'+t.key] : null;
     if (!inv) {
-      return '<div class="weekly-closeout-card '+t.cls+'"><div class="wc-tech">'+t.label+'</div><div class="wc-empty">Sin facturas esta semana</div></div>';
+      return '<div class="weekly-closeout-card '+t.cls+'"><div class="wc-tech">'+t.label+'</div><div class="wc-empty">⚠ Sin cierre esta semana</div></div>';
     }
     var fd = inv.date ? new Date(inv.date+'T12:00:00').toLocaleDateString('en-US') : '—';
     var ids = resolveWoOrder(inv);
     var co = (inv.client && inv.client.company) || '—';
     var tot = '$' + parseFloat(inv.total||0).toFixed(2);
     var st = inv.status || 'PENDING';
+    var stBadgeCls = st==='PAID'?'badge-paid':st==='PENDING'?'badge-pending':'badge-cancel';
     return '<div class="weekly-closeout-card '+t.cls+'">'
       + '<div class="wc-tech">'+t.label+' <span class="wc-badge">CIERRE SEMANAL</span></div>'
       + '<div class="wc-row"><span class="wc-lbl">Fecha</span><span class="wc-val">'+fd+'</span></div>'
       + '<div class="wc-row"><span class="wc-lbl">Factura #</span><span class="wc-val">'+(inv.number||'—')+'</span></div>'
-      + '<div class="wc-row"><span class="wc-lbl">WO #</span><span class="wc-val">'+(ids.wo||'—')+'</span></div>'
+      + '<div class="wc-row"><span class="wc-lbl">WO #</span><span class="wc-val wc-key">'+(ids.wo||'—')+'</span></div>'
       + '<div class="wc-row"><span class="wc-lbl">Order #</span><span class="wc-val">'+(ids.order||'—')+'</span></div>'
-      + '<div class="wc-row"><span class="wc-lbl">Cliente</span><span class="wc-val">'+co+'</span></div>'
-      + '<div class="wc-row"><span class="wc-lbl">Total</span><span class="wc-val">'+tot+'</span></div>'
-      + '<div class="wc-row"><span class="wc-lbl">Status</span><span class="wc-val">'+st+'</span></div>'
+      + '<div class="wc-row"><span class="wc-lbl">Cliente</span><span class="wc-val wc-key">'+co+'</span></div>'
+      + '<div class="wc-row"><span class="wc-lbl">Total</span><span class="wc-val wc-key">'+tot+'</span></div>'
+      + '<div class="wc-row"><span class="wc-lbl">Status</span><span class="wc-val wc-key"><span class="badge '+stBadgeCls+'">'+st+'</span></span></div>'
       + '</div>';
   }).join('');
 }
@@ -2710,6 +2722,7 @@ function renderWeeklyCloseout() {
 function renderHistory() {
   const invs = getInvoices();
   const wcLastMap = computeWeeklyLastMap(invs);
+  const wcChosenWeek = resolveChosenWeek(getAllAccountingWeeks(invs));
   const search = (document.getElementById('search-input').value||'').toLowerCase();
   const stF = document.getElementById('filter-status').value;
   const mF = document.getElementById('filter-month').value;
@@ -2827,7 +2840,7 @@ function renderHistory() {
     var pillLabel = isPaidState ? '✅ Cobrada' : sentState===1 ? '📤 Enviada' : '○ Pendiente';
     var wcTech = matchWeeklyTech(tn);
     var wcWeek = wcTech ? getAccountingWeekStart(inv.date) : null;
-    var wcEntry = wcWeek ? wcLastMap[wcWeek + '|' + wcTech] : null;
+    var wcEntry = (wcWeek && wcWeek === wcChosenWeek) ? wcLastMap[wcWeek + '|' + wcTech] : null;
     var isWeeklyLast = !!(wcEntry && String(wcEntry.number) === String(inv.number) && String(wcEntry.wo||'') === String(inv.wo||''));
     var wcRowClass = isWeeklyLast ? ' class="wc-row-' + wcTech + '"' : '';
     var wcBadgeHtml = isWeeklyLast ? '<span class="wc-badge">CIERRE SEMANAL</span>' : '';
