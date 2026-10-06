@@ -352,7 +352,7 @@
     border-radius: var(--sa-radius-sm); padding: 12px 14px;
   }
   .weekly-closeout-card .wc-tech { font-size: 12px; font-weight: 800; color: var(--tech-text); letter-spacing: 0.5px; margin-bottom: 6px; }
-  .weekly-closeout-card .wc-empty { font-size: 13px; font-weight: 800; letter-spacing: 0.5px; color: var(--tech-text); text-transform: uppercase; }
+  .weekly-closeout-card .wc-empty { margin-top: 2px; }
   .weekly-closeout-card .wc-row { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--sa-black-soft); padding: 2px 0; }
   .weekly-closeout-card .wc-row .wc-lbl { color: var(--sa-muted); }
   .weekly-closeout-card .wc-row .wc-val { font-weight: 600; text-align: right; }
@@ -2698,7 +2698,7 @@ function renderWeeklyCloseout() {
   grid.innerHTML = techs.map(function(t){
     var inv = chosen ? wcLastMap[chosen+'|'+t.key] : null;
     if (!inv) {
-      return '<div class="weekly-closeout-card '+t.cls+'"><div class="wc-tech">'+t.label+'</div><div class="wc-empty">⚠ Sin cierre esta semana</div></div>';
+      return '<div class="weekly-closeout-card '+t.cls+'"><div class="wc-tech">'+t.label+'</div><div class="wc-empty"><span class="wc-badge">SIN CIERRE ESTA SEMANA</span></div></div>';
     }
     var fd = inv.date ? new Date(inv.date+'T12:00:00').toLocaleDateString('en-US') : '—';
     var ids = resolveWoOrder(inv);
