@@ -2663,6 +2663,21 @@ function computeWeeklyLastMap(invs) {
   });
   return map;
 }
+// Returns map of tech -> chronologically last invoice of that tech, across ALL weeks.
+function computeOverallLastMap(invs) {
+  var map = {};
+  invs.forEach(function(inv){
+    var tech = matchWeeklyTech(inv.tech && inv.tech.name);
+    if (!tech) return;
+    var cur = map[tech];
+    var curNum = cur ? (parseInt(String(cur.number||'').replace(/\D/g,''))||0) : -1;
+    var invNum = parseInt(String(inv.number||'').replace(/\D/g,''))||0;
+    if (!cur || (inv.date||'') > (cur.date||'') || ((inv.date||'')===(cur.date||'') && invNum > curNum)) {
+      map[tech] = inv;
+    }
+  });
+  return map;
+}
 // All distinct accounting weeks present in the data, newest first.
 function getAllAccountingWeeks(invs) {
   var weeksSet = {};
@@ -2683,12 +2698,16 @@ function renderWeeklyCloseout() {
   var grid = document.getElementById('weekly-closeout-grid');
   if (!sel || !grid) return;
   var invs = getInvoices();
-  var wcLastMap = computeWeeklyLastMap(invs);
   var weeks = getAllAccountingWeeks(invs);
 
   var chosen = resolveChosenWeek(weeks);
   sel.innerHTML = weeks.map(function(w){ return '<option value="'+w+'"'+(w===chosen?' selected':'')+'>'+formatWeekLabel(w)+'</option>'; }).join('');
   sel.value = chosen;
+
+  // Las tarjetas siempre muestran la ultima factura real de cada tecnico,
+  // sin importar si coincide con la semana seleccionada arriba (esa semana
+  // solo controla cual fila se resalta en la tabla de historial, mas abajo).
+  var overallLastMap = computeOverallLastMap(invs);
 
   var techs = [
     {key:'luis', label:'LUIS', cls:'tech-luis'},
@@ -2696,9 +2715,9 @@ function renderWeeklyCloseout() {
     {key:'shawn', label:'SHAWN', cls:'tech-shawn'}
   ];
   grid.innerHTML = techs.map(function(t){
-    var inv = chosen ? wcLastMap[chosen+'|'+t.key] : null;
+    var inv = overallLastMap[t.key];
     if (!inv) {
-      return '<div class="weekly-closeout-card '+t.cls+'"><div class="wc-tech">'+t.label+'</div><div class="wc-empty"><span class="wc-badge">SIN CIERRE ESTA SEMANA</span></div></div>';
+      return '<div class="weekly-closeout-card '+t.cls+'"><div class="wc-tech">'+t.label+'</div><div class="wc-empty"><span class="wc-badge">SIN FACTURAS REGISTRADAS</span></div></div>';
     }
     var fd = inv.date ? new Date(inv.date+'T12:00:00').toLocaleDateString('en-US') : '—';
     var ids = resolveWoOrder(inv);
@@ -2707,7 +2726,7 @@ function renderWeeklyCloseout() {
     var st = inv.status || 'PENDING';
     var stBadgeCls = st==='PAID'?'badge-paid':st==='PENDING'?'badge-pending':'badge-cancel';
     return '<div class="weekly-closeout-card '+t.cls+'">'
-      + '<div class="wc-tech">'+t.label+' <span class="wc-badge">CIERRE SEMANAL</span></div>'
+      + '<div class="wc-tech">'+t.label+' <span class="wc-badge">ULTIMA FACTURA</span></div>'
       + '<div class="wc-row"><span class="wc-lbl">Fecha</span><span class="wc-val">'+fd+'</span></div>'
       + '<div class="wc-row"><span class="wc-lbl">Factura #</span><span class="wc-val">'+(inv.number||'—')+'</span></div>'
       + '<div class="wc-row"><span class="wc-lbl">WO #</span><span class="wc-val wc-key">'+(ids.wo||'—')+'</span></div>'
